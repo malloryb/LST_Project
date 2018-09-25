@@ -41,6 +41,7 @@ Format_Ameriflux <- function(x){
   x$TS <- (x$LW_OUT_1_1_1/(sigma *(x$emiss)))^(0.25)
   #Write daily plots to plot 
   daily_2010 <- subset(x, year=="2010")
+  print(daily_2010)
   winter <- subset(daily_2010, month=="01")
   win <- ddply(winter, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
   print(head(win))
@@ -52,7 +53,8 @@ Format_Ameriflux <- function(x){
   print(grid.arrange(wplot, splot))
   #Get daily data
   temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), Tower_TSavg= mean(TS, na.rm=TRUE), 
-                Tower_TSmax = max(TS, na.rm=TRUE), Tower_TSmin = min(TS, na.rm=TRUE), albedo= mean(albedo, na.rm=TRUE),
+                Tower_TAmax= max(TA, na.rm=TRUE), Tower_TSmax = max(TS, na.rm=TRUE), 
+                Tower_TAmin = min(TA, na.rm=TRUE), Tower_TSmin = min(TS, na.rm=TRUE), albedo= mean(albedo, na.rm=TRUE),
                 emiss=mean(emiss, na.rm=TRUE), LW_OUT=mean(LW_OUT_1_1_1, na.rm=TRUE))
   temp$Tower_TScor <-(temp$LW_OUT/(sigma *(temp$emiss)))^(0.25) - 273.15
   temp$Tower_TSavg <- temp$Tower_TSavg - 273.15
@@ -64,13 +66,12 @@ Mms_test <- Format_Ameriflux(US_Mms)
 head(Mms_test)
 
 Mms_test <- Mms_test[Reduce(`&`, lapply(Mms_test, is.finite)),]
-qplot(Mms_test$date, Mms_test$Tower_TSavg)
 #Plot 1: 
-label <- paste("r=", as.character(round(eval(cor(Mms_test$Tower_TAavg, Mms_test$Tower_TSavg, use="complete.obs")),digits=3)))
+label <- paste("r=", as.character(round(eval(cor(Mms_test$Tower_TAmax, Mms_test$Tower_TAmax, use="complete.obs")),digits=3)))
 ggplot(Mms_test, aes(x=date)) + 
   geom_point(aes(y=Tower_TSavg), colour="blue", size=1.5) +
   geom_point(aes(y=Tower_TScor), colour="red", size=1)+
-  annotate("text", label=paste("r=", as.character(round(eval(cor(Mms_test$Tower_TSavg, Mms_test$Tower_TScor, use="complete.obs")),digits=3))), x=as.Date("2010-10-05"), y=40, fontface="bold")+
+  annotate("text", label=paste("r=", as.character(round(eval(cor(Mms_test$Tower_TSmax, Mms_test$Tower_TAmax, use="complete.obs")),digits=3))), x=as.Date("2010-10-05"), y=40, fontface="bold")+
   labs(title="Time Series MMF", y="Temperature (c)",x="Date") +theme_minimal()
   
 
