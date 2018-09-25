@@ -29,6 +29,7 @@ Format_Ameriflux <- function(x){
   } else {
     x$daynight <- "night"
   }
+  x$dayalbedo <- mean(x$albedo)
   print(head(x))
   #Calculate TS from albedo and LW_OUT using Stefan Boltzman
   sigma = 5.67 * 10^-8
@@ -42,7 +43,13 @@ Format_Ameriflux <- function(x){
   x$albedo[x$albedo > 1] <- NA
   #Relate emissivity to albedo according to Juang et al. 2007 in GRL
   #Es = -0.16*albedo + 0.99
-  x$emiss <- (-0.16*x$albedo + 0.99)
+  day <- subset(x$daynight == "day")
+  daytime_albedo <- ddply(day, .(date))
+  print(head(daytime_albedo))
+  if (x$daynight == "day")
+  {x$emiss <- (-0.16*x$albedo + 0.99)}
+  else{ 
+    x$emiss <- (-0.16*x$dayalbedo +0.99)}
   #Calculate TS 
   x$TS <- (x$LW_OUT_1_1_1/(sigma *(x$emiss)))^(0.25)
   #Write daily plots to plot 
