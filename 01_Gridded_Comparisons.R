@@ -24,6 +24,12 @@ Format_Ameriflux <- function(x){
   x$time <-substr(x$TIMESTAMP_START, 9,12) 
   x$month <-substr(x$TIMESTAMP_START, 5,6)
   x$year <-substr(x$TIMESTAMP_START, 1,4)
+  if (x$time=='1000'|x$time=='1030'|x$time=='1100'|x$time=='1130'|x$time=='1200'|x$time=='1230'|x$time=='1300'|x$time=='1330'|x$time=='1400'|x$time=='1430'|x$time=='1500'|x$time=='1530'|x$time=='1600'|x$time=='1630') {
+    x$daynight <- "day"
+  } else {
+    x$daynight <- "night"
+  }
+  print(head(x))
   #Calculate TS from albedo and LW_OUT using Stefan Boltzman
   sigma = 5.67 * 10^-8
   #For MMS: 
@@ -40,12 +46,9 @@ Format_Ameriflux <- function(x){
   #Calculate TS 
   x$TS <- (x$LW_OUT_1_1_1/(sigma *(x$emiss)))^(0.25)
   #Write daily plots to plot 
-  daily_2010 <- subset(x, year=="2010")
-  print(daily_2010)
-  winter <- subset(daily_2010, month=="01")
+  winter <- subset(x, year=="2010" & month=="01")
   win <- ddply(winter, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
-  print(head(win))
-  summer <- subset(daily_2010, month=="07")
+  summer <- subset(x, year=="2010" & month=="07")
   sum <- ddply(summer, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
   print(head(sum))
   splot <- ggplot(sum, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily summertime temp", y="Temperature (c)",x="Date") +theme_minimal()
@@ -54,7 +57,7 @@ Format_Ameriflux <- function(x){
   #Get daily data
   temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), Tower_TSavg= mean(TS, na.rm=TRUE), 
                 Tower_TAmax= max(TA, na.rm=TRUE), Tower_TSmax = max(TS, na.rm=TRUE), 
-                Tower_TAmin = min(TA, na.rm=TRUE), Tower_TSmin = min(TS, na.rm=TRUE), albedo= mean(albedo, na.rm=TRUE),
+                Tower_TAmin = min(TA, na.rm=TRUE), Tower_TSmin = min(TS, na.rm=TRUE), albedo= mean(albedo, trim=0.2, na.rm=TRUE),
                 emiss=mean(emiss, na.rm=TRUE), LW_OUT=mean(LW_OUT_1_1_1, na.rm=TRUE))
   temp$Tower_TScor <-(temp$LW_OUT/(sigma *(temp$emiss)))^(0.25) - 273.15
   temp$Tower_TSavg <- temp$Tower_TSavg - 273.15
@@ -67,11 +70,10 @@ head(Mms_test)
 
 Mms_test <- Mms_test[Reduce(`&`, lapply(Mms_test, is.finite)),]
 #Plot 1: 
-label <- paste("r=", as.character(round(eval(cor(Mms_test$Tower_TAmax, Mms_test$Tower_TAmax, use="complete.obs")),digits=3)))
 ggplot(Mms_test, aes(x=date)) + 
-  geom_point(aes(y=Tower_TSavg), colour="blue", size=1.5) +
-  geom_point(aes(y=Tower_TScor), colour="red", size=1)+
-  annotate("text", label=paste("r=", as.character(round(eval(cor(Mms_test$Tower_TSmax, Mms_test$Tower_TAmax, use="complete.obs")),digits=3))), x=as.Date("2010-10-05"), y=40, fontface="bold")+
+  geom_point(aes(y=Tower_TAavg), colour="blue", size=1.5) +
+  geom_point(aes(y=Tower_TSavg), colour="red", size=1)+
+  annotate("text", label=paste("r=", as.character(round(eval(cor(Mms_test$Tower_TAavg, Mms_test$Tower_TSavg, use="complete.obs")),digits=3))), x=as.Date("2010-10-05"), y=40, fontface="bold")+
   labs(title="Time Series MMF", y="Temperature (c)",x="Date") +theme_minimal()
   
 
