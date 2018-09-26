@@ -13,11 +13,43 @@ US_Dk2 <- read.csv("Ameriflux_9_11_2018/AMF_US-Dk2_BASE-BADM_4-5/AMF_US-Dk2_BASE
 US_Mms <- read.csv("Ameriflux_9_11_2018/AMF_US-MMS_BASE-BADM_10-5/AMF_US-MMS_BASE_HR_10-5.csv", na.strings=-9999, skip=2) 
 US_Hva <- read.csv("Ameriflux_9_11_2018/AMF_US-HVa_BASE-BADM_2-1/AMF_US-HVa_BASE_HH_2-1.csv", na.strings=-9999, skip=2)
 
+#When modifying function for non-mmf: 
+#Sensor may not have 1_1_1 designation
+
 #Format_Ameriflux function: 
 #1) Parse timestamp
 #2) Calculate TS from TA using Stefan Boltzman and emissivity modeled from Juang et al. GRL (2007)
 #3) calculate daily TAmax, TAmin, TAavg, TSmax, TSmin, TSavg
-
+x  <- US_Mms
+x$date <- as.Date(paste(eval(substr(x$TIMESTAMP_START, 1,4)) ,eval(substr(x$TIMESTAMP_START, 5,6)), eval(substr(x$TIMESTAMP_START, 7,8)), sep="_"), format="%Y_%m_%d")
+x$time <-as.numeric(substr(x$TIMESTAMP_START, 9,12)) 
+x$month <-substr(x$TIMESTAMP_START, 5,6)
+x$year <-substr(x$TIMESTAMP_START, 1,4)
+x$daynight <- ifelse(x$time>800 & x$time<1700, "day","night")
+#Calculate TS from albedo and LW_OUT using Stefan Boltzman
+sigma = 5.67 * 10^-8
+#For MMS: 
+x$TA <- x$TA_1_1_1
+x$albedo <- (x$SW_OUT_1_1_1/x$SW_IN_1_1_1)
+#Filter albedo
+#If albedo is less than zero, means a negative SW_IN value which is incorrect (replace with NA)
+x$albedo[x$albedo < 0] <- NA
+#If albedo is over one, that is also impossible (replace with NA)
+x$albedo[x$albedo > 1] <- NA
+#Relate emissivity to albedo according to Juang et al. 2007 in GRL
+#E = -0.16*albedo + 0.99
+day <- subset(x, x$daynight== "day")
+str(day)
+daytime_albedo <- ddply(day, .(date), summarize, daytime_albedo=mean(albedo, na.rm=TRUE))
+y <- merge(x, daytime_albedo, all.x = TRUE)
+y$alb <- if(y$daynight=="night"){x$albedo=x$daytime_albedo}
+head(y)
+str(y)
+print(head(y))
+str(x)
+str(y)
+y$emiss <- ifelse(y$daynight == "day", -0.16*x$albedo + 0.99, -0.16*x$dayalbedo + 0.99)
+str(y)
 Format_Ameriflux <- function(x){
   #1) Parse tmestamp
   x$date <- as.Date(paste(eval(substr(x$TIMESTAMP_START, 1,4)) ,eval(substr(x$TIMESTAMP_START, 5,6)), eval(substr(x$TIMESTAMP_START, 7,8)), sep="_"), format="%Y_%m_%d")
@@ -46,6 +78,10 @@ Format_Ameriflux <- function(x){
   day <- subset(x$daynight == "day")
   daytime_albedo <- ddply(day, .(date))
   print(head(daytime_albedo))
+  y <- merge(x, daytime_albedo)
+  print(head(y))
+  str(x)
+  str(y)
   if (x$daynight == "day")
   {x$emiss <- (-0.16*x$albedo + 0.99)}
   else{ 
@@ -73,8 +109,6 @@ Format_Ameriflux <- function(x){
   return(temp)
 }
 Mms_test <- Format_Ameriflux(US_Mms)
-head(Mms_test)
-
 Mms_test <- Mms_test[Reduce(`&`, lapply(Mms_test, is.finite)),]
 #Plot 1: 
 ggplot(Mms_test, aes(x=date)) + 
