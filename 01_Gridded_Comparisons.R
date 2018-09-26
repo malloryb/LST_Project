@@ -32,60 +32,44 @@ sigma = 5.67 * 10^-8
 x$TA <- x$TA_1_1_1
 x$albedo <- (x$SW_OUT_1_1_1/x$SW_IN_1_1_1)
 #Filter albedo
-#If albedo is less than zero, means a negative SW_IN value which is incorrect (replace with NA)
-x$albedo[x$albedo < 0] <- NA
+#If albedo is less or equal to zero, means a negative or zero SW_IN value which is either incorrect or nighttime (replace with NA)
+x$albedo[x$albedo <= 0] <- NA
 #If albedo is over one, that is also impossible (replace with NA)
 x$albedo[x$albedo > 1] <- NA
 #Relate emissivity to albedo according to Juang et al. 2007 in GRL
 #E = -0.16*albedo + 0.99
 day <- subset(x, x$daynight== "day")
-str(day)
 daytime_albedo <- ddply(day, .(date), summarize, daytime_albedo=mean(albedo, na.rm=TRUE))
 y <- merge(x, daytime_albedo, all.x = TRUE)
-y$alb <- if(y$daynight=="night"){x$albedo=x$daytime_albedo}
-head(y)
-str(y)
-print(head(y))
-str(x)
-str(y)
-y$emiss <- ifelse(y$daynight == "day", -0.16*x$albedo + 0.99, -0.16*x$dayalbedo + 0.99)
-str(y)
+y$albedo <- ifelse(x$time>800 & x$time<1700, y$albedo, y$daytime_albedo)
+y$emiss <- (-0.16*x$albedo + 0.99)
+length(y)
+length(x)
+
 Format_Ameriflux <- function(x){
   #1) Parse tmestamp
   x$date <- as.Date(paste(eval(substr(x$TIMESTAMP_START, 1,4)) ,eval(substr(x$TIMESTAMP_START, 5,6)), eval(substr(x$TIMESTAMP_START, 7,8)), sep="_"), format="%Y_%m_%d")
-  x$time <-substr(x$TIMESTAMP_START, 9,12) 
+  x$time <-as.numeric(substr(x$TIMESTAMP_START, 9,12)) 
   x$month <-substr(x$TIMESTAMP_START, 5,6)
   x$year <-substr(x$TIMESTAMP_START, 1,4)
-  if (x$time=='1000'|x$time=='1030'|x$time=='1100'|x$time=='1130'|x$time=='1200'|x$time=='1230'|x$time=='1300'|x$time=='1330'|x$time=='1400'|x$time=='1430'|x$time=='1500'|x$time=='1530'|x$time=='1600'|x$time=='1630') {
-    x$daynight <- "day"
-  } else {
-    x$daynight <- "night"
-  }
-  x$dayalbedo <- mean(x$albedo)
-  print(head(x))
+  x$daynight <- ifelse(x$time>800 & x$time<1700, "day","night")
   #Calculate TS from albedo and LW_OUT using Stefan Boltzman
   sigma = 5.67 * 10^-8
   #For MMS: 
   x$TA <- x$TA_1_1_1
   x$albedo <- (x$SW_OUT_1_1_1/x$SW_IN_1_1_1)
   #Filter albedo
-  #If albedo is less than zero, means a negative SW_IN value which is incorrect (replace with NA)
-  x$albedo[x$albedo < 0] <- NA
+  #If albedo is less or equal to zero, means a negative or zero SW_IN value which is either incorrect or nighttime (replace with NA)
+  x$albedo[x$albedo <= 0] <- NA
   #If albedo is over one, that is also impossible (replace with NA)
   x$albedo[x$albedo > 1] <- NA
   #Relate emissivity to albedo according to Juang et al. 2007 in GRL
-  #Es = -0.16*albedo + 0.99
-  day <- subset(x$daynight == "day")
-  daytime_albedo <- ddply(day, .(date))
-  print(head(daytime_albedo))
-  y <- merge(x, daytime_albedo)
-  print(head(y))
-  str(x)
-  str(y)
-  if (x$daynight == "day")
-  {x$emiss <- (-0.16*x$albedo + 0.99)}
-  else{ 
-    x$emiss <- (-0.16*x$dayalbedo +0.99)}
+  #E = -0.16*albedo + 0.99
+  day <- subset(x, x$daynight== "day")
+  daytime_albedo <- ddply(day, .(date), summarize, daytime_albedo=mean(albedo, na.rm=TRUE))
+  x <- merge(x, daytime_albedo, all.x = TRUE)
+  x$albedo <- ifelse(x$time>800 & x$time<1700, x$albedo, x$daytime_albedo)
+  x$emiss <- (-0.16*x$albedo + 0.99)
   #Calculate TS 
   x$TS <- (x$LW_OUT_1_1_1/(sigma *(x$emiss)))^(0.25)
   #Write daily plots to plot 
@@ -108,22 +92,21 @@ Format_Ameriflux <- function(x){
   temp$Tower_TSmin <- temp$Tower_TSmin - 273.15
   return(temp)
 }
+
+
 Mms_test <- Format_Ameriflux(US_Mms)
 Mms_test <- Mms_test[Reduce(`&`, lapply(Mms_test, is.finite)),]
 #Plot 1: 
 ggplot(Mms_test, aes(x=date)) + 
   geom_point(aes(y=Tower_TAavg), colour="blue", size=1.5) +
-  geom_point(aes(y=Tower_TSavg), colour="red", size=1)+
-  annotate("text", label=paste("r=", as.character(round(eval(cor(Mms_test$Tower_TAavg, Mms_test$Tower_TSavg, use="complete.obs")),digits=3))), x=as.Date("2010-10-05"), y=40, fontface="bold")+
+  geom_point(aes(y=Tower_TScor), colour="red", size=1)+
+  annotate("text", label=paste("r=", as.character(round(eval(cor(Mms_test$Tower_TAavg, Mms_test$Tower_TScor, use="complete.obs")),digits=3))), x=as.Date("2010-10-05"), y=40, fontface="bold")+
   labs(title="Time Series MMF", y="Temperature (c)",x="Date") +theme_minimal()
   
 
 
 
 
-
-dd = melt(Mms_test, id=c("date"))
-stat_cor(aes(color = "black"), label.x = 3)
 
 
 #1) Parse timestamp
