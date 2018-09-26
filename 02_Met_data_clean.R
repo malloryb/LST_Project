@@ -25,11 +25,23 @@ Ha1Daymet <- format_daymet(MmsDaymetraw)
 #2b) MODIS LST
 format_MODIS <- function(x){
   x$date <- as.Date(x$system.time_start, format="%b %d, %Y")
-  x$Modis_Temp <- 0.02*(as.numeric(gsub(",", "", x$LST_Day_1km))) - 273.15
+  x$Modis_Temp <- 0.02*(as.numeric(gsub(",", "", x$LST_Day_1km)))
+  x$Modis_Temp <- x$Modis_Temp - 273.15
+  x <- subset(x, select=-c(system.time_start, LST_Day_1km))
   return(x)
 }
-MODISDk1raw <- read.csv("MODIS_LST_dk1.csv")
-MODISDk1 <- format_MODIS(MODISDk1raw)
+
+modisdk1_raw <- rbind(read.csv("MODIS_dk1_00_10.csv"),read.csv("MODIS_dk1_10_17.csv"))
+modisdk1 <- format_MODIS(modisdk1_raw)
+
+modismms_raw <- rbind(read.csv("MODIS_mms_00_10.csv"),read.csv("MODIS_mms_10_17.csv"))
+modismms <- format_MODIS(modismms_raw)
+
+modisdk2_raw <- rbind(read.csv("MODIS_dk2_00_10.csv"),read.csv("MODIS_dk2_10_17.csv"))
+modisdk2 <- format_MODIS(modisdk2_raw)
+
+modisha1_raw <- rbind(read.csv("MODIS_ha1_00_10.csv"),read.csv("MODIS_ha1_10_17.csv"))
+modisha1 <- format_MODIS(modisha1_raw)
 
 #2c) Gridmet
 Gridmet_Tmax_mms <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmax_mms_gridmet.csv")
