@@ -48,6 +48,15 @@ Gridmet_Tmax_mms <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met
 format_gridmet(x,y){
   
 }
+
+gridmetmmstmax_raw <- rbind(read.csv("Gridmet_mms_max_00_10.csv"),read.csv("Gridmet_mms_max_10_17.csv"))
+gridmetmmstmin_raw <- rbind(read.csv("Gridmet_mms_min_00_10.csv"),read.csv("Gridmet_mms_min_10_17.csv"))
+
+
+gridmetdk1tmax_raw <- rbind(read.csv("MODIS_dk2_00_10.csv"),read.csv("MODIS_dk2_10_17.csv"))
+gridmetdk2tmax_raw <- rbind(read.csv("MODIS_dk2_00_10.csv"),read.csv("MODIS_dk2_10_17.csv"))
+gridmetha1tmax_raw <- rbind(read.csv("MODIS_dk2_00_10.csv"),read.csv("MODIS_dk2_10_17.csv"))
+
 head(Gridmet_Tmax_mms)
 Gridmet_Tmax_mms$date <- as.Date(Gridmet_Tmax_mms$system.time_start, format="%b %d, %Y")
 Gridmet_Tmax_mms$gridmettmax <-as.numeric(Gridmet_Tmax_mms$tmmx) - 273.15
