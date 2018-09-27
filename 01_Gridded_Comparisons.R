@@ -11,11 +11,12 @@ setwd("C:/Users/malbarn/Documents/Datasets/")
 US_Dk1 <- read.csv("Ameriflux_9_11_2018/AMF_US-Dk1_BASE-BADM_4-5/AMF_US-Dk1_BASE_HH_4-5.csv", na.strings=-9999, skip=2)
 US_Dk2 <- read.csv("Ameriflux_9_11_2018/AMF_US-Dk2_BASE-BADM_4-5/AMF_US-Dk2_BASE_HH_4-5.csv", na.strings=-9999, skip=2)
 US_Mms <- read.csv("Ameriflux_9_11_2018/AMF_US-MMS_BASE-BADM_10-5/AMF_US-MMS_BASE_HR_10-5.csv", na.strings=-9999, skip=2) 
-US_Hva <- read.csv("Ameriflux_9_11_2018/AMF_US-HVa_BASE-BADM_2-1/AMF_US-HVa_BASE_HH_2-1.csv", na.strings=-9999, skip=2)
-
+US_Ha1 <- read.csv("Ameriflux_9_11_2018/AMF_US-Ha1_BASE-BADM_10-1/AMF_US-Ha1_BASE_HR_10-1.csv", na.strings=-9999, skip=2)
+US_Ha1 <- read.csv("Fluxnet2015_US_sites/FLX_US-Ha1_FLUXNET2015_FULLSET_1991-2012_1-3/FLX_US-Ha1_FLUXNET2015_FULLSET_HR_1991-2012_1-3.csv")
+str(US_Ha1)
+colSums(is.na(US_Ha1))
 #When modifying function for non-mmf: 
 #Sensor may not have 1_1_1 designation
-
 Format_Ameriflux <- function(x){
   #1) Parse tmestamp
   x$date <- as.Date(paste(eval(substr(x$TIMESTAMP_START, 1,4)) ,eval(substr(x$TIMESTAMP_START, 5,6)), eval(substr(x$TIMESTAMP_START, 7,8)), sep="_"), format="%Y_%m_%d")
@@ -26,8 +27,8 @@ Format_Ameriflux <- function(x){
   #Calculate TS from albedo and LW_OUT using Stefan Boltzman
   sigma = 5.67 * 10^-8
   #For MMS: 
-  x$TA <- x$TA_1_1_1
-  x$albedo <- (x$SW_OUT_1_1_1/x$SW_IN_1_1_1)
+  x$TA <- x$TA
+  x$albedo <- (x$SW_OUT/x$SW_IN)
   #Filter albedo
   #If albedo is less or equal to zero, means a negative or zero SW_IN value which is either incorrect or nighttime (replace with NA)
   x$albedo[x$albedo <= 0] <- NA
@@ -41,10 +42,18 @@ Format_Ameriflux <- function(x){
   x$albedo <- ifelse(x$time>800 & x$time<1700, x$albedo, x$daytime_albedo)
   x$emiss <- (-0.16*x$albedo + 0.99)
   #Calculate TS 
-  x$TS <- (x$LW_OUT_1_1_1/(sigma *(x$emiss)))^(0.25)
+  x$TS <- (x$LW_OUT/(sigma *(x$emiss)))^(0.25)
   return(x)}
 
-x <- Format_Ameriflux(US_Mms)
+Mms_hourly <- Format_Ameriflux(US_Mms)
+Ha1_hourly <- Format_Ameriflux(US_Hva)
+Dk1_30min <- Format_Ameriflux(US_Dk1)
+Dk2_30min <- Format_Ameriflux(US_Dk2)
+
+write.csv(Mms_hourly, "Mms_hourly_flux.csv")
+write.csv(Ha1_hourly, "Ha1_hourly_flux.csv")
+write.csv(Dk1_30min, "Ha1_hourly_flux.csv")
+write.csv(Dk2_30min, "Ha1_hourly_flux.csv")
 
 #Get plots of average winter vs. summer diurnal signals
 winter <- subset(x, year=="2010" & month=="01")
@@ -96,31 +105,6 @@ ggplot(yr_2010, aes(x=date)) +
 
 
 #2) Pull in anciallary datasets: Daymet, Modis LST, and Gridmet. Gridmet will be trickiest. 
-#2a) Daymet
-Dk1Daymet <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/11211_lat_35.9712_lon_-79.09338_2018-09-17_133048.csv", skip=7)
-Dk1Daymet$date <- as.Date(paste(Dk1Daymet$year, Dk1Daymet$yday, sep="-"), format="%Y-%j")
-head(Dk1Daymet)
-Dk1Daymet <- plyr::rename(Dk1Daymet, replace=c("tmin..deg.c." = "Daymet_tmax", "tmin..deg.c."="Daymet_tmin"))
-Dk1Daymet <- Dk1Daymet[,c("date","Daymet_Tmax","Daymet_Tmin")]
-Dk1Daymet$Daymet_Tavg <- rowMeans(Dk1Daymet[c('Daymet_Tmax', 'Daymet_Tmin')], na.rm=TRUE)
-
-
-Dk2Daymet <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/11211_lat_35.97358_lon_-79.10043_2018-09-17_133101.csv", skip=7)
-Dk2Daymet$date <- as.Date(paste(Dk2Daymet$year, Dk2Daymet$yday, sep="-"), format="%Y-%j")
-head(Dk2Daymet)
-Dk2Daymet <- plyr::rename(Dk2Daymet, replace=c("tmax..deg.c." = "Daymet_Tmax", "tmin..deg.c."="Daymet_Tmin"))
-Dk2Daymet <- Dk2Daymet[,c("date","Daymet_Tmax","Daymet_Tmin")]
-Dk2Daymet$Daymet_Tavg <- rowMeans(Dk2Daymet[c('Daymet_Tmax', 'Daymet_Tmin')], na.rm=TRUE)
-
-MmsDaymet <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/11567_lat_39.3232_lon_-86.4131_2018-09-17_132853.csv", skip=7)
-MmsDaymet$date <- as.Date(paste(MmsDaymet$year, MmsDaymet$yday, sep="-"), format="%Y-%j")
-head(MmsDaymet)
-tail(MmsDaymet)
-MmsDaymet <- plyr::rename(MmsDaymet, replace=c("tmax..deg.c." = "Daymet_Tmax", "tmin..deg.c."="Daymet_Tmin"))
-MmsDaymet <- MmsDaymet[,c("date","Daymet_Tmax","Daymet_Tmin")]
-MmsDaymet$Daymet_Tavg <- rowMeans(MmsDaymet[c('Daymet_Tmax', 'Daymet_Tmin')], na.rm=TRUE)
-
-Mms_daymet_flux <- merge(temp,MmsDaymet)
 cor(Mms_daymet_flux$Tower_TScor, Mms_daymet_flux$Daymet_Tavg)
 cor(Mms_daymet_flux$Tower_TAavg, Mms_daymet_flux$Daymet_Tavg)
 ggplot(Mms_daymet_flux, aes(x=date)) + 
@@ -135,57 +119,5 @@ cor(Mms_daymet_flux$Tower_TAmax, Mms_daymet_flux$Daymet_Tmax)
 
 cor(Mms_daymet_flux$Tower_TSmin, Mms_daymet_flux$Daymet_Tmin)
 cor(Mms_daymet_flux$Tower_TAmin, Mms_daymet_flux$Daymet_Tmin)
-
-
-#2b) MODIS LST
-MODISDk1 <- read.csv("C:/Users/malbarn/Documents/LST_Project/MODIS_LST/MODIS_LST_dk1.csv")
-MODISDk1$date <- as.Date(MODISDk1$system.time_start, format="%b %d, %Y")
-MODISDk1$Modis_Temp <- 0.02*(as.numeric(gsub(",", "", MODISDk1$LST_Day_1km))) - 273.15
-head(MODISDk1)
-MODISDk2 <- read.csv("C:/Users/malbarn/Documents/LST_Project/MODIS_LST/MODIS_LST_dk2.csv")
-MODISDk2$date <- as.Date(MODISDk2$system.time_start, format="%b %d, %Y")
-MODISDk2$Modis_Temp <- 0.02*(as.numeric(gsub(",", "", MODISDk2$LST_Day_1km))) - 273.15
-head(MODISDk2)
-MODISMms <- read.csv("C:/Users/malbarn/Documents/LST_Project/MODIS_LST/MODIS_LST_mms.csv")
-MODISMms$date <- as.Date(MODISMms$system.time_start, format="%b %d, %Y")
-MODISMms$Modis_Temp <- 0.02*(as.numeric(gsub(",", "", MODISMms$LST_Day_1km))) - 273.15
-head(MODISMms)
-MODISMms <- MODISMms[c("date", "Modis_Temp")]
-
-#2c) Gridmet
-Gridmet_Tmax_mms <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmax_mms_gridmet.csv")
-head(Gridmet_Tmax_mms)
-Gridmet_Tmax_mms$date <- as.Date(Gridmet_Tmax_mms$system.time_start, format="%b %d, %Y")
-Gridmet_Tmax_mms$Gridmet_Tmax <-as.numeric(Gridmet_Tmax_mms$tmmx) - 273.15
-
-tmingridmet_mms<- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmin_mms_gridmet.csv")
-head(tmingridmet_mms)
-tmingridmet_mms$date <- as.Date(tmingridmet_mms$system.time_start, format="%b %d, %Y")
-tmingridmet_mms$Gridmet_Tmin <-as.numeric(tmingridmet_mms$tmmn) - 273.15
-
-
-Gridmetmms <- merge(tmingridmet_mms, Gridmet_Tmax_mms, by="date")
-Gridmetmms <- subset(Gridmetmms, select=-c(system.time_start.x, system.time_start.y, tmmn, tmmx))
-
-
-Gridmet_Tmax_dk1 <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmax_dk1_gridmet.csv")
-Gridmet_Tmax_dk1$date <- as.Date(Gridmet_Tmax_dk1$system.time_start, format="%b %d, %Y")
-Gridmet_Tmax_dk1$Gridmet_Tmax <-as.numeric(Gridmet_Tmax_dk1$tmmx) - 273.15
-Gridmet_Tmax_dk2 <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmax_dk2_gridmet.csv")
-Gridmet_Tmax_dk2$date <- as.Date(Gridmet_Tmax_dk2$system.time_start, format="%b %d, %Y")
-Gridmet_Tmax_dk2$Gridmet_Tmax <-as.numeric(Gridmet_Tmax_dk2$tmmx) - 273.15
-
-
-tmingridmet_dk1 <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmin_dk1_gridmet.csv")
-tmingridmet_dk1$date <- as.Date(tmingridmet_dk1$system.time_start, format="%b %d, %Y")
-tmingridmet_dk1$Gridmet_Tmin <-as.numeric(tmingridmet_dk1$tmmn) - 273.15
-
-tmingridmet_dk2 <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmin_dk2_gridmet.csv")
-tmingridmet_dk2$date <- as.Date(tmingridmet_dk2$system.time_start, format="%b %d, %Y")
-tmingridmet_dk2$Gridmet_Tmin <-as.numeric(tmingridmet_dk2$tmmn) - 273.15
-
-Gridmetdk1 <- merge(tmingridmet_dk1, Gridmet_Tmax_dk1)
-Gridmetdk2 <- merge(tmingridmet_dk2, Gridmet_Tmax_dk2)
-
 
 
