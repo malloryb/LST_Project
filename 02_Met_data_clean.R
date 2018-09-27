@@ -45,39 +45,73 @@ modisha1 <- format_MODIS(modisha1_raw)
 
 #2c) Gridmet
 Gridmet_Tmax_mms <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmax_mms_gridmet.csv")
-format_gridmet(x,y){
-  
-}
+
+format_gridmet <- function(x,y){
+  x$date <- as.Date(x$system.time_start, format="%b %d, %Y")
+  x$Gridmet_Tmax <-as.numeric(x$tmmx) - 273.15
+  y$date <- as.Date(y$system.time_start, format="%b %d, %Y")
+  y$Gridmet_Tmin <-as.numeric(y$tmmn) - 273.15
+  z <- merge(x,y, by="date")
+  z$Gridmet_Tavg <- ((z$Gridmet_Tmax+z$Gridmet_Tmin)/2)
+  z <- subset(z, select=-c(system.time_start.x, tmmx, system.time_start.y, tmmn))
+  return(z)
+  }
 
 gridmetmmstmax_raw <- rbind(read.csv("Gridmet_mms_max_00_10.csv"),read.csv("Gridmet_mms_max_10_17.csv"))
 gridmetmmstmin_raw <- rbind(read.csv("Gridmet_mms_min_00_10.csv"),read.csv("Gridmet_mms_min_10_17.csv"))
 
+gridmet_mms <- format_gridmet(gridmetmmstmax_raw, gridmetmmstmin_raw)
 
-gridmetdk1tmax_raw <- rbind(read.csv("MODIS_dk2_00_10.csv"),read.csv("MODIS_dk2_10_17.csv"))
-gridmetdk2tmax_raw <- rbind(read.csv("MODIS_dk2_00_10.csv"),read.csv("MODIS_dk2_10_17.csv"))
-gridmetha1tmax_raw <- rbind(read.csv("MODIS_dk2_00_10.csv"),read.csv("MODIS_dk2_10_17.csv"))
+gridmetdk1tmax_raw <- rbind(read.csv("Gridmet_dk1_max_00_10.csv"),read.csv("Gridmet_dk1_max_10_17.csv"))
+gridmetdk1tmin_raw <- rbind(read.csv("Gridmet_dk1_min_00_10.csv"),read.csv("Gridmet_dk1_min_10_17.csv"))
 
-head(Gridmet_Tmax_mms)
-Gridmet_Tmax_mms$date <- as.Date(Gridmet_Tmax_mms$system.time_start, format="%b %d, %Y")
-Gridmet_Tmax_mms$gridmettmax <-as.numeric(Gridmet_Tmax_mms$tmmx) - 273.15
-Gridmet_Tmax_dk1 <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmax_dk1_gridmet.csv")
-Gridmet_Tmax_dk1$date <- as.Date(Gridmet_Tmax_dk1$system.time_start, format="%b %d, %Y")
-Gridmet_Tmax_dk1$Gridmet_Tmax <-as.numeric(Gridmet_Tmax_dk1$tmmx) - 273.15
-Gridmet_Tmax_dk2 <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmax_dk2_gridmet.csv")
-Gridmet_Tmax_dk2$date <- as.Date(Gridmet_Tmax_dk2$system.time_start, format="%b %d, %Y")
-Gridmet_Tmax_dk2$Gridmet_Tmax <-as.numeric(Gridmet_Tmax_dk2$tmmx) - 273.15
+gridmet_dk1 <- format_gridmet(gridmetdk1tmax_raw, gridmetdk1tmin_raw)
 
-tmingridmet_mms<- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmin_mms_gridmet.csv")
-head(tmingridmet_mms)
-tmingridmet_mms$date <- as.Date(tmingridmet_mms$system.time_start, format="%b %d, %Y")
-tmingridmet_mms$Gridmet_Tmin <-as.numeric(tmingridmet_mms$tmmn) - 273.15
-tmingridmet_dk1 <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmin_dk1_gridmet.csv")
-tmingridmet_dk1$date <- as.Date(tmingridmet_dk1$system.time_start, format="%b %d, %Y")
-tmingridmet_dk1$Gridmet_Tmin <-as.numeric(tmingridmet_dk1$tmmn) - 273.15
-tmingridmet_dk2 <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmin_dk2_gridmet.csv")
-tmingridmet_dk2$date <- as.Date(tmingridmet_dk2$system.time_start, format="%b %d, %Y")
-tmingridmet_dk2$Gridmet_Tmin <-as.numeric(tmingridmet_dk2$tmmn) - 273.15
+gridmetdk2tmax_raw <- rbind(read.csv("Gridmet_dk2_max_00_10.csv"),read.csv("Gridmet_dk2_max_10_17.csv"))
+gridmetdk2tmin_raw <- rbind(read.csv("Gridmet_dk2_min_00_10.csv"),read.csv("Gridmet_dk2_min_10_17.csv"))
 
-Gridmetmms <- merge(tmingridmet_mms, Gridmet_Tmax_mms, by="date")
-Gridmetdk1 <- merge(tmingridmet_dk1, Gridmet_Tmax_dk1)
-Gridmetdk2 <- merge(tmingridmet_dk2, Gridmet_Tmax_dk2)
+gridmet_dk2 <- format_gridmet(gridmetdk2tmax_raw, gridmetdk2tmin_raw)
+
+gridmetha1tmax_raw <- rbind(read.csv("Gridmet_ha1_max_00_10.csv"),read.csv("Gridmet_ha1_max_10_17.csv"))
+gridmetha1tmin_raw <- rbind(read.csv("Gridmet_ha1_min_00_10.csv"),read.csv("Gridmet_ha1_min_10_17.csv"))
+
+gridmet_ha1 <- format_gridmet(gridmetha1tmax_raw, gridmetha1tmin_raw)
+
+#Merging this stuff together
+#two stages per site
+#Merge daymet and gridmet, then modis (has lots of NAs)
+
+str(MmsDaymet)
+str(gridmet_mms)
+str(modismms)
+
+Mmstemp<- merge(MmsDaymet, gridmet_mms, by="date")
+Mms_met <- merge(Mmstemp, modismms, by="date", all.x=TRUE)
+write.csv(Mms_met, "mms_met_data.csv")
+
+str(Dk1Daymet)
+str(gridmet_dk1)
+str(modisdk1)
+
+dk1temp<- merge(Dk1Daymet, gridmet_dk1, by="date")
+dk1_met <- merge(dk1temp, modisdk1, by="date", all.x=TRUE)
+write.csv(dk1_met, "dk1_met_data.csv")
+
+
+str(Dk2Daymet)
+str(gridmet_dk2)
+str(modisdk2)
+
+dk2temp<- merge(Dk2Daymet, gridmet_dk2, by="date")
+dk2_met <- merge(dk2temp, modisdk2, by="date", all.x=TRUE)
+write.csv(dk2_met, "dk2_met_data.csv")
+
+
+str(Ha1Daymet)
+str(gridmet_ha1)
+str(modisha1)
+
+ha1temp<- merge(Ha1Daymet, gridmet_ha1, by="date")
+ha1_met <- merge(ha1temp, modisha1, by="date", all.x=TRUE)
+write.csv(ha1_met, "ha1_met_data.csv")
+
