@@ -12,9 +12,7 @@ US_Dk1 <- read.csv("Ameriflux_9_11_2018/AMF_US-Dk1_BASE-BADM_4-5/AMF_US-Dk1_BASE
 US_Dk2 <- read.csv("Ameriflux_9_11_2018/AMF_US-Dk2_BASE-BADM_4-5/AMF_US-Dk2_BASE_HH_4-5.csv", na.strings=-9999, skip=2)
 US_Mms <- read.csv("Ameriflux_9_11_2018/AMF_US-MMS_BASE-BADM_10-5/AMF_US-MMS_BASE_HR_10-5.csv", na.strings=-9999, skip=2) 
 US_Ha1 <- read.csv("Ameriflux_9_11_2018/AMF_US-Ha1_BASE-BADM_10-1/AMF_US-Ha1_BASE_HR_10-1.csv", na.strings=-9999, skip=2)
-US_Ha1 <- read.csv("Fluxnet2015_US_sites/FLX_US-Ha1_FLUXNET2015_FULLSET_1991-2012_1-3/FLX_US-Ha1_FLUXNET2015_FULLSET_HR_1991-2012_1-3.csv")
-str(US_Ha1)
-colSums(is.na(US_Ha1))
+
 #When modifying function for non-mmf: 
 #Sensor may not have 1_1_1 designation
 Format_Ameriflux <- function(x){
@@ -52,31 +50,56 @@ Dk2_30min <- Format_Ameriflux(US_Dk2)
 
 write.csv(Mms_hourly, "Mms_hourly_flux.csv")
 write.csv(Ha1_hourly, "Ha1_hourly_flux.csv")
-write.csv(Dk1_30min, "Ha1_hourly_flux.csv")
-write.csv(Dk2_30min, "Ha1_hourly_flux.csv")
+write.csv(Dk1_30min, "Dk130min_flux.csv")
+write.csv(Dk2_30min, "Dk230min_flux.csv")
+
 
 #Get plots of average winter vs. summer diurnal signals
-winter <- subset(x, year=="2010" & month=="01")
+winter <- subset(x, year=="2008" & month=="01")
 win <- ddply(winter, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
-summer <- subset(x, year=="2010" & month=="07")
+summer <- subset(x, year=="2008" & month=="07")
 sum <- ddply(summer, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
 splot <- ggplot(sum, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily summertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()
 wplot <- ggplot(win, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily wintertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()
-(grid.arrange(wplot, splot))
+grid.arrange(wplot, splot, top = "Diurnal Temperature Signal - US-Dk2")
 
 #Get daily data
 temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), Tower_TSavg= mean(TS, na.rm=TRUE), 
                 Tower_TAmax= max(TA, na.rm=TRUE), Tower_TSmax = max(TS, na.rm=TRUE), 
                 Tower_TAmin = min(TA, na.rm=TRUE), Tower_TSmin = min(TS, na.rm=TRUE), albedo= mean(albedo, trim=0.2, na.rm=TRUE),
-                emiss=mean(emiss, na.rm=TRUE), LW_OUT=mean(LW_OUT_1_1_1, na.rm=TRUE))
+                emiss=mean(emiss, na.rm=TRUE), LW_OUT=mean(LW_OUT, na.rm=TRUE))
+str(temp)
+sigma = 5.67 * 10^-8
 temp$Tower_TScor <-(temp$LW_OUT/(sigma *(temp$emiss)))^(0.25) - 273.15
 temp$Tower_TSavg <- temp$Tower_TSavg - 273.15
 temp$Tower_TSmax <- temp$Tower_TSmax - 273.15
 temp$Tower_TSmin <- temp$Tower_TSmin - 273.15
 temp <- temp[Reduce(`&`, lapply(temp, is.finite)),]
 
+#Load met data
+mms_met <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/mms_met_data.csv")
+mms_met$date <- as.Date(mms_met$date)
+dk1_met <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/dk1_met_data.csv")
+dk1_met$date <- as.Date(dk1_met$date)
+dk2_met <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/dk2_met_data.csv")
+dk2_met$date <- as.Date(dk2_met$date)
+ha1_met <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/ha1_met_data.csv")
+ha1_met$date <- as.Date(ha1_met$date)
+
+mms_temp_comp <- merge(temp, mms_met, all.x=TRUE)
+dk1_temp_comp <- merge(temp, dk1_met, all.x=TRUE)
+dk2_temp_comp <- merge(temp, dk2_met, all.x=TRUE)
+
+write.csv(mms_temp_comp, "mms_temp_comp.csv")
+write.csv(dk1_temp_comp, "dk1_temp_comp.csv")
+write.csv(dk2_temp_comp, "dk2_temp_comp.csv")
+
+x <- read.csv("mms_temp_comp.csv")
+x$date <- as.Date(x$date)
+str(x)
+
 #Plot 1: 
-ggplot(temp, aes(x=date)) + 
+ggplot(x, aes(x=date)) + 
   geom_point(aes(y=Tower_TAavg), colour="blue", size=1) +
   geom_point(aes(y=Tower_TScor), colour="red", size=1)+
   annotate("text", label=paste("r=", as.character(round(eval(cor(temp$Tower_TAavg, temp$Tower_TScor, use="complete.obs")),digits=3))), x=as.Date("2010-10-05"), y=40, fontface="bold")+
