@@ -31,7 +31,7 @@ format_MODIS <- function(x){
   return(x)
 }
 
-modismms_day <- rbind(read.csv("us_mms_daily_00_10.csv"),read.csv("us_mms_daily_10_17.csv"))
+modismms_day <- rbind(read.csv("us_mmf_daily_00_10.csv"),read.csv("us_mmf_daily_10_17.csv"))
 modismms_day <- format_MODIS(modismms_day)
 modismms_8day <- format_MODIS(read.csv("us_mms_8day.csv"))
 modismms <- merge(modismms_day, modismms_8day, by="date", all.x=TRUE)
@@ -127,3 +127,40 @@ ha1temp<- merge(Ha1Daymet, gridmet_ha1, by="date")
 ha1_met <- merge(ha1temp, modisha1, by="date", all.x=TRUE)
 write.csv(ha1_met, "ha1_met_data.csv")
 
+
+#have to re-merge and re-save .csv files post 10/8/2018 so I can get MODIS LST (daily and 8day) and proper coordinates
+setwd("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/")
+
+mms_met <- read.csv("mms_met_data.csv")
+mms_met$date <- as.Date(mms_met$date)
+mms_met <- subset(mms_met, select=-c(Modis_Temp))
+mergedmms <- merge(mms_met, modismms, by="date", all.x=TRUE)
+str(mergedmms)
+mergedmms[100:140,]
+write.csv(mergedmms, "mms_met_data.csv")
+
+dk1_met <- read.csv("dk1_met_data.csv")
+dk1_met$date <- as.Date(dk1_met$date)
+dk1_met <- subset(dk1_met, select=-c(Modis_Temp))
+mergeddk1 <- merge(dk1_met, modisdk1, by="date", all.x=TRUE)
+str(mergeddk1)
+mergeddk1[100:140,]
+write.csv(mergeddk1,"dk1_met_data.csv")
+
+
+dk2_met <- read.csv("dk2_met_data.csv")
+dk2_met$date <- as.Date(dk2_met$date)
+dk2_met <- subset(dk2_met, select=-c(Modis_Temp))
+mergeddk2 <- merge(dk2_met, modisdk2, by="date", all.x=TRUE)
+str(mergeddk2)
+mergeddk2[100:140,]
+write.csv(mergeddk2,"dk2_met_data.csv")
+
+
+ha1_met <- read.csv("ha1_met_data.csv")
+ha1_met$date <- as.Date(ha1_met$date)
+ha1_met <- subset(ha1_met, select=-c(Modis_Temp))
+ha1merged <- merge(ha1_met, modisha1, by="date", all.x=TRUE)
+str(ha1merged)
+ha1merged[100:140,]
+write.csv(ha1merged, "ha1_met_data.csv")
