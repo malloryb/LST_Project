@@ -31,21 +31,29 @@ format_MODIS <- function(x){
   return(x)
 }
 
-modisdk1_raw <- rbind(read.csv("us_dk1_daily_00_10.csv"),read.csv("us_dk1_daily_10_17.csv"))
-modisdk1_8day <- rbind(read.csv("us_dk1_8day_00_10.csv"),read.csv("us_dk1_8day_10_17.csv"))
-modisdk1 <- format_MODIS(modisdk1_raw)
-modisdk18day <- format_MODIS(modisdk1_8day)
-str(modisdk18day)
-merge(modisdk1, modisdk18day, by="date", all.x=TRUE)
+modismms_day <- rbind(read.csv("us_mms_daily_00_10.csv"),read.csv("us_mms_daily_10_17.csv"))
+modismms_day <- format_MODIS(modismms_day)
+modismms_8day <- format_MODIS(read.csv("us_mms_8day.csv"))
+modismms <- merge(modismms_day, modismms_8day, by="date", all.x=TRUE)
+modismms <- rename(modismms, replace=c("LST_Day_1km_1.x" = "Modis_Temp", "LST_Day_1km_1.y"="Modis_8day_Temp"))
 
-modismms_raw <- rbind(read.csv("us_mms_daily_00_10.csv"),read.csv("us_mms_daily_10_17.csv"))
-modismms <- format_MODIS(modismms_raw)
+modisdk1_day <- rbind(read.csv("us_dk1_daily_00_10.csv"),read.csv("us_dk1_daily_10_17.csv"))
+modisdk1_day <- format_MODIS(modisdk1_day)
+modisdk1_8day <- format_MODIS(read.csv("us_dk1_8day.csv"))
+modisdk1 <- merge(modisdk1_day, modisdk1_8day, by="date", all.x=TRUE)
+modisdk1 <- rename(modisdk1, replace=c("LST_Day_1km_1.x" = "Modis_Temp", "LST_Day_1km_1.y"="Modis_8day_Temp"))
 
-modisdk2_raw <- rbind(read.csv("us_dk2_daily_00_10.csv"),read.csv("us_dk2_daily_10_17.csv"))
-modisdk2 <- format_MODIS(modisdk2_raw)
+modisdk2_day <- rbind(read.csv("us_dk2_daily_00_10.csv"),read.csv("us_dk2_daily_10_17.csv"))
+modisdk2_day <- format_MODIS(modisdk2_day)
+modisdk2_8day <- format_MODIS(read.csv("us_dk2_8day.csv"))
+modisdk2 <- merge(modisdk2_day, modisdk2_8day, by="date", all.x=TRUE)
+modisdk2 <- rename(modisdk2, replace=c("LST_Day_1km_1.x" = "Modis_Temp", "LST_Day_1km_1.y"="Modis_8day_Temp"))
 
-modisha1_raw <- rbind(read.csv("us_ha1_daily_00_10.csv"),read.csv("us_ha1_daily_10_17.csv"))
-modisha1 <- format_MODIS(modisha1_raw)
+modisha1_day <- rbind(read.csv("us_ha1_daily_00_10.csv"),read.csv("us_ha1_daily_10_17.csv"))
+modisha1_day <- format_MODIS(modisha1_day)
+modisha1_8day <- format_MODIS(read.csv("us_ha1_8day.csv"))
+modisha1 <- merge(modisha1_day, modisha1_8day, by="date", all.x=TRUE)
+modisha1 <- rename(modisha1, replace=c("LST_Day_1km_1.x" = "Modis_Temp", "LST_Day_1km_1.y"="Modis_8day_Temp"))
 
 #2c) Gridmet
 Gridmet_Tmax_mms <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/tmax_mms_gridmet.csv")
