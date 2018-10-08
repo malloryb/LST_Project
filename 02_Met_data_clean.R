@@ -164,3 +164,35 @@ ha1merged <- merge(ha1_met, modisha1, by="date", all.x=TRUE)
 str(ha1merged)
 ha1merged[100:140,]
 write.csv(ha1merged, "ha1_met_data.csv")
+
+#Re-merge for temp comps
+mms_temp <- read.csv("C:/Users/malbarn/Documents/Datasets/mms_temp_comp.csv")
+head(mms_temp)
+mms_temp$date <- as.Date(mms_temp$date)
+mms_temp <- subset(mms_temp, select=-c(Modis_Temp))
+modismms <- subset(mergedmms, select=c("date", "Modis_Temp", "Modis_8day_Temp"))
+head(modismms)
+mms_merged <- merge(mms_temp, modismms, by="date", all.x=TRUE)
+write.csv(mms_merged, "C:/Users/malbarn/Documents/Datasets/mms_temp_comp_10_8.csv")
+
+
+dk1_temp <- read.csv("C:/Users/malbarn/Documents/Datasets/dk1_temp_comp.csv")
+head(dk1_temp)
+dk1_temp$date <- as.Date(dk1_temp$date)
+dk1_temp <- subset(dk1_temp, select=-c(Modis_Temp))
+modisdk1 <- subset(mergeddk1, select=c("date", "Modis_Temp", "Modis_8day_Temp"))
+head(modisdk1)
+dk1_merged <- merge(dk1_temp, modisdk1, by="date", all.x=TRUE)
+str(dk1_merged)
+write.csv(dk1_merged, "C:/Users/malbarn/Documents/Datasets/dk1_temp_comp_10_8.csv")
+
+
+dk2_temp <- read.csv("C:/Users/malbarn/Documents/Datasets/dk2_temp_comp.csv")
+head(dk2_temp)
+dk2_temp$date <- as.Date(dk2_temp$date)
+dk2_temp <- subset(dk2_temp, select=-c(Modis_Temp))
+modisdk2 <- subset(mergeddk2, select=c("date", "Modis_Temp", "Modis_8day_Temp"))
+head(modisdk2)
+dk2_merged <- merge(dk2_temp, modisdk2, by="date", all.x=TRUE)
+write.csv(dk2_merged, "C:/Users/malbarn/Documents/Datasets/dk2_temp_comp_10_8.csv")
+
