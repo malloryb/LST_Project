@@ -53,22 +53,20 @@ write.csv(Ha1_hourly, "Ha1_hourly_flux.csv")
 write.csv(Dk1_30min, "Dk130min_flux.csv")
 write.csv(Dk2_30min, "Dk230min_flux.csv")
 
+#Do this over again with proper file read in as "x"...maybe not the best idea but it's what is 
+#going on for now 
 
-#Get plots of average winter vs. summer diurnal signals
-winter <- subset(x, year=="2008" & month=="01")
-win <- ddply(winter, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
-summer <- subset(x, year=="2008" & month=="07")
-sum <- ddply(summer, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
-splot <- ggplot(sum, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily summertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()
-wplot <- ggplot(win, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily wintertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()
-grid.arrange(wplot, splot, top = "Diurnal Temperature Signal - US-Dk2")
-
+x <- read.csv("DK130min_flux.csv")
+TOB <- subset(x, x$time>=1000 & x$time<=1100)
+TOB2 <- ddply(TOB, .(date), summarize, TOB = mean(TA, na.rm=TRUE))
 #Get daily data
 temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), Tower_TSavg= mean(TS, na.rm=TRUE), 
                 Tower_TAmax= max(TA, na.rm=TRUE), Tower_TSmax = max(TS, na.rm=TRUE), 
                 Tower_TAmin = min(TA, na.rm=TRUE), Tower_TSmin = min(TS, na.rm=TRUE), albedo= mean(albedo, trim=0.2, na.rm=TRUE),
                 emiss=mean(emiss, na.rm=TRUE), LW_OUT=mean(LW_OUT, na.rm=TRUE))
-str(temp)
+ 
+temp <- merge(temp, TOB2, by="date", all.x=TRUE)
+
 sigma = 5.67 * 10^-8
 temp$Tower_TScor <-(temp$LW_OUT/(sigma *(temp$emiss)))^(0.25) - 273.15
 temp$Tower_TSavg <- temp$Tower_TSavg - 273.15
@@ -97,6 +95,72 @@ write.csv(dk2_temp_comp, "dk2_temp_comp.csv")
 x <- read.csv("mms_temp_comp.csv")
 x$date <- as.Date(x$date)
 str(x)
+
+#Adding TOB to exisitng files
+dk1 <- read.csv("C:/Users/malbarn/Documents/Datasets/dk1_temp_comp_10_8.csv")
+#Get TOB from flux data 
+dk1_flux <- read.csv("DK130min_flux.csv")
+TOB <- subset(dk1_flux, dk1_flux$time>=1000 & dk1_flux$time<=1100)
+TOB2 <- ddply(TOB, .(date), summarize, TOB_A = mean(TA, na.rm=TRUE), TOB_S = mean(TS, na.rm=TRUE))
+#merge
+dk1_fix <- merge(dk1, TOB2, by="date", all.x=TRUE)
+#should be same number of obvservations
+str(dk1)
+str(dk1_fix)
+#fixed! 
+write.csv(dk1_fix, "C:/Users/malbarn/Documents/Datasets/dk1_temp_comp_10_8.csv")
+
+#dk2
+dk2 <- read.csv("C:/Users/malbarn/Documents/Datasets/dk2_temp_comp_10_8.csv")
+dk2_flux <- read.csv("dk230min_flux.csv")
+TOB <- subset(dk2_flux, dk2_flux$time>=1000 & dk2_flux$time<=1100)
+TOB2 <- ddply(TOB, .(date), summarize, TOB_A = mean(TA, na.rm=TRUE), TOB_S = mean(TS, na.rm=TRUE))
+#merge
+dk2_fix <- merge(dk2, TOB2, by="date", all.x=TRUE)
+#should be same number of obvservations
+str(dk2)
+str(dk2_fix)
+dk2_fix <- subset(dk2_fix, select=-c(TOB, X.1, X))
+#fixed! 
+write.csv(dk2_fix, "C:/Users/malbarn/Documents/Datasets/dk2_temp_comp_10_8.csv")
+
+#mms
+mms <- read.csv("C:/Users/malbarn/Documents/Datasets/mms_temp_comp_10_8.csv")
+mms_flux <- read.csv("Mms_hourly_flux.csv")
+TOB <- subset(mms_flux, mms_flux$time>=1000 & mms_flux$time<=1100)
+TOB2 <- ddply(TOB, .(date), summarize, TOB_A = mean(TA_1_1_1, na.rm=TRUE), TOB_S = mean(TS, na.rm=TRUE))
+#merge
+mms_fix <- merge(mms, TOB2, by="date", all.x=TRUE)
+#should be same number of obvservations
+str(mms)
+str(mms_fix)
+mms_fix <- subset(mms_fix, select=-c(X.1, X.2, X))
+#fixed! 
+write.csv(mms_fix, "C:/Users/malbarn/Documents/Datasets/mms_temp_comp_10_8.csv")
+
+#ha1
+ha1 <- read.csv("C:/Users/malbarn/Documents/Datasets/ha1_temp_comp_10_8.csv")
+ha1_flux <- read.csv("ha1_hourly_flux.csv")
+TOB <- subset(ha1_flux, ha1_flux$time>=1000 & ha1$time<=1100)
+TOB2 <- ddply(TOB, .(date), summarize, TOB_A = mean(TA, na.rm=TRUE), TOB_S = mean(TS, na.rm=TRUE))
+#merge
+ha1_fix <- merge(ha1, TOB2, by="date", all.x=TRUE)
+#should be same number of obvservations
+str(ha1)
+str(ha1_fix)
+#fixed! 
+write.csv(ha1_fix, "C:/Users/malbarn/Documents/Datasets/ha1_temp_comp_10_8.csv")
+
+
+#Don't need this stuff____________________________
+#Get plots of average winter vs. summer diurnal signals
+winter <- subset(x, year=="2008" & month=="01")
+win <- ddply(winter, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
+summer <- subset(x, year=="2008" & month=="07")
+sum <- ddply(summer, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
+splot <- ggplot(sum, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily summertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()
+wplot <- ggplot(win, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily wintertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()
+grid.arrange(wplot, splot, top = "Diurnal Temperature Signal - US-Dk2")
 
 #Plot 1: 
 ggplot(x, aes(x=date)) + 
