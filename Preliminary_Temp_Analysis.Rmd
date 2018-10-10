@@ -105,12 +105,12 @@ Morgan Monroe State Forest:
 *   Modis data was very spotty (Indiana is cloudy!) and overestimates temperature by a lot. 
 ```{r, echo=FALSE, warning=FALSE}
 x <- read.csv("C:/Users/malbarn/Documents/Datasets/mms_temp_comp_10_8.csv")
-
+x$TOB_S <- x$TOB_S -273.15
 TaTsplot<-ggplotRegression(lm(Tower_TScor~Tower_TAavg, data = x))
 DaymetPlot<-ggplotRegression(lm(Gridmet_Tavg ~Tower_TAavg, data = x))
 GridmetPlot <-ggplotRegression(lm(Daymet_Tavg ~Tower_TAavg, data = x))
-ModisPlot<-ggplotRegression(lm(Modis_Temp ~TOB_A, data = x))
-Modis8dayPlot<-ggplotRegression(lm(Modis_8day_Temp ~TOB_A, data = x))
+ModisPlot<-ggplotRegression(lm(Modis_Temp ~TOB_S, data = x))
+Modis8dayPlot<-ggplotRegression(lm(Modis_8day_Temp ~TOB_S, data = x))
 grid.arrange(TaTsplot, DaymetPlot, GridmetPlot, ModisPlot, Modis8dayPlot, top="Comparisons with Ts and Gridded Products - US-Mms")
 ```
 
@@ -121,12 +121,12 @@ Duke Forest:
 *   Modis data had better coverage, bias is improved, but correlation isn't great. 
 ```{r, echo=FALSE, warning=FALSE}
 x <- read.csv("C:/Users/malbarn/Documents/Datasets/dk2_temp_comp_10_8.csv")
-
+x$TOB_S <- x$TOB_S -273.15
 TaTsplot<-ggplotRegression(lm(Tower_TScor~Tower_TAavg, data = x))
 DaymetPlot<-ggplotRegression(lm(Gridmet_Tavg ~Tower_TAavg, data = x))
 GridmetPlot <-ggplotRegression(lm(Daymet_Tavg ~Tower_TAavg, data = x))
-ModisPlot<-ggplotRegression(lm(Modis_Temp ~TOB_A, data = x))
-Modis8dayPlot<-ggplotRegression(lm(Modis_8day_Temp ~TOB_A, data = x))
+ModisPlot<-ggplotRegression(lm(Modis_Temp~TOB_S, data = x))
+Modis8dayPlot<-ggplotRegression(lm(Modis_8day_Temp~TOB_S, data = x))
 grid.arrange(TaTsplot, DaymetPlot, GridmetPlot, ModisPlot, Modis8dayPlot, top="Comparisons with Ts and Gridded Products - US-Dk2")
 ```
 
@@ -138,12 +138,12 @@ Duke Grassland:
 
 ```{r, echo=FALSE, warning=FALSE}
 x <- read.csv("C:/Users/malbarn/Documents/Datasets/dk1_temp_comp_10_8.csv")
-
+x$TOB_S <- x$TOB_S -273.15
 TaTsplot<-ggplotRegression(lm(Tower_TScor~Tower_TAavg, data = x))
 DaymetPlot<-ggplotRegression(lm(Gridmet_Tavg ~Tower_TAavg, data = x))
 GridmetPlot <-ggplotRegression(lm(Daymet_Tavg ~Tower_TAavg, data = x))
-ModisPlot<-ggplotRegression(lm(Modis_Temp ~TOB_A, data = x))
-Modis8dayPlot<-ggplotRegression(lm(Modis_8day_Temp ~TOB_A, data = x))
+ModisPlot<-ggplotRegression(lm(Modis_Temp ~TOB_S, data = x))
+Modis8dayPlot<-ggplotRegression(lm(Modis_8day_Temp ~TOB_S, data = x))
 grid.arrange(TaTsplot, DaymetPlot, GridmetPlot, ModisPlot, Modis8dayPlot, top="Comparisons with Ts and Gridded Products - US-Dk1")
 ```
 #### Morgan Monroe State Forest
@@ -299,7 +299,7 @@ MODIS LST: Very few data points
 ```{r, echo=FALSE, warning=FALSE}
 y <- read.csv("C:/Users/malbarn/Documents/Datasets/mms_temp_comp_10_8.csv")
 y$date <- as.Date(y$date)
-
+y$TOB_S <- y$TOB_S -273.15
 y$year <- substr(as.character(y$date),1,4)
 x <- subset(y, year==2008)
 
@@ -311,7 +311,7 @@ ts <- ggplot(x, aes(x=date)) +
   annotate("text", x=as.Date("2008-07-08"), y=3, label="MODIS LST", colour="black", fontface="bold")+
     labs(title="MODS LST vs. Air Temp (2008)", y="Temperature (C)",x="Date") 
 
-r1plot <- ggplotRegression(lm(Modis_Temp ~Tower_TAavg, data = x))
+r1plot <- ggplotRegression(lm(Modis_Temp ~TOB_A, data = x))
 
 
 ts2 <- ggplot(x, aes(x=date)) + 
@@ -322,7 +322,7 @@ ts2 <- ggplot(x, aes(x=date)) +
   annotate("text", x=as.Date("2008-07-08"), y=3, label="MODIS LST", colour="black", fontface="bold")+
   labs(title="MODIS LST vs. Surface Temp (2008)", y="Temperature (C)",x="Date")+theme(plot.title = element_text(size=12))+theme_minimal()
 
-r2plot <- ggplotRegression(lm(Modis_Temp ~Tower_TScor, data = x))
+r2plot <- ggplotRegression(lm(Modis_Temp ~TOB_S, data = x))
 
 grid.arrange(ts, ts2, r1plot, r2plot)
 ```
@@ -398,6 +398,7 @@ MODIS LST: Bias is much better, but relationship as clean as I'd like
 ```{r, echo=FALSE, warning=FALSE}
 y <- read.csv("C:/Users/malbarn/Documents/Datasets/dk2_temp_comp_10_8.csv")
 y$date <- as.Date(y$date)
+y$TOB_S <- y$TOB_S -273.15
 
 y$year <- substr(as.character(y$date),1,4)
 x <- subset(y, year==2008)
@@ -408,9 +409,9 @@ ts <- ggplot(x, aes(x=date)) +
   annotate("text", label=paste("r=", as.character(round(eval(cor(x$Modis_Temp, x$Tower_TAavg, use="complete.obs")),digits=3))), x=as.Date("2008-10-05"), y=40)+theme_minimal()+
       annotate("text", x=as.Date("2008-07-08"), y =8, label="Air Temp", colour="blue", fontface="bold")+
   annotate("text", x=as.Date("2008-07-08"), y=3, label="MODIS LST", colour="black", fontface="bold")+
-    labs(title="MODS LST vs. Air Temp (2008)", y="Temperature (C)",x="Date") 
+    labs(title="MODS LST vs. Surface Temp (2008)", y="Temperature (C)",x="Date") 
 
-r1plot <- ggplotRegression(lm(Modis_Temp ~Tower_TAavg, data = x))
+r1plot <- ggplotRegression(lm(Modis_Temp ~TOB_A, data = x))
 
 
 ts2 <- ggplot(x, aes(x=date)) + 
@@ -421,7 +422,7 @@ ts2 <- ggplot(x, aes(x=date)) +
   annotate("text", x=as.Date("2008-07-08"), y=3, label="MODIS LST", colour="black", fontface="bold")+
   labs(title="MODIS LST vs. Surface Temp (2008)", y="Temperature (C)",x="Date")+theme(plot.title = element_text(size=12))+theme_minimal()
 
-r2plot <- ggplotRegression(lm(Modis_Temp ~Tower_TScor, data = x))
+r2plot <- ggplotRegression(lm(Modis_Temp ~TOB_S, data = x))
 
 grid.arrange(ts, ts2, r1plot, r2plot)
 ```
@@ -496,6 +497,7 @@ MODIS LST looks pretty good!
 ```{r, echo=FALSE, warning=FALSE}
 y <- read.csv("C:/Users/malbarn/Documents/Datasets/dk1_temp_comp_10_8.csv")
 y$date <- as.Date(y$date)
+y$TOB_S <- y$TOB_S -273.15
 
 y$year <- substr(as.character(y$date),1,4)
 x <- subset(y, year==2007)
@@ -508,7 +510,7 @@ ts <- ggplot(x, aes(x=date)) +
   annotate("text", x=as.Date("2007-07-08"), y=3, label="MODIS LST", colour="black", fontface="bold")+
     labs(title="MODS LST vs. Air Temp (2007)", y="Temperature (C)",x="Date") 
 
-r1plot <- ggplotRegression(lm(Modis_Temp ~Tower_TAavg, data = x))
+r1plot <- ggplotRegression(lm(Modis_Temp ~TOB_A, data = x))
 
 
 ts2 <- ggplot(x, aes(x=date)) + 
@@ -519,7 +521,7 @@ ts2 <- ggplot(x, aes(x=date)) +
   annotate("text", x=as.Date("2007-07-08"), y=3, label="MODIS LST", colour="black", fontface="bold")+
   labs(title="MODIS LST vs. Surface Temp (2007)", y="Temperature (C)",x="Date")+theme(plot.title = element_text(size=12))+theme_minimal()
 
-r2plot <- ggplotRegression(lm(Modis_Temp ~Tower_TScor, data = x))
+r2plot <- ggplotRegression(lm(Modis_Temp ~TOB_S, data = x))
 
 grid.arrange(ts, ts2, r1plot, r2plot)
 ```
