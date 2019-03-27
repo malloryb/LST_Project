@@ -1,7 +1,7 @@
 ---
 title: "Temperature Comparisons"
 author: "Mallory Barnes"
-date: "September 25, 2018"
+date: "Octobern 10, 2018"
 output:
   html_document: default
   pdf_document: default
