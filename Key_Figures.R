@@ -325,16 +325,36 @@ Dec_Diffs_Mean <- calc(Dec_Diffs, mean_na)
 Diffs<- stack(Jan_Diffs_Mean, Feb_Diffs_Mean, Mar_Diffs_Mean, Apr_Diffs_Mean, May_Diffs_Mean,
       Jun_Diffs_Mean, Jul_Diffs_Mean, Aug_Diffs_Mean, Sep_Diffs_Mean, Oct_Diffs_Mean, 
       Nov_Diffs_Mean, Dec_Diffs_Mean)
-plot(Diffs)
-cuts=c(-6,-4,-2,0,2,4,6) #set breaks
-pal <- colorRampPalette(c("blue","lightblue", "white","red", "red3"))
-plot(Diffs, breaks=cuts, col = rev(pal(n=6)))
-
-cols <- colorRampPalette(brewer.pal(9,"RdBu"))
+names(Diffs) <- c("Jan", "Feb", "Mar","Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct","Nov", "Dec")
 # create a level plot - plot
+cols <- colorRampPalette(brewer.pal(9,"RdBu"))
 my.at <- seq(-6,6,1)
 levelplot(Diffs, at=my.at, main="Difference between Air Temperature and Surface Temperature (Ta-Ts)",
-          col.regions=rev(cols), pretty=TRUE)
+          col.regions=(cols))
 writeRaster(Diffs, "/Users/mallory/Documents/Temp_Project/Ta_Ts_All.tif")
-spatialEco::rasterCorrelation(Avg_Dif, Forest_Age, s = 3, type = "pearson", file.name = NULL)
+
+densityplot(Diffs)
+?densityplot
+bwplot(Diffs)
+#----------now looking at forest data
+F1 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/sc_age06_1km.tif")
+F2 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/se_age06_1km.tif")
+F3 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/nl_age06_1km.tif")
+F4 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/ne_age06_1km.tif")
+F5 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/np_age06_1km.tif")
+
+F_m1 <- merge(F1, F2,tolerance = 0.2)
+F_m2 <- merge(F_m1, F3, tolerance=0.2)
+F_m3 <- merge(F_m2, F4, tolerance=0.2)
+F4 <- merge(F_m3, F5,tolerance=0.2)
+Forest_Proj <- projectRaster(F4, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+plot(Forest_Proj)
+ext <- extent(Diffs)
+Forest_Proj_crop <- crop(Forest_Proj, ext)
+Forest_Proj
+Forest_Age<- resample(Forest_Proj_crop,LST,method='bilinear')
+plot(Forest_Age)
+Diffs
+Test <- Diffs[[7]]
+spatialEco::rasterCorrelation(Test, Forest_Age, s = 3, type = "pearson", file.name = NULL)
 
