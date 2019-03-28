@@ -17,6 +17,7 @@ library(gdalUtils)
 library(spatialEco)
 library(greenbrown)
 library(RColorBrewer)
+library(MODIS)
 fname <- file.choose("air.mon.mean.v501.nc")
 nc<-nc_open(fname)
 # Get a list of the NetCDF's R attributes:
@@ -54,4 +55,77 @@ slope_diff <- greenbrown_test1break[[5]]-greenbrown_test1break[[4]]
 plot(slope_diff, col=pal(10))
 
 
-#Loading up 
+#Loading up modis surface temperature data
+#Want to create Ta-Ts map for the US 
+#Checking out 1 file
+#Creating monthly Ts Files
+testmodis <- raster("/Users/mallory/Documents/APPEARS_LST/MOD11A2.006_LST_Day_1km_doy2000065_aid0001.tif")
+plot(testmodis)
+plot((testmodis*0.02 - 273.15))
+#Daymet end:
+#Get Tmax stacks, crop to extent, and reproject as necessary! Already made monthly average Tmax 
+#rasters for years 1980-2017! 
+brick("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmax_monavg_1980_na.tif")
+#LST:
+#Rescale, create monthly composites, and stack them all up, do it for each year
+#To-dos: 
+setwd("/Users/mallory/Documents/APPEARS_LST/")
+mean_na <- function(x) {
+  mean(x,na.rm=T)
+}
+Monthly_LST <- function(year){
+flist <- list.files(pattern= paste0("(LST_Day).*doy", year, sep=""))
+flist
+str(flist)
+year <- "2001"
+(paste0("(LST_Day).*doy", year, sep=""))
+Process_LST <- function(x){
+    filename <- paste(x)
+    print(filename)
+    rast <- raster(filename)
+    year <- substr(filename, 28,31)
+    print(year)
+    day <- substr(filename, 32,34)
+    print(day)
+    rast_date <- as.Date(paste(day, year, sep="-"), format="%j-%Y")
+    print(rast_date)
+    date <- (as.character(rast_date))
+    rast <- setMinMax(rast)
+    rast <- (rast*0.02 -273.15)
+    rast <- setNames(rast, date)
+    return(rast)
+}
+LST <- stack(lapply(flist, Process_LST))
+
+LST_Jan <- stack(LST[[1]], LST[[2]], LST[[3]], LST[[4]])
+Jan_mean <- calc(LST_Jan, mean_na)
+LST_Feb <- stack(LST[[5]], LST[[6]], LST[[7]], LST[[8]])
+Feb_mean <- calc(LST_Feb, mean_na)
+LST_Mar <- stack(LST[[9]], LST[[10]], LST[[11]], LST[[12]])
+Mar_mean <- calc(LST_Mar, mean_na)
+LST_Apr <- stack(LST[[13]], LST[[14]], LST[[15]])
+Apr_mean <- calc(LST_Apr, mean_na)
+LST_May <- stack(LST[[16]], LST[[17]], LST[[18]], LST[[19]])
+May_mean <- calc(LST_May, mean_na)
+LST_Jun <- stack(LST[[20]], LST[[21]], LST[[22]], LST[[23]])
+Jun_mean <- calc(LST_Jun, mean_na)
+LST_Jul <- stack(LST[[24]], LST[[25]], LST[[26]], LST[[27]])
+Jul_mean <- calc(LST_Jul, mean_na)
+LST_Aug <- stack(LST[[28]], LST[[29]], LST[[30]])
+Aug_mean <- calc(LST_Aug, mean_na)
+LST_Sep <- stack(LST[[31]], LST[[32]], LST[[33]], LST[[34]])
+Sep_mean <- calc(LST_Sep, mean_na)
+LST_Oct <- stack(LST[[35]], LST[[36]], LST[[37]])
+Oct_mean <- calc(LST_Oct, mean_na)
+LST_Nov <- stack(LST[[38]], LST[[39]], LST[[40]], LST[[41]])
+Nov_mean <- calc(LST_Nov, mean_na)
+LST_Dec <- stack(LST[[42]], LST[[43]], LST[[44]], LST[[45]])
+Dec_mean <- calc(LST_Dec, mean_na)
+
+yearstack <- stack(Jan_mean, Feb_mean, Mar_mean, Apr_mean, Mar_mean, Apr_mean, May_mean, Jun,_mean, Jul_mean, Aug_mean, Sep_mean, Oct_mean, Nov_mean, Dec_mean)
+return(yearstack)
+}
+
+
+
+
