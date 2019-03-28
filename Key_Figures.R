@@ -356,5 +356,16 @@ Forest_Age<- resample(Forest_Proj_crop,LST,method='bilinear')
 plot(Forest_Age)
 Diffs
 Test <- Diffs[[7]]
-spatialEco::rasterCorrelation(Test, Forest_Age, s = 3, type = "pearson", file.name = NULL)
+Check <- spatialEco::rasterCorrelation(Test, Forest_Age, s = 5, type = "pearson", file.name = NULL)
 
+Check2 <- spatialEco::rasterCorrelation(Test, Forest_Age, s=5, type="covariance",file.name=NULL)
+cor(values(Diffs[[8]]), values(Forest_Age), use = "na.or.complete")
+
+cuts=c(-1,0,1) #set breaks
+pal <- colorRampPalette(c("Blue","Yellow"))
+plot(Check, breaks=cuts, col = pal(25))
+r.cor <- rasterCorrelation(Test, Forest_Age, s = 5, type = "pearson") 
+plot(r.cor)
+r.cor2 <- rasterCorrelation(Diffs[[6]], Forest_Age, s=5, type="pearson")
+plot(r.cor2)
+plot(r.cor)
