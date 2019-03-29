@@ -336,6 +336,135 @@ writeRaster(Diffs, "/Users/mallory/Documents/Temp_Project/Ta_Ts_All.tif")
 densityplot(Diffs)
 ?densityplot
 bwplot(Diffs)
+#Looking at 1km land cover data from USGS
+Land_Cover <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcvi020l.tif")
+e2 <- extent(-40000, 2300000, -1800000, 400000)
+LC <- crop(Land_Cover, e2)
+plot(LC)
+LC_proj <-projectRaster(LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+ext <- extent(Diffs)
+LC_crop <- crop(LC_proj, ext)
+#Create 3 masks: 
+#1: Urban (1)
+Urbanmask <- LC_crop
+Urbanmask[Urbanmask >1] <- NA
+plot(Urbanmask)
+Urbanmask <- resample(Urbanmask, LST, method="bilinear")
+plot(Urbanmask)
+
+Cropmask <- LC_crop
+Cropmask[Cropmask <2 | Cropmask>6 | Cropmask==3 | Cropmask==4 | Cropmask==5] <- NA
+plot(Cropmask)
+Cropmask <- resample(Cropmask, LST, method="bilinear")
+plot(Cropmask)
+
+Decfomask <- LC_crop
+Decfomask[Decfomask <11 |  Decfomask>12] <- NA
+plot(Decfomask)
+Decfomask <- resample(Decfomask, LST, method="bilinear")
+plot(Decfomask)
+
+Evmask <- LC_crop
+Evmask[Evmask <13 |  Evmask>14] <- NA
+plot(Evmask)
+Evmask <- resample(Evmask, LST, method="bilinear")
+plot(Evmask)
+
+Fomask <- LC_crop
+Fomask[Fomask <11 |  Fomask>15] <- NA
+plot(Fomask)
+Fomask <- resample(Fomask, LST, method="bilinear")
+plot(Fomask)
+
+Urban_Diff <- mask(Diffs, Urbanmask)
+Crop_Diff <- mask(Diffs,Cropmask)
+Dec_Diff <- mask(Diffs, Decfomask)
+Ev_Diff <- mask(Diffs, Evmask)
+Fo_Diff <- mask(Diffs, Fomask)
+
+plot(Urban_Diff)
+plot(Crop_Diff)
+plot(Dec_Diff)
+plot(Ev_Diff)
+plot(Fo_Diff)
+
+my.at <- seq(-6,6,1)
+levelplot(Fo_Diff, at=my.at, main="Ta_Ts in forests", col.regions=(cols))
+levelplot(Crop_Diff, at=my.at, main="Ta-Ts in croplands",col.regions=(cols))
+
+densityplot(Urban_Diff, main="Ta-Ts in Urban Environments")
+bwplot(Urban_Diff, main="Ta-Ts in Urban Environments")
+
+densityplot(Crop_Diff, main="Ta_Ts in Agricultural Environments")
+bwplot(Crop_Diff, main="Ta-Ts in Agricultural Environments")
+
+densityplot(Dec_Diff, main="Ta_Ts in Deciduous Forests")
+bwplot(Dec_Diff, main="Ta_Ts in Deciduous Forest")
+
+
+densityplot(Ev_Diff, main="Ta-Ts in Evergreen Forests")
+bwplot(Ev_Diff, main="Ta_Ts in Evergreen Forests")
+
+densityplot(Fo_Diff, main="Ta-Ts in Forest Environments")
+bwplot(Fo_Diff, main="Ta_Ts in Forest Environments")
+
+#df <- data.frame(Month=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+df <- data.frame(Month=c(1:12))
+
+df$Month <- as.numeric(df$Month)
+df$meanUrban <- as.numeric(cellStats(Urban_Diff, stat='mean', na.rm=TRUE))
+df$sdUrban <- as.numeric(cellStats(Urban_Diff, stat='sd', na.rm=TRUE))
+
+df$meanCrop <- as.numeric(cellStats(Crop_Diff, stat='mean', na.rm=TRUE))
+df$sdCrop <- as.numeric(cellStats(Crop_Diff, stat='sd', na.rm=TRUE))
+
+df$meanFo <- as.numeric(cellStats(Fo_Diff, stat='mean', na.rm=TRUE))
+df$sdFo <- as.numeric(cellStats(Fo_Diff, stat='sd', na.rm=TRUE))
+
+df$meanEv <- as.numeric(cellStats(Ev_Diff, stat='mean', na.rm=TRUE))
+df$sdEv <- as.numeric(cellStats(Ev_Diff, stat='sd', na.rm=TRUE))
+
+df$meanDec <- as.numeric(cellStats(Dec_Diff, stat='mean', na.rm=TRUE))
+df$sdDec <- as.numeric(cellStats(Dec_Diff, stat='sd', na.rm=TRUE))
+
+dft <- df[,c("Month", "meanUrban", "meanCrop", "meanFo")]
+dfm <- melt(dft, id="Month")
+dfm$LandCoverdfm$variable 
+ggplot(data = dfm, aes(x = Month, y = value, color = variable)) + 
+  geom_line(size=5) +
+  scale_color_manual(labels = c("Forest", "Cropland", "Urban"), values = c("darkgreen", "yellowgreen", "red"))+
+  labs(color = "Land Cover\n") 
+  
+  
+  
+
+
+gg <- ggplot(df, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanUrban), color="red") + 
+  geom_errorbar(aes(x=Month, ymin=meanUrban-sdUrban, ymax=meanUrban+sdUrban), width=0.2, size=0.5,color="red")+
+  geom_line(aes(y=meanCrop), color="yellowgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanCrop-sdCrop, ymax=meanCrop+sdCrop), width=0.2, size=0.5, color="yellowgreen")+
+  geom_line(aes(y=meanFo), color="darkgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanFo-sdFo, ymax=meanFo+sdFo),width=0.2, size=0.5, color="darkgreen")+
+  labs(title="Ta-Ts by Land Cover Type", 
+       y="Ta-Ts (degrees C)", 
+       x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+theme_bw()
+
+ff <- ggplot(df, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanDec), color="orange") + 
+  geom_errorbar(aes(x=Month, ymin=meanDec-sdDec, ymax=meanDec+sdDec), width=0.2, size=0.5,color="orange")+
+  geom_line(aes(y=meanEv), color="green") + 
+  geom_errorbar(aes(x=Month, ymin=meanEv-sdEv, ymax=meanEv+sdEv), width=0.2, size=0.5, color="green")+
+  geom_line(aes(y=meanFo), color="darkgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanFo-sdFo, ymax=meanFo+sdFo),width=0.2, size=0.5, color="darkgreen")+
+  labs(title="Ta-Ts by Forest Type", y="Ta-Ts (degrees C)",  x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_bw()
+
+
+#
 #----------now looking at forest data
 F1 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/sc_age06_1km.tif")
 F2 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/se_age06_1km.tif")
