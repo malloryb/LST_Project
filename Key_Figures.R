@@ -479,6 +479,53 @@ ff <- ggplot(df, aes(x=Month, group=1)) +
   scale_x_continuous(breaks=seq(1,12,3))+
   theme_bw()
 
+#By Lat instead of by land cover type
+DiffsBrick <- brick(Diffs)
+extent(DiffsBrick)
+High_Lat_Ext <- extent(-88.775, -74.85, 37.75, 41.41667)
+MidHigh_Lat_Ext <- extent(-88.775, -74.85, 34.25, 37.75)
+MidLow_Lat_Ext <- extent(-88.775, -74.85, 32.75, 34.25)
+Low_Lat_Ext <- extent(-88.775, -74.85, 29.25, 32.75)
+
+plot(DiffsBrick)
+High_Lat <- crop(Diffs, High_Lat_Ext)
+MidHigh_Lat <- crop(Diffs,MidHigh_Lat_Ext)
+MidLow_Lat <- crop(Diffs, MidLow_Lat_Ext)
+Low_Lat <- crop(Diffs, Low_Lat_Ext)
+
+fg <- data.frame(Month=c(1:12))
+
+fg$Month <- as.numeric(fg$Month)
+fg$meanHigh <- as.numeric(cellStats(High_Lat, stat='mean', na.rm=TRUE))
+fg$sdHigh <- as.numeric(cellStats(High_Lat, stat='sd', na.rm=TRUE))
+fg$seHigh <- (fg$sdHigh)/(sqrt(ncell(High_Lat)))
+fg$meanMidHigh <- as.numeric(cellStats(MidHigh_Lat, stat='mean', na.rm=TRUE))
+fg$sdMidHigh <- as.numeric(cellStats(MidHigh_Lat, stat='sd', na.rm=TRUE))
+fg$seMidHigh <- (fg$sdMidHigh)/(sqrt(ncell(MidHigh_Lat)))
+fg$meanMidLow <- as.numeric(cellStats(MidLow_Lat, stat='mean', na.rm=TRUE))
+fg$sdMidLow <- as.numeric(cellStats(MidLow_Lat, stat='sd', na.rm=TRUE))
+fg$seMidLow <- (fg$sdMidLow)/(sqrt(ncell(MidLow_Lat)))
+fg$meanLow <- as.numeric(cellStats(Low_Lat, stat='mean', na.rm=TRUE))
+fg$sdLow <- as.numeric(cellStats(Low_Lat, stat='sd', na.rm=TRUE))
+fg$seLow <- (fg$sdLow)/(sqrt(ncell(Low_Lat)))
+
+
+jj
+hh
+
+
+jj <- ggplot(fg, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanHigh), color="purple") + 
+  geom_errorbar(aes(x=Month, ymin=meanHigh-seHigh, ymax=meanHigh+seHigh), width=0.2, size=0.5,color="purple")+
+  geom_line(aes(y=meanMidHigh), color="blue") + 
+  geom_errorbar(aes(x=Month, ymin=meanMidHigh-seMidHigh, ymax=meanMidHigh+seMidHigh), width=0.2, size=0.5, color="blue")+
+  geom_line(aes(y=meanMidLow), color="red") + 
+  geom_errorbar(aes(x=Month, ymin=meanMidLow-seMidLow, ymax=meanMidLow+seMidLow),width=0.2, size=0.5, color="red")+
+  geom_line(aes(y=meanLow), color="orange") + 
+  geom_errorbar(aes(x=Month, ymin=meanLow-seLow, ymax=meanLow+seLow),width=0.2, size=0.5, color="orange")+
+  labs(title="Ta-Ts by Latitude", y="Ta-Ts (degrees C)",  x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_bw()
 
 #
 #----------now looking at forest data
