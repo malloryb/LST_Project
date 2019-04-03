@@ -465,7 +465,8 @@ hh <- ggplot(df, aes(x=Month, group=1)) +
        y="Ta-Ts (degrees C)", 
        x="Month")+
   scale_x_continuous(breaks=seq(1,12,3))+
-  theme_bw()
+  theme_bw()+
+  ylim(-4.4,5)
 
 
 ff <- ggplot(df, aes(x=Month, group=1)) + 
@@ -482,10 +483,14 @@ ff <- ggplot(df, aes(x=Month, group=1)) +
 #By Lat instead of by land cover type
 DiffsBrick <- brick(Diffs)
 extent(DiffsBrick)
+#High_Lat_Ext <- extent(-88.775, -74.85, 37.75, 41.41667)
+#MidHigh_Lat_Ext <- extent(-88.775, -74.85, 34.25, 37.75)
+#MidLow_Lat_Ext <- extent(-88.775, -74.85, 32.75, 34.25)
+#Low_Lat_Ext <- extent(-88.775, -74.85, 29.25, 32.75)
+
 High_Lat_Ext <- extent(-88.775, -74.85, 37.75, 41.41667)
-MidHigh_Lat_Ext <- extent(-88.775, -74.85, 34.25, 37.75)
-MidLow_Lat_Ext <- extent(-88.775, -74.85, 32.75, 34.25)
-Low_Lat_Ext <- extent(-88.775, -74.85, 29.25, 32.75)
+MidHigh_Lat_Ext <- extent(-88.775, -74.85, 33.25, 37.25)
+MidLow_Lat_Ext <- extent(-88.775, -74.85, 29.25, 33.25)
 
 plot(DiffsBrick)
 High_Lat <- crop(Diffs, High_Lat_Ext)
@@ -510,8 +515,6 @@ fg$sdLow <- as.numeric(cellStats(Low_Lat, stat='sd', na.rm=TRUE))
 fg$seLow <- (fg$sdLow)/(sqrt(ncell(Low_Lat)))
 
 
-jj
-hh
 
 
 jj <- ggplot(fg, aes(x=Month, group=1)) + 
@@ -521,11 +524,15 @@ jj <- ggplot(fg, aes(x=Month, group=1)) +
   geom_errorbar(aes(x=Month, ymin=meanMidHigh-seMidHigh, ymax=meanMidHigh+seMidHigh), width=0.2, size=0.5, color="blue")+
   geom_line(aes(y=meanMidLow), color="red") + 
   geom_errorbar(aes(x=Month, ymin=meanMidLow-seMidLow, ymax=meanMidLow+seMidLow),width=0.2, size=0.5, color="red")+
-  geom_line(aes(y=meanLow), color="orange") + 
-  geom_errorbar(aes(x=Month, ymin=meanLow-seLow, ymax=meanLow+seLow),width=0.2, size=0.5, color="orange")+
+  #geom_line(aes(y=meanLow), color="orange") + 
+  #geom_errorbar(aes(x=Month, ymin=meanLow-seLow, ymax=meanLow+seLow),width=0.2, size=0.5, color="orange")+
   labs(title="Ta-Ts by Latitude", y="Ta-Ts (degrees C)",  x="Month")+
   scale_x_continuous(breaks=seq(1,12,3))+
-  theme_bw()
+  theme_bw()+
+  ylim(-4.4,5)
+
+jj
+hh
 
 #
 #----------now looking at forest data
