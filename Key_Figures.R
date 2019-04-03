@@ -408,21 +408,24 @@ bwplot(Ev_Diff, main="Ta_Ts in Evergreen Forests")
 densityplot(Fo_Diff, main="Ta-Ts in Forest Environments")
 bwplot(Fo_Diff, main="Ta_Ts in Forest Environments")
 
+
 #df <- data.frame(Month=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+
 df <- data.frame(Month=c(1:12))
 
 df$Month <- as.numeric(df$Month)
 df$meanUrban <- as.numeric(cellStats(Urban_Diff, stat='mean', na.rm=TRUE))
 df$sdUrban <- as.numeric(cellStats(Urban_Diff, stat='sd', na.rm=TRUE))
-
+df$seUrban <- (df$sdUrban)/(sqrt(ncell(Urban_Diff)))
 df$meanCrop <- as.numeric(cellStats(Crop_Diff, stat='mean', na.rm=TRUE))
 df$sdCrop <- as.numeric(cellStats(Crop_Diff, stat='sd', na.rm=TRUE))
-
+df$seCrop <- (df$sdCrop)/(sqrt(ncell(Crop_Diff)))
 df$meanFo <- as.numeric(cellStats(Fo_Diff, stat='mean', na.rm=TRUE))
 df$sdFo <- as.numeric(cellStats(Fo_Diff, stat='sd', na.rm=TRUE))
-
+df$seFo <- (df$sdFo)/(sqrt(ncell(Fo_Diff)))
 df$meanEv <- as.numeric(cellStats(Ev_Diff, stat='mean', na.rm=TRUE))
 df$sdEv <- as.numeric(cellStats(Ev_Diff, stat='sd', na.rm=TRUE))
+df$seEv <- (df$sdEv)/(sqrt(ncell(Ev_Diff)))
 
 df$meanDec <- as.numeric(cellStats(Dec_Diff, stat='mean', na.rm=TRUE))
 df$sdDec <- as.numeric(cellStats(Dec_Diff, stat='sd', na.rm=TRUE))
@@ -434,8 +437,6 @@ ggplot(data = dfm, aes(x = Month, y = value, color = variable)) +
   geom_line(size=5) +
   scale_color_manual(labels = c("Forest", "Cropland", "Urban"), values = c("darkgreen", "yellowgreen", "red"))+
   labs(color = "Land Cover\n") 
-  
-  
   
 
 
@@ -451,6 +452,21 @@ gg <- ggplot(df, aes(x=Month, group=1)) +
        x="Month")+
   scale_x_continuous(breaks=seq(1,12,3))+
 theme_bw()
+
+
+hh <- ggplot(df, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanUrban), color="red") + 
+  geom_errorbar(aes(x=Month, ymin=meanUrban-seUrban, ymax=meanUrban+seUrban), width=0.2, size=0.5,color="red")+
+  geom_line(aes(y=meanCrop), color="yellowgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanCrop-seCrop, ymax=meanCrop+seCrop), width=0.2, size=0.5, color="yellowgreen")+
+  geom_line(aes(y=meanFo), color="darkgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanFo-seFo, ymax=meanFo+seFo),width=0.2, size=0.5, color="darkgreen")+
+  labs(title="Ta-Ts by Land Cover Type", 
+       y="Ta-Ts (degrees C)", 
+       x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_bw()
+
 
 ff <- ggplot(df, aes(x=Month, group=1)) + 
   geom_line(aes(y=meanDec), color="orange") + 
@@ -498,3 +514,5 @@ plot(r.cor)
 r.cor2 <- rasterCorrelation(Diffs[[6]], Forest_Age, s=5, type="pearson")
 plot(r.cor2)
 plot(r.cor)
+
+
