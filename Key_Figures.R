@@ -54,6 +54,11 @@ plot(greenbrown_test1break[[4]], col=pal(10))
 plot(greenbrown_test1break[[5]], col=pal(10))
 slope_diff <- greenbrown_test1break[[5]]-greenbrown_test1break[[4]]
 plot(slope_diff, col=pal(10))
+#Trying with 2 break point
+greenbrown_test2break <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=2)
+plot(greenbrown_test1break)
+plot(greenbrown_test1break, col=(brewer.pal(n=6, name='Spectral')))
+plot(greenbrown_test1break[[3]], (brewer.pal(n=10, name='Spectral')), main="Break point in temperature trend (1900-present)")
 
 
 #Loading up modis surface temperature data
