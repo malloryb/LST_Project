@@ -1,14 +1,13 @@
 #Making figures for LST Manuscript
-#Figure 1a: Changing air temperature (re-create 'warming hole')
-#Figure 1b: Average difference between surface temperature and air temperature from Remote sensing (by pixel)
-#Figure 2: Difference in surface and air temperature by forest stand age (correlation map)
+#Figure 1: Changing air temperature (re-create 'warming hole')
+#Figure 2: Average difference between surface temperature and air temperature from Remote sensing (by pixel)
+#Figure 3: Difference in surface and air temperature by forest stand age (correlation map)
 #Figure 3: Lily's figure
 #Figure 4: Flux synthesis figure
 
-
-#Figure 1a---------------------
-#Using University of Delaware Air Temperature & Precipitation
-# Data product accessed from: https://www.esrl.noaa.gov/psd/data/gridded/data.UDel_AirT_Precip.html
+#Before starting: raster options
+rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
+#Load packages
 library(ncdf4)
 library(raster)
 library(proj4)
@@ -19,6 +18,12 @@ library(greenbrown)
 library(RColorBrewer)
 library(MODIS)
 library(rasterVis)
+
+
+#Figure 1---------------------
+#Using University of Delaware Air Temperature & Precipitation
+# Data product accessed from: https://www.esrl.noaa.gov/psd/data/gridded/data.UDel_AirT_Precip.html
+#Open air temp file (0.5 degree)
 fname <- file.choose("air.mon.mean.v501.nc")
 nc<-nc_open(fname)
 # Get a list of the NetCDF's R attributes:
@@ -37,7 +42,6 @@ writeRaster(kendall_raster, "Temp_Kendall_US.tif")
 pal <- colorRampPalette(c("blue","cadetblue1", "lightblue", "white","red", "red3"))
 plot(kendall_raster, col=pal(6))
 #Trying with greenbrown
-#install.packages("greenbrown", repos="http://R-Forge.R-project.org")
 #Figure 1a: Change over time
 #greenbrown_test <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=1)
 greenbrown_test <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=0)
@@ -56,21 +60,20 @@ slope_diff <- greenbrown_test1break[[5]]-greenbrown_test1break[[4]]
 plot(slope_diff, col=pal(10))
 #Trying with 2 break point
 greenbrown_test2break <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=2)
-plot(greenbrown_test1break)
+plot(greenbrown_test2break)
 plot(greenbrown_test1break, col=(brewer.pal(n=6, name='Spectral')))
 plot(greenbrown_test1break[[3]], (brewer.pal(n=10, name='Spectral')), main="Break point in temperature trend (1900-present)")
+#Trying with 3 break points
+greenbrown_test3break <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=3)
+plot(greenbrown_test3break)
+plot(greenbrown_test3break, col=(brewer.pal(n=6, name='Spectral')))
+plot(greenbrown_test3break[[3]], (brewer.pal(n=10, name='Spectral')), main="Break point in temperature trend (1900-present)")
+
 
 
 #Loading up modis surface temperature data
 #Want to create Ta-Ts map for the US 
-#Checking out 1 file
 #Creating monthly Ts Files
-testmodis <- raster("/Users/mallory/Documents/APPEARS_LST/MOD11A2.006_LST_Day_1km_doy2000065_aid0001.tif")
-plot(testmodis)
-plot((testmodis*0.02 - 273.15))
-#Daymet end:
-#Get Tmax stacks, crop to extent, and reproject as necessary! Already made monthly average Tmax 
-#rasters for years 1980-2017! 
 brick("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmax_monavg_1980_na.tif")
 #LST:
 #Rescale, create monthly composites, and stack them all up, do it for each year
@@ -198,11 +201,13 @@ LST_2017 <- Monthly_LST(2017)
 writeRaster(LST_2017, "/Users/mallory/Documents/Temp_Project/MODIS_LST_2017.tif")
 
 #Join up LST and daymet: crop daymet and reproject to proper extent
-#Create function per year that returns: 3) Ta-Ts (for all 12 months)
 #Increase raster chunk size for this 
 rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
+#Daymet end:
+#Get Tmax stacks, crop to extent, and reproject as necessary! Already made monthly average Tmax 
+#rasters for years 1980-2017! 
 
-
+#Create function per year that returns: Ta-Ts (for all 12 months)
 Monthly_Ta_Ts <- function(year){
   filenamelst <- paste0("/Users/mallory/Documents/Temp_Project/MODIS_LST_", year, ".tif", sep="")
   filenamedaymet1 <- paste0("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmax_monavg_", year, "_na.tif")
@@ -338,9 +343,12 @@ levelplot(Diffs, at=my.at, main="Difference between Air Temperature and Surface 
           col.regions=(cols))
 writeRaster(Diffs, "/Users/mallory/Documents/Temp_Project/Ta_Ts_All.tif")
 
+#Fancy Plots: 
+#Density plot
 densityplot(Diffs)
-?densityplot
+#Bow plot
 bwplot(Diffs)
+
 #Looking at 1km land cover data from USGS
 Land_Cover <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcvi020l.tif")
 e2 <- extent(-40000, 2300000, -1800000, 400000)
