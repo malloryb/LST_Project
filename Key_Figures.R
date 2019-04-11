@@ -493,6 +493,128 @@ ff <- ggplot(df, aes(x=Month, group=1)) +
   scale_x_continuous(breaks=seq(1,12,3))+
   theme_bw()
 
+#Just TA (how does it vary by land cover type)
+Monthly_Ta <- function(year){
+  filenamedaymet1 <- paste0("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmax_monavg_", year, "_na.tif")
+  daymet <- stack(filenamedaymet1)
+  #Crop
+  e2 <- extent(-40000, 2300000, -1600000, 400000)
+  print("initial crop")
+  cropped <- crop(daymet, e2)
+  print("projecting raster")
+  Ta <- projectRaster(cropped, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+  ext <- extent(-88.775, -74.85, 29.25, 41.41667)
+  print("second crop")
+  Ta <- crop(Ta, ext)
+  return(Ta)
+}
+
+Ta_2001 <- Monthly_Ta(2001)
+Ta_2002 <- Monthly_Ta(2002)
+Ta_2003 <- Monthly_Ta(2003)
+Ta_2004 <- Monthly_Ta(2004)
+Ta_2005 <- Monthly_Ta(2005)
+Ta_2006 <- Monthly_Ta(2006)
+Ta_2007 <- Monthly_Ta(2007)
+Ta_2008 <- Monthly_Ta(2008)
+Ta_2009 <- Monthly_Ta(2009)
+Ta_2010 <- Monthly_Ta(2010)
+Ta_2011 <- Monthly_Ta(2011)
+Ta_2012 <- Monthly_Ta(2012)
+Ta_2013 <- Monthly_Ta(2013)
+Ta_2014 <- Monthly_Ta(2014)
+Ta_2015 <- Monthly_Ta(2015)
+Ta_2016 <- Monthly_Ta(2016)
+Ta_2017 <- Monthly_Ta(2017)
+
+Jan_Ta <- stack(Ta_2001[[1]], Ta_2002[[1]], Ta_2003[[1]], Ta_2004[[1]],
+                   Ta_2005[[1]], Ta_2006[[1]], Ta_2007[[1]], Ta_2008[[1]],
+                   Ta_2009[[1]], Ta_2010[[1]], Ta_2011[[1]], Ta_2012[[1]],
+                   Ta_2013[[1]], Ta_2014[[1]], Ta_2015[[1]], Ta_2016[[1]],
+                   Ta_2017[[1]])
+Jan_Ta_Mean <- calc(Jan_Ta, mean_na)
+plot(Jan_Ta_Mean)
+Feb_Ta <- stack(Ta_2001[[2]], Ta_2002[[2]], Ta_2003[[2]], Ta_2004[[2]],
+                   Ta_2005[[2]], Ta_2006[[2]], Ta_2007[[2]], Ta_2008[[2]],
+                   Ta_2009[[2]], Ta_2010[[2]], Ta_2011[[2]], Ta_2012[[2]],
+                   Ta_2013[[2]], Ta_2014[[2]], Ta_2015[[2]], Ta_2016[[2]],
+                   Ta_2017[[2]])
+Feb_Ta_Mean <- calc(Feb_Ta, mean_na)
+Mar_Ta <- stack(Ta_2001[[3]], Ta_2002[[3]], Ta_2003[[3]], Ta_2004[[3]],
+                   Ta_2005[[3]], Ta_2006[[3]], Ta_2007[[3]], Ta_2008[[3]],
+                   Ta_2009[[3]], Ta_2010[[3]], Ta_2011[[3]], Ta_2012[[3]],
+                   Ta_2013[[3]], Ta_2014[[3]], Ta_2015[[3]], Ta_2016[[3]],
+                   Ta_2017[[3]])
+Mar_Ta_Mean <- calc(Mar_Ta, mean_na)
+Apr_Ta <- stack(Ta_2001[[4]], Ta_2002[[4]], Ta_2003[[4]], Ta_2004[[4]],
+                   Ta_2005[[4]], Ta_2006[[4]], Ta_2007[[4]], Ta_2008[[4]],
+                   Ta_2009[[4]], Ta_2010[[4]], Ta_2011[[4]], Ta_2012[[4]],
+                   Ta_2013[[4]], Ta_2014[[4]], Ta_2015[[4]], Ta_2016[[4]],
+                   Ta_2017[[4]])
+Apr_Ta_Mean <- calc(Apr_Ta, mean_na)
+May_Ta <- stack(Ta_2001[[5]], Ta_2002[[5]], Ta_2003[[5]], Ta_2004[[5]],
+                   Ta_2005[[5]], Ta_2006[[5]], Ta_2007[[5]], Ta_2008[[5]],
+                   Ta_2009[[5]], Ta_2010[[5]], Ta_2011[[5]], Ta_2012[[5]],
+                   Ta_2013[[5]], Ta_2014[[5]], Ta_2015[[5]], Ta_2016[[5]],
+                   Ta_2017[[5]])
+May_Ta_Mean <- calc(May_Ta, mean_na)
+Jun_Ta <- stack(Ta_2001[[6]], Ta_2002[[6]], Ta_2003[[6]], Ta_2004[[6]],
+                   Ta_2005[[6]], Ta_2006[[6]], Ta_2007[[6]], Ta_2008[[6]],
+                   Ta_2009[[6]], Ta_2010[[6]], Ta_2011[[6]], Ta_2012[[6]],
+                   Ta_2013[[6]], Ta_2014[[6]], Ta_2015[[6]], Ta_2016[[6]],
+                   Ta_2017[[6]])
+Jun_Ta_Mean <- calc(Jun_Ta, mean_na)
+
+Jul_Ta <- stack(Ta_2001[[7]], Ta_2002[[7]], Ta_2003[[7]], Ta_2004[[7]],
+                   Ta_2005[[7]], Ta_2006[[7]], Ta_2007[[7]], Ta_2008[[7]],
+                   Ta_2009[[7]], Ta_2010[[7]], Ta_2011[[7]], Ta_2012[[7]],
+                   Ta_2013[[7]], Ta_2014[[7]], Ta_2015[[7]], Ta_2016[[7]],
+                   Ta_2017[[7]])
+Jul_Ta_Mean <- calc(Jul_Ta, mean_na)
+
+Aug_Ta <- stack(Ta_2001[[8]], Ta_2002[[8]], Ta_2003[[8]], Ta_2004[[8]],
+                   Ta_2005[[8]], Ta_2006[[8]], Ta_2007[[8]], Ta_2008[[8]],
+                   Ta_2009[[8]], Ta_2010[[8]], Ta_2011[[8]], Ta_2012[[8]],
+                   Ta_2013[[8]], Ta_2014[[8]], Ta_2015[[8]], Ta_2016[[8]],
+                   Ta_2017[[8]])
+Aug_Ta_Mean <- calc(Aug_Ta, mean_na)
+Sep_Ta <- stack(Ta_2001[[9]], Ta_2002[[9]], Ta_2003[[9]], Ta_2004[[9]],
+                   Ta_2005[[9]], Ta_2006[[9]], Ta_2007[[9]], Ta_2008[[9]],
+                   Ta_2009[[9]], Ta_2010[[9]], Ta_2011[[9]], Ta_2012[[9]],
+                   Ta_2013[[9]], Ta_2014[[9]], Ta_2015[[9]], Ta_2016[[9]],
+                   Ta_2017[[9]])
+Sep_Ta_Mean <- calc(Sep_Ta, mean_na)
+Oct_Ta <- stack(Ta_2001[[10]], Ta_2002[[10]], Ta_2003[[10]], Ta_2004[[10]],
+                   Ta_2005[[10]], Ta_2006[[10]], Ta_2007[[10]], Ta_2008[[10]],
+                   Ta_2009[[10]], Ta_2010[[10]], Ta_2011[[10]], Ta_2012[[10]],
+                   Ta_2013[[10]], Ta_2014[[10]], Ta_2015[[10]], Ta_2016[[10]],
+                   Ta_2017[[10]])
+Oct_Ta_Mean <- calc(Oct_Ta, mean_na)
+Nov_Ta <- stack(Ta_2001[[11]], Ta_2002[[11]], Ta_2003[[11]], Ta_2004[[11]],
+                   Ta_2005[[11]], Ta_2006[[11]], Ta_2007[[11]], Ta_2008[[11]],
+                   Ta_2009[[11]], Ta_2010[[11]], Ta_2011[[11]], Ta_2012[[11]],
+                   Ta_2013[[11]], Ta_2014[[11]], Ta_2015[[11]], Ta_2016[[11]],
+                   Ta_2017[[11]])
+Nov_Ta_Mean <- calc(Nov_Ta, mean_na)
+Dec_Ta <- stack(Ta_2001[[12]], Ta_2002[[12]], Ta_2003[[12]], Ta_2004[[12]],
+                   Ta_2005[[12]], Ta_2006[[12]], Ta_2007[[12]], Ta_2008[[12]],
+                   Ta_2009[[12]], Ta_2010[[12]], Ta_2011[[12]], Ta_2012[[12]],
+                   Ta_2013[[12]], Ta_2014[[12]], Ta_2015[[12]], Ta_2016[[12]],
+                   Ta_2017[[12]])
+Dec_Ta_Mean <- calc(Dec_Ta, mean_na)
+
+Ta<- stack(Jan_Ta_Mean, Feb_Ta_Mean, Mar_Ta_Mean, Apr_Ta_Mean, May_Ta_Mean,
+              Jun_Ta_Mean, Jul_Ta_Mean, Aug_Ta_Mean, Sep_Ta_Mean, Oct_Ta_Mean, 
+              Nov_Ta_Mean, Dec_Ta_Mean)
+names(Ta) <- c("Jan", "Feb", "Mar","Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct","Nov", "Dec")
+# create a level plot - plot
+cols <- colorRampPalette(brewer.pal(9,"RdBu"))
+my.at <- seq(-6,6,1)
+levelplot(Ta, at=my.at, main="Difference between Air Temperature and Surface Temperature (Ta-Ts)",
+          col.regions=(cols))
+writeRaster(Ta, "/Users/mallory/Documents/Temp_Project/Ta_All.tif")
+
+
 #By Lat instead of by land cover type
 DiffsBrick <- brick(Diffs)
 extent(DiffsBrick)
