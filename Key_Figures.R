@@ -98,47 +98,49 @@ LC_crop <- crop(LC_proj, ext)
 Urbanmask <- LC_crop
 Urbanmask[Urbanmask >1] <- NA
 plot(Urbanmask)
-Urbanmask <- resample(Urbanmask, LST, method="bilinear")
+Urbanmask <- resample(Urbanmask, Diffs, method="bilinear")
 plot(Urbanmask)
 #2: Croplands (2,6)
 Cropmask <- LC_crop
 Cropmask[Cropmask <2 | Cropmask>6 | Cropmask==3 | Cropmask==4 | Cropmask==5] <- NA
 plot(Cropmask)
-Cropmask <- resample(Cropmask, LST, method="bilinear")
+Cropmask <- resample(Cropmask, Diffs, method="bilinear")
 plot(Cropmask)
 #2b: Testing Croplands again (2,4,5,6)
 Cropmask2 <- LC_crop
 Cropmask2[Cropmask2 <2 | Cropmask2>6 | Cropmask2==3] <- NA
 plot(Cropmask2)
-Cropmask2 <- resample(Cropmask2, LST, method="bilinear")
+Cropmask2 <- resample(Cropmask2, Diffs, method="bilinear")
 plot(Cropmask2)
 #3: Deciduous forests (11,12)
 Decfomask <- LC_crop
 Decfomask[Decfomask <11 |  Decfomask>12] <- NA
 plot(Decfomask)
-Decfomask <- resample(Decfomask, LST, method="bilinear")
+Decfomask <- resample(Decfomask, Diffs, method="bilinear")
 plot(Decfomask)
 #4: Evergreen forests (13,14)
 Evmask <- LC_crop
 Evmask[Evmask <13 |  Evmask>14] <- NA
 plot(Evmask)
-Evmask <- resample(Evmask, LST, method="bilinear")
+Evmask <- resample(Evmask, Diffs, method="bilinear")
 plot(Evmask)
 #5: All forests (11-15)
 Fomask <- LC_crop
 Fomask[Fomask <11 |  Fomask>15] <- NA
 plot(Fomask)
-Fomask <- resample(Fomask, LST, method="bilinear")
+Fomask <- resample(Fomask, Diffs, method="bilinear")
 plot(Fomask)
 
 Urban_Diff <- mask(Diffs, Urbanmask)
 Crop_Diff <- mask(Diffs,Cropmask)
+Crop2_Diff <- mask(Diffs,Cropmask2)
 Dec_Diff <- mask(Diffs, Decfomask)
 Ev_Diff <- mask(Diffs, Evmask)
 Fo_Diff <- mask(Diffs, Fomask)
 
 plot(Urban_Diff)
 plot(Crop_Diff)
+plot(Crop2_Diff)
 plot(Dec_Diff)
 plot(Ev_Diff)
 plot(Fo_Diff)
@@ -146,6 +148,8 @@ plot(Fo_Diff)
 my.at <- seq(-6,6,1)
 levelplot(Fo_Diff, at=my.at, main="Ta_Ts in forests", col.regions=(cols))
 levelplot(Crop_Diff, at=my.at, main="Ta-Ts in croplands",col.regions=(cols))
+levelplot(Crop2_Diff, at=my.at, main="Ta-Ts in croplands",col.regions=(cols))
+
 
 densityplot(Urban_Diff, main="Ta-Ts in Urban Environments")
 bwplot(Urban_Diff, main="Ta-Ts in Urban Environments")
@@ -175,6 +179,9 @@ df$seUrban <- (df$sdUrban)/(sqrt(ncell(Urban_Diff)))
 df$meanCrop <- as.numeric(cellStats(Crop_Diff, stat='mean', na.rm=TRUE))
 df$sdCrop <- as.numeric(cellStats(Crop_Diff, stat='sd', na.rm=TRUE))
 df$seCrop <- (df$sdCrop)/(sqrt(ncell(Crop_Diff)))
+df$meanCrop2 <- as.numeric(cellStats(Crop2_Diff, stat='mean', na.rm=TRUE))
+df$sdCrop2 <- as.numeric(cellStats(Crop2_Diff, stat='sd', na.rm=TRUE))
+df$seCrop2 <- (df$sdCrop)/(sqrt(ncell(Crop2_Diff)))
 df$meanFo <- as.numeric(cellStats(Fo_Diff, stat='mean', na.rm=TRUE))
 df$sdFo <- as.numeric(cellStats(Fo_Diff, stat='sd', na.rm=TRUE))
 df$seFo <- (df$sdFo)/(sqrt(ncell(Fo_Diff)))
@@ -193,6 +200,18 @@ ggplot(data = dfm, aes(x = Month, y = value, color = variable)) +
   labs(color = "Land Cover\n") 
   
 
+ff <- ggplot(df, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanUrban), color="red") + 
+  geom_errorbar(aes(x=Month, ymin=meanUrban-sdUrban, ymax=meanUrban+sdUrban), width=0.2, size=0.5,color="red")+
+  geom_line(aes(y=meanCrop2), color="yellowgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanCrop-sdCrop2, ymax=meanCrop2+sdCrop2), width=0.2, size=0.5, color="yellowgreen")+
+  geom_line(aes(y=meanFo), color="darkgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanFo-sdFo, ymax=meanFo+sdFo),width=0.2, size=0.5, color="darkgreen")+
+  labs(title="Ta-Ts by Land Cover Type", 
+       y="Ta-Ts (degrees C)", 
+       x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_bw()
 
 gg <- ggplot(df, aes(x=Month, group=1)) + 
   geom_line(aes(y=meanUrban), color="red") + 
@@ -348,12 +367,13 @@ Ta<- stack(Jan_Ta_Mean, Feb_Ta_Mean, Mar_Ta_Mean, Apr_Ta_Mean, May_Ta_Mean,
               Jun_Ta_Mean, Jul_Ta_Mean, Aug_Ta_Mean, Sep_Ta_Mean, Oct_Ta_Mean, 
               Nov_Ta_Mean, Dec_Ta_Mean)
 names(Ta) <- c("Jan", "Feb", "Mar","Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct","Nov", "Dec")
+plot(Ta)
+writeRaster(Ta, "/Users/mallory/Documents/Temp_Project/Ta_All.tif")
 # create a level plot - plot
 cols <- colorRampPalette(brewer.pal(9,"RdBu"))
 my.at <- seq(-6,6,1)
 levelplot(Ta, at=my.at, main="Difference between Air Temperature and Surface Temperature (Ta-Ts)",
           col.regions=(cols))
-writeRaster(Ta, "/Users/mallory/Documents/Temp_Project/Ta_All.tif")
 
 
 #By Lat instead of by land cover type
