@@ -84,8 +84,9 @@ densityplot(Diffs)
 #Bow plot
 bwplot(Diffs)
 
-#Looking at 1km land cover data from USGS
+#Looking at 1km land cover data from USGS: https://nationalmap.gov/small_scale/mld/landcvi.html
 Land_Cover <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcvi020l.tif")
+#Reproject and crop land cover data 
 e2 <- extent(-40000, 2300000, -1800000, 400000)
 LC <- crop(Land_Cover, e2)
 plot(LC)
@@ -99,25 +100,31 @@ Urbanmask[Urbanmask >1] <- NA
 plot(Urbanmask)
 Urbanmask <- resample(Urbanmask, LST, method="bilinear")
 plot(Urbanmask)
-
+#2: Croplands (2,6)
 Cropmask <- LC_crop
 Cropmask[Cropmask <2 | Cropmask>6 | Cropmask==3 | Cropmask==4 | Cropmask==5] <- NA
 plot(Cropmask)
 Cropmask <- resample(Cropmask, LST, method="bilinear")
 plot(Cropmask)
-
+#2b: Testing Croplands again (2,4,5,6)
+Cropmask2 <- LC_crop
+Cropmask2[Cropmask2 <2 | Cropmask2>6 | Cropmask2==3] <- NA
+plot(Cropmask2)
+Cropmask2 <- resample(Cropmask2, LST, method="bilinear")
+plot(Cropmask2)
+#3: Deciduous forests (11,12)
 Decfomask <- LC_crop
 Decfomask[Decfomask <11 |  Decfomask>12] <- NA
 plot(Decfomask)
 Decfomask <- resample(Decfomask, LST, method="bilinear")
 plot(Decfomask)
-
+#4: Evergreen forests (13,14)
 Evmask <- LC_crop
 Evmask[Evmask <13 |  Evmask>14] <- NA
 plot(Evmask)
 Evmask <- resample(Evmask, LST, method="bilinear")
 plot(Evmask)
-
+#5: All forests (11-15)
 Fomask <- LC_crop
 Fomask[Fomask <11 |  Fomask>15] <- NA
 plot(Fomask)
@@ -174,7 +181,6 @@ df$seFo <- (df$sdFo)/(sqrt(ncell(Fo_Diff)))
 df$meanEv <- as.numeric(cellStats(Ev_Diff, stat='mean', na.rm=TRUE))
 df$sdEv <- as.numeric(cellStats(Ev_Diff, stat='sd', na.rm=TRUE))
 df$seEv <- (df$sdEv)/(sqrt(ncell(Ev_Diff)))
-
 df$meanDec <- as.numeric(cellStats(Dec_Diff, stat='mean', na.rm=TRUE))
 df$sdDec <- as.numeric(cellStats(Dec_Diff, stat='sd', na.rm=TRUE))
 
