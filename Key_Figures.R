@@ -192,7 +192,6 @@ df$sdDec <- as.numeric(cellStats(Dec_Diff, stat='sd', na.rm=TRUE))
 
 dft <- df[,c("Month", "meanUrban", "meanCrop", "meanFo")]
 dfm <- melt(dft, id="Month")
-dfm$LandCoverdfm$variable 
 ggplot(data = dfm, aes(x = Month, y = value, color = variable)) + 
   geom_line(size=5) +
   scale_color_manual(labels = c("Forest", "Cropland", "Urban"), values = c("darkgreen", "yellowgreen", "red"))+
@@ -345,6 +344,13 @@ jj <- ggplot(fg, aes(x=Month, group=1)) +
   scale_x_continuous(breaks=seq(1,12,3))+
   theme_bw()+
   ylim(-4.4,5)
+
+dfl <- fg[,c("Month", "meanHigh", "meanMidHigh", "meanMidLow")]
+dfk <- melt(dfl, id="Month")
+ggplot(data = dfk, aes(x = Month, y = value, color = variable)) + 
+  geom_line(size=5) +
+  scale_color_manual(labels = c("High", "Medium", "Low"), values = c("purple", "blue", "red"))+
+  labs(color = "Latitude\n") 
 
 jj
 hh
