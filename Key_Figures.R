@@ -167,11 +167,9 @@ bwplot(Ev_Diff, main="Ta_Ts in Evergreen Forests")
 densityplot(Fo_Diff, main="Ta-Ts in Forest Environments")
 bwplot(Fo_Diff, main="Ta_Ts in Forest Environments")
 
-
+#Create data frame for plotting comparisons 
 #df <- data.frame(Month=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
-
 df <- data.frame(Month=c(1:12))
-
 df$Month <- as.numeric(df$Month)
 df$meanUrban <- as.numeric(cellStats(Urban_Diff, stat='mean', na.rm=TRUE))
 df$sdUrban <- as.numeric(cellStats(Urban_Diff, stat='sd', na.rm=TRUE))
@@ -370,9 +368,9 @@ names(Ta) <- c("Jan", "Feb", "Mar","Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oc
 plot(Ta)
 writeRaster(Ta, "/Users/mallory/Documents/Temp_Project/Ta_All.tif")
 # create a level plot - plot
-cols <- colorRampPalette(brewer.pal(9,"RdBu"))
-my.at <- seq(-6,6,1)
-levelplot(Ta, at=my.at, main="Difference between Air Temperature and Surface Temperature (Ta-Ts)",
+cols <- colorRampPalette(rev(brewer.pal(15,"RdBu")))
+my.at <- seq(0,35,2)
+levelplot(Ta, at=my.at, main="Air Temperature (Ta)",
           col.regions=(cols))
 
 
