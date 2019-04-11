@@ -71,24 +71,21 @@ plot(greenbrown_test3break[[3]], (brewer.pal(n=10, name='Spectral')), main="Brea
 
 
 
-#Loading up modis surface temperature data
 #Want to create Ta-Ts map for the US 
-#Creating monthly Ts Files
-brick("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmax_monavg_1980_na.tif")
-#LST:
-#Rescale, create monthly composites, and stack them all up, do it for each year
-#To-dos: 
 setwd("/Users/mallory/Documents/APPEARS_LST/")
 mean_na <- function(x) {
   mean(x,na.rm=T)
 }
 
+#Creating monthly Ts Files
+#Rescale, create monthly composites, and stack them all up, do it for each year
 Monthly_LST <- function(year){
 flist <- list.files(pattern= paste0("(LST_Day).*doy", year, sep=""))
 flist
 str(flist)
 year <- "2001"
 (paste0("(LST_Day).*doy", year, sep=""))
+
 Process_LST <- function(x){
     filename <- paste(x)
     print(filename)
