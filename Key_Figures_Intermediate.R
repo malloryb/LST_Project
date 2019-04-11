@@ -130,11 +130,12 @@ LST_2017 <- Monthly_LST(2017)
 writeRaster(LST_2017, "/Users/mallory/Documents/Temp_Project/MODIS_LST_2017.tif")
 
 #2) Creating Ta-Ts maps from MODIS and Daymet Data --------------------------
-#Join up LST and daymet: crop daymet and reproject to proper extent
+
 #Increase raster chunk size for this 
 rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
 
 #Function per year that returns: Ta-Ts (for all 12 months)
+#Join up LST and daymet: crop daymet and reproject to proper extent
 Monthly_Ta_Ts <- function(year){
   filenamelst <- paste0("/Users/mallory/Documents/Temp_Project/MODIS_LST_", year, ".tif", sep="")
   filenamedaymet1 <- paste0("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmax_monavg_", year, "_na.tif")
@@ -165,6 +166,7 @@ Monthly_Ta_Ts <- function(year){
   return(Ta_Ts)
 }
 
+#Run on all years 
 Diff_2001 <- Monthly_Ta_Ts(2001)
 Diff_2002 <- Monthly_Ta_Ts(2002)
 Diff_2003 <- Monthly_Ta_Ts(2003)
@@ -183,6 +185,7 @@ Diff_2015 <- Monthly_Ta_Ts(2015)
 Diff_2016 <- Monthly_Ta_Ts(2016)
 Diff_2017 <- Monthly_Ta_Ts(2017)
 
+#Get mean monthly values from all years (e.g. all 17 Januaries, all 17 Februaries, etc.)
 Jan_Diffs <- stack(Diff_2001[[1]], Diff_2002[[1]], Diff_2003[[1]], Diff_2004[[1]],
                    Diff_2005[[1]], Diff_2006[[1]], Diff_2007[[1]], Diff_2008[[1]],
                    Diff_2009[[1]], Diff_2010[[1]], Diff_2011[[1]], Diff_2012[[1]],
