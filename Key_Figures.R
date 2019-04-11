@@ -372,7 +372,14 @@ cols <- colorRampPalette(rev(brewer.pal(15,"RdBu")))
 my.at <- seq(0,35,2)
 levelplot(Ta, at=my.at, main="Air Temperature (Ta)",
           col.regions=(cols))
+#Recreating figure 4 (by land cover type) but for air temperature 
+FomaskTa <- resample(Fomask, Ta, method="bilinear")
+CropmaskTa <- resample(Cropmask2, Ta, method="bilinear")
+UrbanmaskTa <- resample(Urbanmask, Ta, method="bilinear")
 
+Urban_Diff <- mask(Ta, UrbanmaskTa)
+Crop_Diff <- mask(Ta,CropmaskTa)
+Fo_Diff <- mask(Ta, FomaskTa)
 
 #By Lat instead of by land cover type
 DiffsBrick <- brick(Diffs)
