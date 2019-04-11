@@ -294,6 +294,8 @@ kk <- ggplot(dfTa, aes(x=Month, group=1)) +
   ylim(0,35)
 
 grid.arrange(kk, hh, ncol=2)
+
+
 #By Lat instead of by land cover type
 DiffsBrick <- brick(Diffs)
 extent(DiffsBrick)
@@ -355,6 +357,49 @@ ggplot(data = dfk, aes(x = Month, y = value, color = variable)) +
 jj
 hh
 grid.arrange(jj, hh, ncol=2)
+
+#Need to confirm that differences within land cover types still exist within a given latitude. 
+plot(MidHigh_Lat)
+plot(MidLow_Lat)
+plot(High_Lat)
+
+#Just checking
+FomaskMid <- resample(Fomask, High_Lat, method="bilinear")
+CropmaskMid <- resample(Cropmask2, High_Lat, method="bilinear")
+UrbanmaskMid <- resample(Urbanmask, High_Lat, method="bilinear")
+plot(FomaskMid)
+plot(CropmaskMid)
+plot(UrbanmaskMid)
+Urban_Mid <- mask(High_Lat, UrbanmaskMid)
+Crop_Mid <- mask(High_Lat,CropmaskMid)
+Fo_Mid <- mask(High_Lat, FomaskMid)
+
+dfMid <- data.frame(Month=c(1:12))
+dfMid$Month <- as.numeric(dfMid$Month)
+dfMid$meanUrban <- as.numeric(cellStats(Urban_Mid, stat='mean', na.rm=TRUE))
+dfMid$sdUrban <- as.numeric(cellStats(Urban_Mid, stat='sd', na.rm=TRUE))
+dfMid$seUrban <- (df$sdUrban)/(sqrt(ncell(Urban_Mid)))
+dfMid$meanCrop <- as.numeric(cellStats(Crop_Mid, stat='mean', na.rm=TRUE))
+dfMid$sdCrop <- as.numeric(cellStats(Crop_Mid, stat='sd', na.rm=TRUE))
+dfMid$seCrop <- (df$sdCrop)/(sqrt(ncell(Crop_Mid)))
+dfMid$meanFo <- as.numeric(cellStats(Fo_Mid, stat='mean', na.rm=TRUE))
+dfMid$sdFo <- as.numeric(cellStats(Fo_Mid, stat='sd', na.rm=TRUE))
+dfMid$seFo <- (df$sdFo)/(sqrt(ncell(Fo_Mid)))
+
+xx <- ggplot(dfMid, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanUrban), color="red") + 
+  geom_errorbar(aes(x=Month, ymin=meanUrban-seUrban, ymax=meanUrban+seUrban), width=0.2, size=0.5,color="red")+
+  geom_line(aes(y=meanCrop), color="yellowgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanCrop-seCrop, ymax=meanCrop+seCrop), width=0.2, size=0.5, color="yellowgreen")+
+  geom_line(aes(y=meanFo), color="darkgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanFo-seFo, ymax=meanFo+seFo),width=0.2, size=0.5, color="darkgreen")+
+  labs(title="Ta by Land Cover Type", 
+       y="Ta (degrees C)", 
+       x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_bw()+
+  ylim(-6,6)
+
 
 #
 #----------now looking at forest data
