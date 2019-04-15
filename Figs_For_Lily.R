@@ -18,6 +18,12 @@ dfm$error <- dfe$error
 fm$variable <- factor(dfm$variable,levels = c("meanFo", "meanCrop2", "meanUrban"))
 #First Figure - Fig 4 from paper
 ggplot(data = dfm, aes(x = Month, y = value, color = variable)) + 
+  geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 0),
+            fill = "red", alpha = 0.005)+
+  geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = 0, ymax = Inf),
+            fill = "blue", alpha = 0.005)+
+  annotate("text", x = 7, y = 4, label = "Surface Cooler", color="Blue")+
+  annotate("text", x = 7, y = -4, label = "Surface Warmer", color="Red")+
   geom_line() +
   scale_color_manual(labels = c("Forest", "Cropland", "Urban"), values = c("#276419", "#7fbc41", "#c51b7d"))+
   labs(color = "Land Cover\n") +
@@ -25,8 +31,10 @@ ggplot(data = dfm, aes(x = Month, y = value, color = variable)) +
   labs(title="Ta-Ts by Land Cover Type", 
        y="Ta-Ts (degrees C)", 
        x="Month")+
-  ylim(-4.4,5)+
+  ylim(-4.5, 4.5)+
   scale_x_continuous(breaks=seq(1,12,3))+
+  geom_hline(yintercept=0, linetype="dashed", 
+             color = "black", size=0.5)+
   theme_grey(base_size = 16)+ 
   theme(plot.title = element_text(size=18))+
   theme(panel.border = element_blank(),
@@ -35,6 +43,7 @@ ggplot(data = dfm, aes(x = Month, y = value, color = variable)) +
           axis.line = element_line(size = 0.5, linetype = "solid",
                                    colour = "black"))+
   theme(legend.text = element_text(colour="black", size = 12, face = "bold"))
+
 ggsave("Remote_Sensing_MLB.pdf")
 
 #Chen06 dataset: Land cover change from 1920 to 1992 - from Christy et al. table 2
