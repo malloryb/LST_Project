@@ -53,7 +53,8 @@ plot((greenbrown_test[[2]]*50), col=pal(20), main="Slope of temperature trend: 1
 greenbrown_test1break <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=1)
 plot(greenbrown_test1break)
 plot(greenbrown_test1break, col=(brewer.pal(n=6, name='Spectral')))
-plot(greenbrown_test1break[[3]], (brewer.pal(n=10, name='Spectral')), main="Break point in temperature trend (1900-present)")
+dev.off()
+plot(greenbrown_test1break[[3]], zlim=c(1910,2010), col=rainbow(100), main="Break point in temperature trend (1900-present)")
 #Seeing slope differences between two sections
 plot(greenbrown_test1break[[4]], col=pal(10))
 plot(greenbrown_test1break[[5]], col=pal(10))
@@ -63,13 +64,17 @@ plot(slope_diff, col=pal(10))
 greenbrown_test2break <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=2)
 plot(greenbrown_test2break)
 plot(greenbrown_test1break, col=(brewer.pal(n=6, name='Spectral')))
-plot(greenbrown_test1break[[3]], (brewer.pal(n=10, name='Spectral')), main="Break point in temperature trend (1900-present)")
+par(mfrow=c(1,2))
+plot(greenbrown_test2break[[4]], zlim=c(1910,2010), col= rainbow(100), main="Break point 1")
+plot(greenbrown_test2break[[5]], zlim=c(1910,2010), col= rainbow(100), main="Break point 2")
 #Trying with 3 break points
 greenbrown_test3break <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=3)
 plot(greenbrown_test3break)
 plot(greenbrown_test3break, col=(brewer.pal(n=6, name='Spectral')))
-plot(greenbrown_test3break[[3]], (brewer.pal(n=10, name='Spectral')), main="Break point in temperature trend (1900-present)")
-
+par(mfrow=c(1,3))
+plot(greenbrown_test3break[[5]], zlim=c(1910,2010), col=  rainbow(100), main="Break point 1 in temperature trend (1900-present)")
+plot(greenbrown_test3break[[6]], zlim=c(1910,2010), col=  rainbow(100), main="Break point 2 in temperature trend (1900-present)")
+plot(greenbrown_test3break[[7]], zlim=c(1910,2010), col=  rainbow(100), main="Break point 3 in temperature trend (1900-present)")
 
 
 #Create Ta-Ts map for the US ---------
@@ -167,8 +172,117 @@ bwplot(Ev_Diff, main="Ta_Ts in Evergreen Forests")
 
 densityplot(Fo_Diff, main="Ta-Ts in Forest Environments")
 bwplot(Fo_Diff, main="Ta_Ts in Forest Environments")
+#Buffer analysis------------
+#500 buffer, 10000 buffer, 1500 buffer, 3000 buffer, and 4000 buffer
+#300
+Forest_blob <- as.data.frame(extract(MMFESI, MMFpoint, buffer=300))
+Forest_blob
+#Forest_blob <-(as.data.frame(extract(MMFESI, MMFext)))
+toplot <-colMeans(Forest_blob, na.rm=TRUE)
+melted300 <- melt(toplot)
+melted300$doy <- rownames(melted300)
+melted300$doy <-as.integer(substr(melted300$doy, 2,4))
+melted300
 
-#Create data frame for plotting comparisons 
+#500
+Forest_blob <- as.data.frame(extract(MMFESI, MMFpoint, buffer=500))
+Forest_blob
+#Forest_blob <-(as.data.frame(extract(MMFESI, MMFext)))
+toplot <-colMeans(Forest_blob, na.rm=TRUE)
+melted500 <- melt(toplot)
+melted500$doy <- rownames(melted500)
+melted500$doy <-as.integer(substr(melted500$doy, 2,4))
+melted500
+
+#1000
+Jul_Diff <- Diffs[[7]]
+Forest_blob <- as.data.frame(extract(Diffs, MMFpoint, buffer=1000))
+Forest_blob
+#Forest_blob <-(as.data.frame(extract(MMFESI, MMFext)))
+toplot <-colMeans(Forest_blob, na.rm=TRUE)
+melted1000<- melt(toplot)
+melted1000$doy <- rownames(melted1000)
+melted1000$doy <-as.integer(substr(melted1000$doy, 2,4))
+melted1000
+write.csv(melted1000, "timeseries_MMSF_MODISESI.csv")
+#1500
+Forest_blob <- as.data.frame(extract(MMFESI, MMFpoint, buffer=1500))
+#Forest_blob <-(as.data.frame(extract(MMFESI, MMFext)))
+Forest_blob
+toplot <-colMeans(Forest_blob, na.rm=TRUE)
+melted1500 <- melt(toplot)
+melted1500$doy <- rownames(melted1500)
+melted1500$doy <-as.integer(substr(melted1500$doy, 2,4))
+melted1500
+
+#2000
+Forest_blob <- as.data.frame(extract(MMFESI, MMFpoint, buffer=2000))
+#Forest_blob <-(as.data.frame(extract(MMFESI, MMFext)))
+Forest_blob
+toplot <-colMeans(Forest_blob, na.rm=TRUE)
+melted2000 <- melt(toplot)
+melted2000$doy <- rownames(melted2000)
+melted2000$doy <-as.integer(substr(melted2000$doy, 2,4))
+melted2000
+
+#3000
+Forest_blob <- as.data.frame(extract(MMFESI, MMFpoint, buffer=3000))
+#Forest_blob <-(as.data.frame(extract(MMFESI, MMFext)))
+Forest_blob
+toplot <-colMeans(Forest_blob, na.rm=TRUE)
+melted3000 <- melt(toplot)
+melted3000$doy <- rownames(melted3000)
+melted3000$doy <-as.integer(substr(melted3000$doy, 2,4))
+melted3000
+
+#4000
+Forest_blob <- as.data.frame(extract(MMFESI, MMFpoint, buffer=4000))
+#Forest_blob <-(as.data.frame(extract(MMFESI, MMFext)))
+Forest_blob
+toplot <-colMeans(Forest_blob, na.rm=TRUE)
+melted4000 <- melt(toplot)
+melted4000$doy <- rownames(melted4000)
+melted4000$doy <-as.integer(substr(melted4000$doy, 2,4))
+melted4000
+
+melted300 = rename(melted300,c("value"="res_300"))
+melted500 = rename(melted500,c("value"="res_500"))
+new <- merge(melted300, melted500, by="doy")
+
+melted1000 <- rename(melted1000, c("value"="res_1000"))
+new2 <- merge(new, melted1000)
+
+melted1500 <- rename(melted1500, c("value"="res_1500"))
+new3 <- merge(new2, melted1500)
+
+melted2000 <- rename(melted2000, c("value"="res_2000"))
+new4 <- merge(new3, melted2000)
+
+
+
+melted3000 <- rename(melted3000, c("value"="res_3000"))
+new5 <- merge(new4, melted3000)
+
+melted4000 <- rename(melted4000, c("value"="res_4000"))
+new6 <- merge(new5, melted4000)
+new6
+
+July2012 <- new6[20:33,]
+July2012 <- melt(July2012, id=("doy"))
+
+
+
+
+pdf("Forest_buffersize.pdf")
+print(ggplot(data=July2012, aes(x=variable, y=value, group=doy, color=doy))+
+        geom_line()+
+        labs(title="MMSF ESI Summer 2012", 
+             y="ESI (ET/PET)", 
+             x="Buffer size around tower")+
+        ylim(0.1,0.75)+
+        theme_bw())
+dev.off()
+#Create data frame for plotting comparisons ----------
 #df <- data.frame(Month=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 df <- data.frame(Month=c(1:12))
 df$Month <- as.numeric(df$Month)
@@ -189,6 +303,8 @@ df$sdEv <- as.numeric(cellStats(Ev_Diff, stat='sd', na.rm=TRUE))
 df$seEv <- (df$sdEv)/(sqrt(ncell(Ev_Diff)))
 df$meanDec <- as.numeric(cellStats(Dec_Diff, stat='mean', na.rm=TRUE))
 df$sdDec <- as.numeric(cellStats(Dec_Diff, stat='sd', na.rm=TRUE))
+
+write.csv(df, "for_plotting.csv")
 
 dft <- df[,c("Month", "meanUrban", "meanCrop", "meanFo")]
 dfm <- melt(dft, id="Month")
@@ -436,4 +552,19 @@ r.cor2 <- rasterCorrelation(Diffs[[6]], Forest_Age, s=5, type="pearson")
 plot(r.cor2)
 plot(r.cor)
 
+Forest_Plot <- stack(Forest_Age, Diffs)
+plot(Forest_Plot)
 
+r1Extent <- extent(Forest_Plot)
+r1Extraction<-extract(Forest_Plot, layer=1, n1=1, r1Extent, df=TRUE, cellnumbers=TRUE)
+
+
+cor(r1Extraction$layer, r1Extraction$Jun, use="complete.cases")
+#Plot
+qplot(r1Extraction$layer, r1Extraction$Jun)
+
+#Trying to plot but there are so many points
+sp <- ggplot(r1Extraction, aes(x=layer, y=Jun)) +
+  geom_point()
+sp + stat_density_2d(aes(fill = ..level..), geom="polygon")+
+  scale_fill_gradient(low="blue", high="red")
