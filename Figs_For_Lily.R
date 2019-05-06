@@ -18,12 +18,12 @@ dfm$error <- dfe$error
 fm$variable <- factor(dfm$variable,levels = c("meanFo", "meanCrop2", "meanUrban"))
 #First Figure - Fig 4 from paper
 ggplot(data = dfm, aes(x = Month, y = value, color = variable)) + 
-  geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 0),
-            fill = "red", alpha = 0.005)+
-  geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = 0, ymax = Inf),
-            fill = "blue", alpha = 0.005)+
-  annotate("text", x = 7, y = 4, label = "Surface Cooler", color="Blue")+
-  annotate("text", x = 7, y = -4, label = "Surface Warmer", color="Red")+
+  #geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 0),
+            #fill = "red", alpha = 0.005)+
+  #geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = 0, ymax = Inf),
+           # fill = "blue", alpha = 0.005)+
+  #annotate("text", x = 7, y = 4, label = "Surface Cooler", color="Blue")+
+  #annotate("text", x = 7, y = -4, label = "Surface Warmer", color="Red")+
   geom_line() +
   scale_color_manual(labels = c("Forest", "Cropland", "Urban"), values = c("#276419", "#7fbc41", "#c51b7d"))+
   labs(color = "Land Cover\n") +
@@ -50,6 +50,7 @@ ggsave("Remote_Sensing_MLB.pdf")
 #Create dataframe
 df2 <- data.frame(LandCover = c("Forest", "Cropland", "Urban"), change = c(.14, -.157, .002))
 df2$LandCover <- factor(df2$LandCover,levels = c("Forest", "Cropland", "Urban"))
+df2$change <- df2$change*100
 #Barplot of land cover change 
 ggplot(df2, aes(fill=LandCover, y=change, x=LandCover)) + 
   geom_bar(colour="black", stat="identity")+
@@ -64,6 +65,9 @@ ggplot(df2, aes(fill=LandCover, y=change, x=LandCover)) +
         panel.grid.minor = element_blank(),
         axis.line = element_line(size = 0.5, linetype = "solid",
                                  colour = "black"))+
+  ylim(-25,25)+
+  geom_hline(yintercept=0, linetype="dashed", 
+            color = "black", size=0.5)+
   theme(legend.text = element_text(colour="black", size = 12, face = "bold"), legend.title = element_blank())
 
 ggsave("Land_Cover_Change.pdf")
