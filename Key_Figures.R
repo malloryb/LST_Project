@@ -172,45 +172,48 @@ bwplot(Ev_Diff, main="Ta_Ts in Evergreen Forests")
 
 densityplot(Fo_Diff, main="Ta-Ts in Forest Environments")
 bwplot(Fo_Diff, main="Ta_Ts in Forest Environments")
-
+plot(Fo_Diff)
 #Buffer analysis------------
+
+Blob <- as.data.frame(extract(Fo_Diff, Fo_point, buffer=500))
+
+Blob2 <- colMeans(as.data.frame(extract(Fo_Diff, Fo_point, buffer=2000)), na.rm=TRUE)
+ 
+melt(Blob2)$value
+
 Blob_analysis <- function(x, y){
-  Blob <-  colMeans(as.data.frame(extract(x,y, buffer=300)), na.rm=TRUE)
-  Blob2 <- colMeans(as.data.frame(extract(x,y, buffer=500)), na.rm=TRUE)
+  names(x) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+                "Oct", "Nov", "Dec")
+  Blob <-  as.data.frame(extract(x,y, buffer=300))
+  Blob2 <- as.data.frame(extract(x,y, buffer=500))
   Blob3 <- colMeans(as.data.frame(extract(x,y, buffer=1000)), na.rm=TRUE)
   Blob4 <- colMeans(as.data.frame(extract(x,y, buffer=1500)), na.rm=TRUE)
   Blob5 <- colMeans(as.data.frame(extract(x,y, buffer=2000)), na.rm=TRUE)
   Blob6 <- colMeans(as.data.frame(extract(x,y, buffer=3000)), na.rm=TRUE)
   Blob7 <- colMeans(as.data.frame(extract(x,y, buffer=4000)), na.rm=TRUE)
   Blob8 <- colMeans(as.data.frame(extract(x,y, buffer=5000)), na.rm=TRUE)
-  print("extracted points")
-  melted300 <- melt(Blob)
-  melted300$doy <- rownames(melted300)
-  melted300$doy <-as.integer(substr(melted300$doy, 2,4))
-  melted500 <- melt(Blob2)
-  melted500$doy <- rownames(melted500)
-  melted500$doy <-as.integer(substr(melted500$doy, 2,4))
+  
+  melted300 <- as.data.frame(as.numeric(t(Blob)))
+  melted300$month <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+                        "Oct", "Nov", "Dec")
+  melted500 <- as.data.frame(as.numeric(t(Blob2)))
+  melted500$month <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+                       "Oct", "Nov", "Dec")
   melted1000 <- melt(Blob3)
-  melted1000$doy <- rownames(melted1000)
-  melted1000$doy <-as.integer(substr(melted1000$doy, 2,4))
+  melted1000$month <- rownames(melted1000)
   melted1500 <- melt(Blob4)
-  melted1500$doy <- rownames(melted1500)
-  melted1500$doy <-as.integer(substr(melted1500$doy, 2,4))
+  melted1500$month <- rownames(melted1500)
   melted2000 <- melt(Blob5)
-  melted2000$doy <- rownames(melted2000)
-  melted2000$doy <-as.integer(substr(melted2000$doy, 2,4))
+  melted2000$month <- rownames(melted2000)
   melted3000 <- melt(Blob6)
-  melted3000$doy <- rownames(melted3000)
-  melted3000$doy <-as.integer(substr(melted3000$doy, 2,4))
+  melted3000$month <- rownames(melted3000)
   melted4000 <- melt(Blob7)
-  melted4000$doy <- rownames(melted4000)
-  melted4000$doy <-as.integer(substr(melted4000$doy, 2,4))
+  melted4000$month <- rownames(melted4000)
   melted5000 <- melt(Blob8)
-  melted5000$doy <- rownames(melted5000)
-  melted5000$doy <-as.integer(substr(melted5000$doy, 2,4))
+  melted5000$month <- rownames(melted5000)
   print("done melting")
-  melted300 = rename(melted300,c("value"="res_300"))
-  melted500 = rename(melted500,c("value"="res_500"))
+  melted300 = rename(melted300,c("as.numeric(t(Blob))"="res_300"))
+  melted500 = rename(melted500,c("as.numeric(t(Blob2))"="res_500"))
   melted1000 = rename(melted1000,c("value"="res_1000"))
   melted1500 <- rename(melted1500, c("value"="res_1500"))
   melted2000 <- rename(melted2000, c("value"="res_2000"))
@@ -218,7 +221,7 @@ Blob_analysis <- function(x, y){
   melted4000 <- rename(melted4000, c("value"="res_4000"))
   melted5000 <- rename(melted5000, c("value"="res_5000"))
   print("merging")
-  new <- merge(melted300, melted500, by="doy")
+  new <- merge(melted300, melted500, by="month")
   new2 <- merge(new, melted1000)
   new3 <- merge(new2, melted1500)
   new4 <- merge(new3, melted2000)
@@ -229,12 +232,10 @@ Blob_analysis <- function(x, y){
 }
 Fo_point <- cbind(-86.4131,39.323)
 Blob_analysis(Fo_Diff, Fo_point)
+  
 
-#500 buffer, 10000 buffer, 1500 buffer, 3000 buffer, and 4000 buffer
-#300
+Fo_Diff
 
-Forest_blob <- as.data.frame(extract(MMFESI, MMFpoint, buffer=300))
-Forest_blob
 #Forest_blob <-(as.data.frame(extract(MMFESI, MMFext)))
 toplot <-colMeans(Forest_blob, na.rm=TRUE)
 melted300 <- melt(toplot)
