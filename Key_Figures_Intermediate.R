@@ -1,8 +1,12 @@
 #Moving steps to create intermediate files for "Key_Figures.R" over into this file
-#Sections!
+#Sections
 #1) Creating Monthly LST files for years 2000-2017 from MODIS LST Data - contains "Monthly_LST" workhorse function, and "Process LST" and "mean_na" helper functions
 #2) Creating Ta-Ts maps from MODIS and Daymet Data - contains "Monthly_Ta_Ts" workhorse function
 #3) Creating mean monthly Ta maps from Daymet Data
+
+#Datasets in here: 
+#1: MODIS LST - 8-day -> 2000-2017
+#2: Daymet Air Temperature - monthly -> 1980-2017 
 
 #1) Creating Monthly LST files for years 2000 - 2017 from MODIS LST Data -------------
 setwd("/Users/mallory/Documents/APPEARS_LST/")
