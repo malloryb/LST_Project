@@ -5,23 +5,15 @@
 #Figure 3: Lily's figure
 #Figure 4: Flux synthesis figure
 
-#Before starting: raster options
+#Set raster options
 rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
+
 #Load packages
-library(ncdf4)
-library(reshape2)
-library(raster)
-library(proj4)
-library(rgdal)
-library(gdalUtils)
-library(spatialEco)
-library(greenbrown)
-library(RColorBrewer)
-library(MODIS)
-library(rasterVis)
-library(gridExtra)
-library(plyr)
-library(ggplot2)
+Packages <- c("ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "spatialEco", "greenbrown", "RColorBrewer",
+              "MODIS", "rasterVis", "gridExtra", "plyr")
+
+lapply(Packages, library, character.only = TRUE)
+
 #Figure 1---------------------
 #Using University of Delaware Air Temperature & Precipitation
 # Data product accessed from: https://www.esrl.noaa.gov/psd/data/gridded/data.UDel_AirT_Precip.html
