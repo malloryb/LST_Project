@@ -18,7 +18,7 @@ lapply(Packages, library, character.only = TRUE)
 #Using University of Delaware Air Temperature & Precipitation
 # Data product accessed from: https://www.esrl.noaa.gov/psd/data/gridded/data.UDel_AirT_Precip.html
 #Open air temp file (0.5 degree)
-fname <- file.choose("air.mon.mean.v501.nc")
+fname <- ("/Users/mallory/Documents/Temp_Project/air.mon.mean.v501.nc")
 nc<-nc_open(fname)
 # Get a list of the NetCDF's R attributes:
 attributes(nc)$names
@@ -30,11 +30,13 @@ TAS <- brick(fname, varname="air")
 ext <- extent(233, 290, 23, 51)
 TAS_test <- crop(TAS, ext)
 #Do the kendall test
-kendall_raster <- raster.kendall(TAS_test, tau=TRUE, p.value=TRUE)
-writeRaster(kendall_raster, "Temp_Kendall_US.tif")
+#kendall_raster <- raster.kendall(TAS_test, tau=TRUE, p.value=TRUE)
+#writeRaster(kendall_raster, "Temp_Kendall_US.tif")
+kendall_raster <- raster("/Users/mallory/Documents/Temp_Project/Temp_Kendall_US.tif")
 #Trying to center color ramp so white is at zero:
 pal <- colorRampPalette(c("blue","cadetblue1", "lightblue", "white","red", "red3"))
-plot(kendall_raster, col=pal(6))
+#kendall_raster[kendall_raster < -0.00245] <- NA
+plot(kendall_raster, col=pal(10))
 #Trying with greenbrown
 #Figure 1a: Change over time
 #greenbrown_test <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=1)
@@ -42,7 +44,12 @@ greenbrown_test <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=0)
 plot(greenbrown_test[[2]], col=pal(10), main="Slope of temperature trend: 1900-present (Degrees C per year)")
 #Change over time in terms of degrees C per 50 years
 plot((greenbrown_test[[2]]*50), col=pal(20), main="Slope of temperature trend: 1900-present (Degrees C per 50 years)")
-#Trying with 1 break point
+#Consider smoothing using a focal operation: 
+#y <- focal(x, w=matrix(1,5,5), mean)
+#y <- focal(greenbrown_test[[2]]*50, w=(matrix(1,5,5)), mean)
+#plot(y, col=pal(20))
+
+#Testing break points-------
 greenbrown_test1break <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=1)
 plot(greenbrown_test1break)
 plot(greenbrown_test1break, col=(brewer.pal(n=6, name='Spectral')))
@@ -90,6 +97,7 @@ e2 <- extent(-40000, 2300000, -1800000, 400000)
 LC <- crop(Land_Cover, e2)
 plot(LC)
 LC_proj <-projectRaster(LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+writeRaster(LC_proj, "/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
 ext <- extent(Diffs)
 LC_crop <- crop(LC_proj, ext)
 #Create 3 masks: 
@@ -144,6 +152,7 @@ plot(Dec_Diff)
 plot(Ev_Diff)
 plot(Fo_Diff)
 
+#Levelplots by land cover type-------------
 my.at <- seq(-6,6,1)
 levelplot(Fo_Diff, at=my.at, main="Ta_Ts in forests", col.regions=(cols))
 levelplot(Crop_Diff, at=my.at, main="Ta-Ts in croplands",col.regions=(cols))
@@ -179,6 +188,9 @@ Blob_analysis <- function(x, y){
   Blob6 <- colMeans(as.data.frame(extract(x,y, buffer=3000)), na.rm=TRUE)
   Blob7 <- colMeans(as.data.frame(extract(x,y, buffer=4000)), na.rm=TRUE)
   Blob8 <- colMeans(as.data.frame(extract(x,y, buffer=5000)), na.rm=TRUE)
+  Blob9 <- colMeans(as.data.frame(extract(x,y, buffer=7500)), na.rm=TRUE)
+  Blob10 <- colMeans(as.data.frame(extract(x,y, buffer=10000)), na.rm=TRUE)
+  
   
   melted300 <- as.data.frame(as.numeric(t(Blob)))
   melted300$month <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
@@ -198,6 +210,11 @@ Blob_analysis <- function(x, y){
   melted4000$month <- rownames(melted4000)
   melted5000 <- melt(Blob8)
   melted5000$month <- rownames(melted5000)
+  melted7500 <- melt(Blob9)
+  melted7500$month <- rownames(melted7500)
+  melted10000 <- melt(Blob10)
+  melted10000$month <- rownames(melted10000)
+  
   print("done melting")
   melted300 = rename(melted300,c("as.numeric(t(Blob))"="res_300"))
   melted500 = rename(melted500,c("as.numeric(t(Blob2))"="res_500"))
@@ -207,6 +224,8 @@ Blob_analysis <- function(x, y){
   melted3000 <- rename(melted3000, c("value"="res_3000"))
   melted4000 <- rename(melted4000, c("value"="res_4000"))
   melted5000 <- rename(melted5000, c("value"="res_5000"))
+  melted7500 <- rename(melted7500, c("value"="res_7500"))
+  melted10000 <- rename(melted10000, c("value"="res_10000"))
   print("merging")
   new <- merge(melted300, melted500, by="month")
   new2 <- merge(new, melted1000)
@@ -215,21 +234,278 @@ Blob_analysis <- function(x, y){
   new5 <- merge(new4, melted3000)
   new6 <- merge(new5, melted4000)
   new7 <- merge(new6, melted5000)
-  return(new7)
+  new8 <- merge(new7, melted7500)
+  new9 <- merge(new8, melted10000)
+  return(new9)
 }
-Fo_point <- cbind(-86.4131,39.323)
-MMF_blob <- Blob_analysis(Fo_Diff, Fo_point)
-MMF_blob_melt <- melt(MMF_blob)
+#Lets do for 2014: Forest and Cropland Chunks
 
-pdf("Forest_buffersize.pdf")
-print(ggplot(data=MMF_blob_melt, aes(x=variable, y=value, group=month, color=month))+
+daymet <- brick("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmax_monavg_2014_na.tif")
+e2 <- extent(-40000, 2300000, -1600000, 400000)
+print("initial crop")
+cropped <- crop(daymet, e2)
+#cropped2 <- calc(cropped, fun = mean)
+print("projecting raster")
+#Project raster to lat/long coordinates
+Ta_2014 <- projectRaster(cropped, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+LST_2014 <- brick("/Users/mallory/Documents/Temp_Project/MODIS_LST_2014.tif")
+plot(Fomask) + spplot(sites_sub_utm, # add a layer of points
+                     zcol = "period", 
+                     cex = .6,
+                     pch = c(18,20),
+                     col.regions = c("red","blue")
+)  
+plot(Cropmask)
+
+#Fo_point <- cbind(-85.82761,36.61487)
+#Crop_point <- cbind(-87.88266, 39.79909)
+Fo_point <- cbind(-88.35108, 31.65790)
+Crop_point <- cbind(-83.63201, 31.58975)
+Fo_Ta_blob <- Blob_analysis(Ta_2014, Fo_point)
+#colnames(Fo_Ta_blob) <- c("month", "300", "500", "1000", "1500", "2000", "3000", "4000", "5000", "7500", "10000")
+Fo_Ta_blob <- subset(Fo_Ta_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Fo_Ta_melt <- melt(Fo_Ta_blob)
+Fo_Ts_blob <- Blob_analysis(LST_2014, Fo_point)
+Fo_Ts_blob <- subset(Fo_Ts_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Fo_Ts_melt <- melt(Fo_Ts_blob)
+Crop_Ta_blob <- Blob_analysis(Ta_2014, Crop_point)
+Crop_Ta_blob <- subset(Crop_Ta_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Crop_Ta_melt <- melt(Crop_Ta_blob)
+Crop_Ts_blob <- Blob_analysis(LST_2014, Crop_point)
+Crop_Ts_blob <- subset(Crop_Ts_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Crop_Ts_melt <- melt(Crop_Ts_blob)
+
+Buffer_Labels <- c("300", "500", "1000", "1500", "2000", "3000", "4000", "5000", "7500", "10000")
+
+  
+  
+
+x1 <- ggplot(data=Fo_Ts_melt, aes(x=variable, y=value, group=month, color=month))+
         geom_line()+
-        labs(title="MMSF ESI Summer 2012", 
-             y="Ta-Ts (degrees C)", 
-             x="Month")+
-        ylim(-4.5,4.5)+
-        theme_bw())
-dev.off()
+        scale_x_discrete(labels=Buffer_Labels)+
+        labs(title="Buffer Size - S. Forest 2014", 
+             y="Ts (degrees C)", 
+             x="Buffer Size (m2)")+
+        ylim(23, 35)+
+        theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+
+x2 <- ggplot(data=Fo_Ta_melt, aes(x=variable, y=value, group=month, color=month))+
+        geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+        labs(title="Buffer Size - S. Forest  2014", 
+             y="Ta (degrees C)", 
+             x="Buffer Size (m2)")+
+        ylim(23,35)+
+        theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+x3 <- ggplot(data=Crop_Ts_melt, aes(x=variable, y=value, group=month, color=month))+
+        geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+        labs(title="Buffer Size - S. Crop 2014", 
+             y="Ts (degrees C)", 
+             x="Buffer Size (m2)")+
+        ylim(23,35)+
+        theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+x4 <-ggplot(data=Crop_Ta_melt, aes(x=variable, y=value, group=month, color=month))+
+        geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+        labs(title="Buffer Size - S. Crop 2014", 
+             y="Ta (degrees C)", 
+             x="Buffer Size (m2)")+
+        ylim(23,35)+
+        theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+
+grid.arrange(x1, x2, nrow=1)
+grid.arrange(x3,x4, nrow=1)
+
+#Transect ----------
+Pt1 <- cbind(-86.77, 38.78237)
+Pt2 <- cbind(-86.83, 38.78237)
+Pt3 <- cbind(-86.89, 38.78237)
+Pt4 <- cbind(-86.94, 38.78237)
+Pt5 <- cbind(-87.00, 38.78237)
+Pt6 <- cbind(-87.06, 38.78237)
+
+Pt1_blob <- Blob_analysis(LST_2014, Pt1)
+Pt1_blob <- subset(Pt1_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt1_melt <- melt(Pt1_blob)
+Pt2_blob <- Blob_analysis(LST_2014, Pt2)
+Pt2_blob <- subset(Pt2_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt2_melt <- melt(Pt2_blob)
+Pt3_blob <- Blob_analysis(LST_2014, Pt3)
+Pt3_blob <- subset(Pt3_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt3_melt <- melt(Pt3_blob)
+Pt4_blob <- Blob_analysis(LST_2014, Pt4)
+Pt4_blob <- subset(Pt4_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt4_melt <- melt(Pt4_blob)
+Pt5_blob <- Blob_analysis(LST_2014, Pt5)
+Pt5_blob <- subset(Pt5_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt5_melt <- melt(Pt5_blob)
+Pt6_blob <- Blob_analysis(LST_2014, Pt6)
+Pt6_blob <- subset(Pt6_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt6_melt <- melt(Pt6_blob)
+
+
+Buffer_Labels <- c("300", "500", "1000", "1500", "2000", "3000", "4000", "5000", "7500", "10000")
+
+
+
+
+x5 <- ggplot(data=Pt1_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (1)", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+x6 <- ggplot(data=Pt2_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (2)", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+x7 <- ggplot(data=Pt3_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (3)", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+x8 <- ggplot(data=Pt4_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (4)", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+x9 <- ggplot(data=Pt5_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (5)", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+x10 <- ggplot(data=Pt6_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (6)", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+
+grid.arrange(x5, x6, x7, x8, x9, x10, nrow=2)
+
+#Exact same thing but with Ta----------
+Pt1_blob <- Blob_analysis(Ta_2014, Pt1)
+Pt1_blob <- subset(Pt1_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt1_melt <- melt(Pt1_blob)
+Pt2_blob <- Blob_analysis(Ta_2014, Pt2)
+Pt2_blob <- subset(Pt2_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt2_melt <- melt(Pt2_blob)
+Pt3_blob <- Blob_analysis(Ta_2014, Pt3)
+Pt3_blob <- subset(Pt3_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt3_melt <- melt(Pt3_blob)
+Pt4_blob <- Blob_analysis(Ta_2014, Pt4)
+Pt4_blob <- subset(Pt4_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt4_melt <- melt(Pt4_blob)
+Pt5_blob <- Blob_analysis(Ta_2014, Pt5)
+Pt5_blob <- subset(Pt5_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt5_melt <- melt(Pt5_blob)
+Pt6_blob <- Blob_analysis(Ta_2014, Pt6)
+Pt6_blob <- subset(Pt6_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt6_melt <- melt(Pt6_blob)
+
+
+Buffer_Labels <- c("300", "500", "1000", "1500", "2000", "3000", "4000", "5000", "7500", "10000")
+
+
+
+
+x5 <- ggplot(data=Pt1_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (1)", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+x6 <- ggplot(data=Pt2_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (2)", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+x7 <- ggplot(data=Pt3_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (3)", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+x8 <- ggplot(data=Pt4_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (4)", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+x9 <- ggplot(data=Pt5_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (5)", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+x10 <- ggplot(data=Pt6_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (6)", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+
+grid.arrange(x5, x6, x7, x8, x9, x10, nrow=2)
+
+
+
 #Create data frame for plotting comparisons ----------
 #df <- data.frame(Month=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 df <- data.frame(Month=c(1:12))
