@@ -392,3 +392,273 @@ names(Ta) <- c("Jan", "Feb", "Mar","Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oc
 plot(Ta)
 writeRaster(Ta, "/Users/mallory/Documents/Temp_Project/Ta_All.tif")
 
+#4) Blob and buffer analyses 
+
+daymet <- brick("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmax_monavg_2014_na.tif")
+e2 <- extent(-40000, 2300000, -1600000, 400000)
+print("initial crop")
+cropped <- crop(daymet, e2)
+#cropped2 <- calc(cropped, fun = mean)
+print("projecting raster")
+#Project raster to lat/long coordinates
+Ta_2014 <- projectRaster(cropped, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+LST_2014 <- brick("/Users/mallory/Documents/Temp_Project/MODIS_LST_2014.tif")
+plot(Fomask) + spplot(sites_sub_utm, # add a layer of points
+                      zcol = "period", 
+                      cex = .6,
+                      pch = c(18,20),
+                      col.regions = c("red","blue")
+)  
+plot(Cropmask)
+
+#Fo_point <- cbind(-85.82761,36.61487)
+#Crop_point <- cbind(-87.88266, 39.79909)
+Fo_point <- cbind(-88.35108, 31.65790)
+Crop_point <- cbind(-83.63201, 31.58975)
+Fo_Ta_blob <- Blob_analysis(Ta_2014, Fo_point)
+lapply(extract)
+#colnames(Fo_Ta_blob) <- c("month", "300", "500", "1000", "1500", "2000", "3000", "4000", "5000", "7500", "10000")
+Fo_Ta_blob <- subset(Fo_Ta_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Fo_Ta_melt <- melt(Fo_Ta_blob)
+Fo_Ts_blob <- Blob_analysis(LST_2014, Fo_point)
+Fo_Ts_blob <- subset(Fo_Ts_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Fo_Ts_melt <- melt(Fo_Ts_blob)
+Crop_Ta_blob <- Blob_analysis(Ta_2014, Crop_point)
+Crop_Ta_blob <- subset(Crop_Ta_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Crop_Ta_melt <- melt(Crop_Ta_blob)
+Crop_Ts_blob <- Blob_analysis(LST_2014, Crop_point)
+Crop_Ts_blob <- subset(Crop_Ts_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Crop_Ts_melt <- melt(Crop_Ts_blob)
+
+Buffer_Labels <- c("300", "500", "1000", "1500", "2000", "3000", "4000", "5000", "7500", "10000")
+
+
+
+
+x1 <- ggplot(data=Fo_Ts_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Buffer Size - S. Forest 2014", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(23, 35)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+
+x2 <- ggplot(data=Fo_Ta_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Buffer Size - S. Forest  2014", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(23,35)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+x3 <- ggplot(data=Crop_Ts_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Buffer Size - S. Crop 2014", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(23,35)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+x4 <-ggplot(data=Crop_Ta_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Buffer Size - S. Crop 2014", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(23,35)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+
+grid.arrange(x1, x2, nrow=1)
+grid.arrange(x3,x4, nrow=1)
+
+#Transect ----------
+Pt1 <- cbind(-86.77, 38.78237)
+Pt2 <- cbind(-86.83, 38.78237)
+Pt3 <- cbind(-86.89, 38.78237)
+Pt4 <- cbind(-86.94, 38.78237)
+Pt5 <- cbind(-87.00, 38.78237)
+Pt6 <- cbind(-87.06, 38.78237)
+
+Pt1_blob <- Blob_analysis(LST_2014, Pt1)
+Pt1_blob <- subset(Pt1_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt1_melt <- melt(Pt1_blob)
+Pt2_blob <- Blob_analysis(LST_2014, Pt2)
+Pt2_blob <- subset(Pt2_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt2_melt <- melt(Pt2_blob)
+Pt3_blob <- Blob_analysis(LST_2014, Pt3)
+Pt3_blob <- subset(Pt3_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt3_melt <- melt(Pt3_blob)
+Pt4_blob <- Blob_analysis(LST_2014, Pt4)
+Pt4_blob <- subset(Pt4_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt4_melt <- melt(Pt4_blob)
+Pt5_blob <- Blob_analysis(LST_2014, Pt5)
+Pt5_blob <- subset(Pt5_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt5_melt <- melt(Pt5_blob)
+Pt6_blob <- Blob_analysis(LST_2014, Pt6)
+Pt6_blob <- subset(Pt6_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt6_melt <- melt(Pt6_blob)
+
+
+Buffer_Labels <- c("300", "500", "1000", "1500", "2000", "3000", "4000", "5000", "7500", "10000")
+
+
+
+
+x5 <- ggplot(data=Pt1_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (1)", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+x6 <- ggplot(data=Pt2_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (2)", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+x7 <- ggplot(data=Pt3_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (3)", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+x8 <- ggplot(data=Pt4_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (4)", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+x9 <- ggplot(data=Pt5_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (5)", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+x10 <- ggplot(data=Pt6_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (6)", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+
+grid.arrange(x5, x6, x7, x8, x9, x10, nrow=2)
+
+#Exact same thing but with Ta----------
+Pt1_blob <- Blob_analysis(Ta_2014, Pt1)
+Pt1_blob <- subset(Pt1_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt1_melt <- melt(Pt1_blob)
+Pt2_blob <- Blob_analysis(Ta_2014, Pt2)
+Pt2_blob <- subset(Pt2_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt2_melt <- melt(Pt2_blob)
+Pt3_blob <- Blob_analysis(Ta_2014, Pt3)
+Pt3_blob <- subset(Pt3_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt3_melt <- melt(Pt3_blob)
+Pt4_blob <- Blob_analysis(Ta_2014, Pt4)
+Pt4_blob <- subset(Pt4_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt4_melt <- melt(Pt4_blob)
+Pt5_blob <- Blob_analysis(Ta_2014, Pt5)
+Pt5_blob <- subset(Pt5_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt5_melt <- melt(Pt5_blob)
+Pt6_blob <- Blob_analysis(Ta_2014, Pt6)
+Pt6_blob <- subset(Pt6_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt6_melt <- melt(Pt6_blob)
+
+
+Buffer_Labels <- c("300", "500", "1000", "1500", "2000", "3000", "4000", "5000", "7500", "10000")
+
+
+
+
+x5 <- ggplot(data=Pt1_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (1)", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+x6 <- ggplot(data=Pt2_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (2)", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+x7 <- ggplot(data=Pt3_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (3)", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+x8 <- ggplot(data=Pt4_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (4)", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+x9 <- ggplot(data=Pt5_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (5)", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+x10 <- ggplot(data=Pt6_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (6)", 
+       y="Ta (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+
+grid.arrange(x5, x6, x7, x8, x9, x10, nrow=2)
+
+
+
+
