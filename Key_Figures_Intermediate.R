@@ -9,7 +9,7 @@
 #2: Daymet Air Temperature - monthly -> 1980-2017 
 
 #1) Creating Monthly LST files for years 2000 - 2017 from MODIS LST Data -------------
-setwd("/Users/mallory/Documents/APPEARS_LST/")
+setwd("/Users/mallory/Documents/Temp_Project/APPEARS_LST/")
 mean_na <- function(x) {
   mean(x,na.rm=T)
 }
@@ -658,6 +658,9 @@ x10 <- ggplot(data=Pt6_melt, aes(x=variable, y=value, group=month, color=month))
 
 
 grid.arrange(x5, x6, x7, x8, x9, x10, nrow=2)
+
+
+#Buffer analysis------------
 
 
 
