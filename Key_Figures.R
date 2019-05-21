@@ -7,14 +7,13 @@
 
 #Set raster options
 rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
-
 #Load packages
-Packages <- c("ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "spatialEco", "greenbrown", "RColorBrewer",
+Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "spatialEco", "greenbrown", "RColorBrewer",
               "MODIS", "rasterVis", "gridExtra", "plyr", "gridBase")
 
 lapply(Packages, library, character.only = TRUE)
 
-#Figure 1---------------------
+ #Figure 1---------------------
 #Using University of Delaware Air Temperature & Precipitation
 # Data product accessed from: https://www.esrl.noaa.gov/psd/data/gridded/data.UDel_AirT_Precip.html
 #Open air temp file (0.5 degree)
@@ -240,7 +239,7 @@ Blob_analysis <- function(x, y){
 #Transect Analysis--------------------
 #Put coordinates into list, extract from raster (using lapply), rbind, then plot. 
 #Read list of transect coordinates
-MODIS_LST <- raster("/Users/mallory/Documents/APPEARS_LST/MOD11A2.006_LST_Day_1km_doy2012201_aid0001.tif")
+MODIS_LST <- raster("/Users/mallory/Documents/Temp_Project/APPEARS_LST/MOD11A2.006_LST_Day_1km_doy2012201_aid0001.tif")
 #MODIS_LST <- raster("/Users/mallory/Documents/APPEARS_LST/MOD11A2.006_LST_Day_1km_doy2016209_aid0001.tif")
 MODIS_LST <- (MODIS_LST*0.02 -273.15)
 points <- read.csv("/Users/mallory/Documents/Temp_Project/Transect_points2.csv")
