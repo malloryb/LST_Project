@@ -10,7 +10,7 @@ rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = 
 
 #Load packages
 Packages <- c("ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "spatialEco", "greenbrown", "RColorBrewer",
-              "MODIS", "rasterVis", "gridExtra", "plyr")
+              "MODIS", "rasterVis", "gridExtra", "plyr", "gridBase")
 
 lapply(Packages, library, character.only = TRUE)
 
@@ -176,7 +176,6 @@ densityplot(Fo_Diff, main="Ta-Ts in Forest Environments")
 bwplot(Fo_Diff, main="Ta_Ts in Forest Environments")
 plot(Fo_Diff)
 #Buffer analysis------------
-
 Blob_analysis <- function(x, y){
   names(x) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
                 "Oct", "Nov", "Dec")
@@ -238,9 +237,87 @@ Blob_analysis <- function(x, y){
   new9 <- merge(new8, melted10000)
   return(new9)
 }
-#Lets do for 2014: Forest and Cropland Chunks
+#Transect Analysis--------------------
 #Put coordinates into list, extract from raster (using lapply), rbind, then plot. 
-#Put coordinates into list. 
+#Read list of transect coordinates
+MODIS_LST <- raster("/Users/mallory/Documents/APPEARS_LST/MOD11A2.006_LST_Day_1km_doy2012201_aid0001.tif")
+#MODIS_LST <- raster("/Users/mallory/Documents/APPEARS_LST/MOD11A2.006_LST_Day_1km_doy2016209_aid0001.tif")
+MODIS_LST <- (MODIS_LST*0.02 -273.15)
+points <- read.csv("/Users/mallory/Documents/Temp_Project/Transect_points2.csv")
+subset_transect <- function(x){
+  transect <- subset(points, id==x)
+  transectx <- transect[c(1,2)]
+  xy <- cbind(transectx$X, transectx$Y)
+  transectx_plot <- as.data.frame(extract(MODIS_LST,xy))
+  names(transectx_plot)[1]<-"LST"
+  transectx_plot$distance <- ((transect$distance*111139)/1000)
+  return(transectx_plot)
+}
+
+
+x1 <- subset_transect(1)
+x1plot <- ggplot(x1, aes(distance, LST)) +
+  geom_point() +
+  geom_smooth()+
+  #xlab("Forest to Cropland in km (~900 m apart)")+
+  ylab("MODIS LST")+
+  labs(tag = "1")+
+  theme(axis.title.x = element_blank())
+
+x2 <- subset_transect(2)
+x2$distance <- -x2$distance
+x2plot <- ggplot(x2, aes(distance, LST)) +
+  geom_point() +
+  geom_smooth()+
+  #xlab("Forest to Cropland in km (~900 m apart)")+
+  ylab("MODIS LST")+
+  labs(tag = "2")+
+  theme(axis.title.x = element_blank())
+
+x3 <- subset_transect(3)
+x3$id <- seq_len(nrow(x3))
+x3plot <- ggplot(x3, aes(distance, LST)) +
+  geom_point() +
+  geom_smooth()+
+  #xlab("Forest to Cropland in km (~900 m apart)")+
+  ylab("MODIS LST")+
+  labs(tag = "3")+
+  theme(axis.title.x = element_blank())
+
+x4 <- subset_transect(4)
+x4$id <- seq_len(nrow(x4))
+x4plot <- ggplot(x4, aes(distance, LST)) +
+  geom_point() +
+  geom_smooth()+
+  #xlab("Forest to Cropland in km (~900 m apart)")+
+  ylab("MODIS LST")+
+  labs(tag = "4")+
+  theme(axis.title.x = element_blank())
+
+x5 <- subset_transect(5)
+x5$id <- seq_len(nrow(x5))
+x5plot <- ggplot(x5, aes(distance, LST)) +
+  geom_point() +
+  geom_smooth()+
+  #xlab("Forest to Cropland in km (~900 m apart)")+
+  ylab("MODIS LST")+
+  labs(tag = "5")+
+  theme(axis.title.x = element_blank())
+
+
+x6 <- subset_transect(6)
+x6$distance <- -x6$distance
+x6plot <- ggplot(x6, aes(distance, LST)) +
+  geom_point() +
+  geom_smooth()+
+  #xlab("Forest to Cropland along transect in km (~900 m apart)")+
+  ylab("MODIS LST")+
+  labs(tag = "6")+
+  theme(axis.title.x = element_blank())
+
+grid.arrange(x1plot, x2plot, x3plot, x4plot, x5plot, x6plot, nrow=3, top=grid::textGrob("8-day LST, July 21 2012",gp=grid::gpar(fontsize=16,font=3)), bottom=grid::textGrob("Forest to cropland along transect in km (~800 m apart)", gp=grid::gpar(fontsize=18)))
+grid.arrange(x1plot, x2plot, x3plot, x4plot, x5plot, x6plot, nrow=3, top=grid::textGrob("8-day LST, July 29 2016",gp=grid::gpar(fontsize=16,font=3)), bottom=grid::textGrob("Forest to cropland along transect in km (~800 m apart)", gp=grid::gpar(fontsize=18)))
+
 #Create data frame for plotting comparisons ----------
 #df <- data.frame(Month=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 df <- data.frame(Month=c(1:12))
