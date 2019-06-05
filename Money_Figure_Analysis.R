@@ -6,6 +6,7 @@ library(ncdf4)
 library(ggpubr)
 library(reshape2)
 library(gridExtra)
+library(raster)
 setwd("/Users/mallory/Documents/Datasets/")
 #Use na.strings argument in read.csv to change -9999 to NA
 US_Akn <- read.csv("LST_Flux/AMF_US-Akn_BASE-BADM_4-1/AMF_US-Akn_BASE_HH_4-1.csv", na.strings=-9999, skip=2)
@@ -108,15 +109,6 @@ qplot(Nc2_Temp$date, Nc2_Temp$Tower_TSmax)
 qplot(Orv_Temp$date, Orv_Temp$Tower_TSmax)
 qplot(Sp1_Temp$date, Sp1_Temp$Tower_TSmax)
 
-Bo1_Temp[which.max(Bo1_Temp$Tower_TSavg),]
-Cav_Temp[which.max(Cav_Temp$Tower_TSavg),]
-Chr_Temp[which.max(Chr_Temp$Tower_TSavg),]
-Dk1_Temp[which.max(Dk1_Temp$Tower_TSavg),]
-Dk2_Temp[which.max(Dk2_Temp$Tower_TSavg),]
-Goo_Temp[which.max(Goo_Temp$Tower_TSavg),]
-Mms_Temp[which.max(Mms_Temp$Tower_TSavg),]
-Nc2_Temp[which.max(Nc2_Temp$Tower_TSavg),]
-Orv_Temp[which.max(Orv_Temp$Tower_TSavg),]
 
 format_daymet<- function(x){
 x$date <- as.Date(paste(x$year, x$yday, sep="-"), format="%Y-%j")
@@ -146,6 +138,54 @@ Mms_Temps <- merge(Mms_Temp, Mms_daymet, by="date")
 Nc2_Temps <- merge(Nc2_Temp, Nc2_daymet, by="date")
 Orv_Temps <- merge(Orv_Temp, Orv_daymet, by="date")
 
+Bo1_Temps$forest <-2
+Cav_Temps$forest <- 9.89
+Chr_Temps$forest <- 12.43
+Dk1_Temps$forest <- 14.91
+Dk2_Temps$forest <- 14.92
+Goo_Temps$forest<- 10.71
+Mms_Temps$forest <- 11
+Nc2_Temps$forest <- 13.94
+Orv_Temps$forest <- 1
+
+
+Bo1_Temps[which.max(Bo1_Temps$Tower_TSavg),]
+Cav_Temps[which.max(Cav_Temps$Tower_TSavg),]
+Chr_Temps[which.max(Chr_Temps$Tower_TSavg),]
+Dk1_Temps[which.max(Dk1_Temps$Tower_TSavg),]
+Dk2_Temps[which.max(Dk2_Temps$Tower_TSavg),]
+Goo_Temps[which.max(Goo_Temps$Tower_TSavg),]
+Mms_Temps[which.max(Mms_Temps$Tower_TSavg),]
+Nc2_Temps[which.max(Nc2_Temps$Tower_TSavg),]
+Orv_Temps[which.max(Orv_Temps$Tower_TSavg),]
+
+
+Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
+plot(Landcover_Rast)
+dataType(Landcover_Rast)="INT4S"
+Bo1 <- cbind(-88.2904, 40.0062)
+Cav <- cbind(-79.4208, 39.0633)
+Chr <- cbind(-84.3324,	35.9311)
+Dk1 <- cbind(-79.0934,	35.9712)
+Dk2 <- cbind(-79.1004,	35.9736)
+Goo <- cbind(-89.8735,	34.2647)
+Mms <- cbind(-86.4131,	39.3232)
+Nc2 <- cbind(-76.6685,	35.803)
+Orv <- cbind(-83.0183,	40.0201)
+raster::extract(Landcover_Rast, Bo1, buffer=1000, fun=mean)
+raster::extract(Landcover_Rast, Cav, buffer=1000, fun=mean)
+raster::extract(Landcover_Rast, Chr, buffer=1000, fun=mean)
+raster::extract(Landcover_Rast, Dk1, buffer=1000, fun=mean)
+raster::extract(Landcover_Rast, Dk2, buffer=1000, fun=mean)
+raster::extract(Landcover_Rast, Goo, buffer=1000, fun=mean)
+raster::extract(Landcover_Rast, Mms, buffer=1000, fun=mean)
+raster::extract(Landcover_Rast, Nc2, buffer=1000, fun=mean)
+raster::extract(Landcover_Rast, Orv, buffer=1000, fun=mean)
+
+
+
+# Get class counts for each polygon
+v.counts <- lapply(v,table)
 
 #Load met data
 mms_met <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/mms_met_data.csv")
