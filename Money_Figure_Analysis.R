@@ -81,7 +81,14 @@ temp$Tower_TSmin <- temp$Tower_TSmin - 273.15
 temp <- temp[Reduce(`&`, lapply(temp, is.finite)),]
 return(temp)
 }
-Daily_Temps(Dk1_30min)
+Bo1_Temp <- Daily_Temps(Bo1_30min)
+Cav_Temp <- Daily_Temps(Cav_30min)
+Dk1_Temp <- Daily_Temps(Dk1_30min)
+Dk2_Temp <- Daily_Temps(Dk2_30min)
+Mms_Temp <- Daily_Temps(Mms_hourly)
+Nc2_Temp <- Daily_Temps(Nc2_30min)
+Orv_Temp <- Daily_Temps(Orv_30min)
+Sp1_Temp <- Daily_Temps(Sp1_30min)
 
 #Load met data
 mms_met <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/mms_met_data.csv")
