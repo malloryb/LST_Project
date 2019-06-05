@@ -1,7 +1,7 @@
 ---
 title: "Temperature Comparisons"
 author: "Mallory Barnes"
-date: "Octobern 10, 2018"
+date: "October 10, 2018"
 output:
   html_document: default
   pdf_document: default
@@ -40,7 +40,7 @@ I've compared the diurnal temperature cycle for estimated Surface Temperature vs
 #### Morgan Monroe State Forest
 Diurnal temperature signal for winter (January 2008) and summer (July 2008)
 ```{r, echo=FALSE, warning=FALSE}
-x <- read.csv("C:/Users/malbarn/Documents/Datasets/Mms_hourly_flux.csv")
+x <- read.csv("/Users/mallory/Documents/Datasets/Mms_hourly_flux.csv")
 x$date <- as.Date(x$date)
 winter <- subset(x, year==2008 & month==01)
 win <- ddply(winter, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
@@ -60,7 +60,7 @@ grid.arrange(wplot, splot, top = "Diurnal Temperature Signal - US-Mms")
 #### Duke Forest
 Diurnal temperature signal for winter (January 2008) and summer (July 2008)
 ```{r, echo=FALSE, warning=FALSE}
-x <- read.csv("C:/Users/malbarn/Documents/Datasets/Dk230min_flux.csv")
+x <- read.csv("/Users/mallory/Documents/Datasets/Dk230min_flux.csv")
 x$date <- as.Date(x$date)
 winter <- subset(x, year==2008 & month==01)
 win <- ddply(winter, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
@@ -78,7 +78,7 @@ grid.arrange(wplot, splot, top = "Diurnal Temperature Signal - US-Dk2")
 #### Duke Grassland
 Diurnal temperature signal for winter (January 2008) and summer (July 2008)
 ```{r, echo=FALSE, warning=FALSE}
-x <- read.csv("C:/Users/malbarn/Documents/Datasets/Dk130min_flux.csv")
+x <- read.csv("/Users/mallory/Documents/Datasets/Dk130min_flux.csv")
 x$date <- as.Date(x$date)
 winter <- subset(x, year==2008 & month==01)
 win <- ddply(winter, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
@@ -104,7 +104,7 @@ Morgan Monroe State Forest:
 *   Gridmet and Daymet both are well correlated to tower air temperature, with only slight a slight bias towards being too cool. 
 *   Modis data was very spotty (Indiana is cloudy!) and overestimates temperature by a lot. 
 ```{r, echo=FALSE, warning=FALSE}
-x <- read.csv("C:/Users/malbarn/Documents/Datasets/mms_temp_comp_10_8.csv")
+x <- read.csv("/Users/mallory/Documents/Datasets/mms_temp_comp_10_8.csv")
 x$TOB_S <- x$TOB_S -273.15
 TaTsplot<-ggplotRegression(lm(Tower_TScor~Tower_TAavg, data = x))
 DaymetPlot<-ggplotRegression(lm(Gridmet_Tavg ~Tower_TAavg, data = x))
@@ -120,7 +120,7 @@ Duke Forest:
 *   Daymet is well correlated to tower air temperature, but Gridmet is not predicting tower air temperature well at all. 
 *   Modis data had better coverage, bias is improved, but correlation isn't great. 
 ```{r, echo=FALSE, warning=FALSE}
-x <- read.csv("C:/Users/malbarn/Documents/Datasets/dk2_temp_comp_10_8.csv")
+x <- read.csv("/Users/mallory/Documents/Datasets/dk2_temp_comp_10_8.csv")
 x$TOB_S <- x$TOB_S -273.15
 TaTsplot<-ggplotRegression(lm(Tower_TScor~Tower_TAavg, data = x))
 DaymetPlot<-ggplotRegression(lm(Gridmet_Tavg ~Tower_TAavg, data = x))
@@ -137,7 +137,7 @@ Duke Grassland:
 *   Modis data had better coverage, but is WAY overestimating temperature and correlation isn't great.
 
 ```{r, echo=FALSE, warning=FALSE}
-x <- read.csv("C:/Users/malbarn/Documents/Datasets/dk1_temp_comp_10_8.csv")
+x <- read.csv("/Users/mallory/Documents/Datasets/dk1_temp_comp_10_8.csv")
 x$TOB_S <- x$TOB_S -273.15
 TaTsplot<-ggplotRegression(lm(Tower_TScor~Tower_TAavg, data = x))
 DaymetPlot<-ggplotRegression(lm(Gridmet_Tavg ~Tower_TAavg, data = x))
@@ -150,7 +150,7 @@ grid.arrange(TaTsplot, DaymetPlot, GridmetPlot, ModisPlot, Modis8dayPlot, top="C
 Daily surface and air temperature, and annual signals for 2008
 *Surface temeperature consistently warmer than air temperature, but good agreement.
 ```{r, echo=FALSE, warning=FALSE}
-x <- read.csv("C:/Users/malbarn/Documents/Datasets/mms_temp_comp_10_8.csv")
+x <- read.csv("/Users/mallory/Documents/Datasets/mms_temp_comp_10_8.csv")
 x$date <- as.Date(x$date)
 
 all <- ggplot(x, aes(x=date)) + 
@@ -178,7 +178,7 @@ grid.arrange(all, for2008,ncol=1, top="Daily Temperature US-Mms")
 Daily surface and air temperature (all) for 2007
 *Surface temeperature consistently warmer than air temperature, but good agreement.
 ```{r, echo=FALSE, warning=FALSE}
-x <- read.csv("C:/Users/malbarn/Documents/Datasets/dk2_temp_comp_10_8.csv")
+x <- read.csv("/Users/mallory/Documents/Datasets/dk2_temp_comp_10_8.csv")
 x$date <- as.Date(x$date)
 all <- ggplot(x, aes(x=date)) + 
   geom_point(aes(y=Tower_TAavg), colour="blue", size=0.5) +
@@ -203,7 +203,7 @@ grid.arrange(all, for2007,ncol=1, top="Daily Temperature US-Dk2")
 Daily surface and air temperature (all) for 2007
 *Surface temeperature consistently warmer than air temperature, but good agreement.
 ```{r, echo=FALSE, warning=FALSE}
-x <- read.csv("C:/Users/malbarn/Documents/Datasets/dk1_temp_comp_10_8.csv")
+x <- read.csv("/Users/mallory/Documents/Datasets/dk1_temp_comp_10_8.csv")
 x$date <- as.Date(x$date)
 all <- ggplot(x, aes(x=date)) + 
   geom_point(aes(y=Tower_TAavg), colour="blue", size=0.5) +
@@ -233,7 +233,7 @@ Comparisons for Morgan Monroe State Forest
 
 Daymet: Good relationship overall
 ```{r, echo=FALSE, warning=FALSE}
-y <- read.csv("C:/Users/malbarn/Documents/Datasets/mms_temp_comp_10_8.csv")
+y <- read.csv("/Users/mallory/Documents/Datasets/mms_temp_comp_10_8.csv")
 y$date <- as.Date(y$date)
 
 y$year <- substr(as.character(y$date),1,4)
@@ -265,7 +265,7 @@ grid.arrange(ts, ts2, r1plot, r2plot)
 
 Gridmet: Good relationship overall
 ```{r, echo=FALSE, warning=FALSE}
-y <- read.csv("C:/Users/malbarn/Documents/Datasets/mms_temp_comp_10_8.csv")
+y <- read.csv("/Users/mallory/Documents/Datasets/mms_temp_comp_10_8.csv")
 y$date <- as.Date(y$date)
 
 y$year <- substr(as.character(y$date),1,4)
@@ -297,7 +297,7 @@ grid.arrange(ts, ts2, r1plot, r2plot)
 
 MODIS LST: Very few data points
 ```{r, echo=FALSE, warning=FALSE}
-y <- read.csv("C:/Users/malbarn/Documents/Datasets/mms_temp_comp_10_8.csv")
+y <- read.csv("/Users/mallory/Documents/Datasets/mms_temp_comp_10_8.csv")
 y$date <- as.Date(y$date)
 y$TOB_S <- y$TOB_S -273.15
 y$year <- substr(as.character(y$date),1,4)
@@ -332,7 +332,7 @@ Comparisons for Duke Forest
 
 Daymet: Good relationship
 ```{r, echo=FALSE, warning=FALSE}
-y <- read.csv("C:/Users/malbarn/Documents/Datasets/dk2_temp_comp_10_8.csv")
+y <- read.csv("/Users/mallory/Documents/Datasets/dk2_temp_comp_10_8.csv")
 y$date <- as.Date(y$date)
 
 y$year <- substr(as.character(y$date),1,4)
@@ -364,7 +364,7 @@ grid.arrange(ts, ts2, r1plot, r2plot)
 
 Gridmet:Worse relationship and consistently underestimates temperature
 ```{r, echo=FALSE, warning=FALSE}
-y <- read.csv("C:/Users/malbarn/Documents/Datasets/dk2_temp_comp_10_8.csv")
+y <- read.csv("/Users/mallory/Documents/Datasets/dk2_temp_comp_10_8.csv")
 y$date <- as.Date(y$date)
 
 y$year <- substr(as.character(y$date),1,4)
@@ -396,7 +396,7 @@ grid.arrange(ts, ts2, r1plot, r2plot)
 
 MODIS LST: Bias is much better, but relationship as clean as I'd like
 ```{r, echo=FALSE, warning=FALSE}
-y <- read.csv("C:/Users/malbarn/Documents/Datasets/dk2_temp_comp_10_8.csv")
+y <- read.csv("/Users/mallory/Documents/Datasets/dk2_temp_comp_10_8.csv")
 y$date <- as.Date(y$date)
 y$TOB_S <- y$TOB_S -273.15
 
@@ -432,7 +432,7 @@ grid.arrange(ts, ts2, r1plot, r2plot)
 Comparisons for Duke Grassland
 Daymet: Strong Relationship
 ```{r, echo=FALSE, warning=FALSE}
-y <- read.csv("C:/Users/malbarn/Documents/Datasets/dk1_temp_comp_10_8.csv")
+y <- read.csv("/Users/mallory/Documents/Datasets/dk1_temp_comp_10_8.csv")
 y$date <- as.Date(y$date)
 
 y$year <- substr(as.character(y$date),1,4)
@@ -463,7 +463,7 @@ grid.arrange(ts, ts2, r1plot, r2plot)
 ```
 Gridmet: not as clean but bias is acceptable
 ```{r, echo=FALSE, warning=FALSE}
-y <- read.csv("C:/Users/malbarn/Documents/Datasets/dk1_temp_comp_10_8.csv")
+y <- read.csv("/Users/mallory/Documents/Datasets/dk1_temp_comp_10_8.csv")
 y$date <- as.Date(y$date)
 
 y$year <- substr(as.character(y$date),1,4)
@@ -495,7 +495,7 @@ grid.arrange(ts, ts2, r1plot, r2plot)
 
 MODIS LST looks pretty good!
 ```{r, echo=FALSE, warning=FALSE}
-y <- read.csv("C:/Users/malbarn/Documents/Datasets/dk1_temp_comp_10_8.csv")
+y <- read.csv("/Users/mallory/Documents/Datasets/dk1_temp_comp_10_8.csv")
 y$date <- as.Date(y$date)
 y$TOB_S <- y$TOB_S -273.15
 
@@ -528,7 +528,7 @@ grid.arrange(ts, ts2, r1plot, r2plot)
 
 
 ```{r, echo=FALSE, warning=FALSE}
-y <- read.csv("C:/Users/malbarn/Documents/Datasets/dk1_temp_comp_10_8.csv")
+y <- read.csv("/Users/mallory/Documents/Datasets/dk1_temp_comp_10_8.csv")
 y$date <- as.Date(y$date)
 y$year <- substr(as.character(y$date),1,4)
 y$month_year <- paste(y$year, substr(as.character(y$date),6,7), sep="-")
