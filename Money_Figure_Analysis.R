@@ -90,6 +90,7 @@ Cav_Temp <- Daily_Temps(Cav_30min)
 Chr_Temp <- Daily_Temps(Chr_30min)
 Dk1_Temp <- Daily_Temps(Dk1_30min)
 Dk2_Temp <- Daily_Temps(Dk2_30min)
+Goo_Temp <- Daily_Temps(Goo_30min)
 Mms_Temp <- Daily_Temps(Mms_hourly)
 Nc2_Temp <- Daily_Temps(Nc2_30min)
 Orv_Temp <- Daily_Temps(Orv_30min)
@@ -101,6 +102,7 @@ qplot(Cav_Temp$date, Cav_Temp$Tower_TSmax)
 qplot(Chr_Temp$date, Chr_Temp$Tower_TSmax)
 qplot(Dk1_Temp$date, Dk1_Temp$Tower_TSmax)
 qplot(Dk2_Temp$date, Dk2_Temp$Tower_TSmax)
+qplot(Goo_Temp$date, Goo_Temp$Tower_TSmax)
 qplot(Mms_Temp$date, Mms_Temp$Tower_TSmax)
 qplot(Nc2_Temp$date, Nc2_Temp$Tower_TSmax)
 qplot(Orv_Temp$date, Orv_Temp$Tower_TSmax)
@@ -111,9 +113,39 @@ Cav_Temp[which.max(Cav_Temp$Tower_TSavg),]
 Chr_Temp[which.max(Chr_Temp$Tower_TSavg),]
 Dk1_Temp[which.max(Dk1_Temp$Tower_TSavg),]
 Dk2_Temp[which.max(Dk2_Temp$Tower_TSavg),]
+Goo_Temp[which.max(Goo_Temp$Tower_TSavg),]
 Mms_Temp[which.max(Mms_Temp$Tower_TSavg),]
 Nc2_Temp[which.max(Nc2_Temp$Tower_TSavg),]
 Orv_Temp[which.max(Orv_Temp$Tower_TSavg),]
+
+format_daymet<- function(x){
+x$date <- as.Date(paste(x$year, x$yday, sep="-"), format="%Y-%j")
+x <- plyr::rename(x, replace=c("tmin..deg.c." = "Daymet_Tmin", "tmax..deg.c."="Daymet_Tmax"))
+x <- x[,c("date","Daymet_Tmax","Daymet_Tmin")]
+x$Daymet_Tavg <- rowMeans(x[c('Daymet_Tmax', 'Daymet_Tmin')], na.rm=TRUE)
+return(x)
+}
+
+Bo1_daymet <- format_daymet(read.csv("Daymet_Points/Bo1_11750_lat_40.0062_lon_-81.5656_2019-06-05_130116.csv", skip=7))
+Cav_daymet <- format_daymet(read.csv("Daymet_Points/Cav_11566_lat_39.0633_lon_-88.2904_2019-06-05_130136.csv", skip=7))
+Chr_daymet <- format_daymet(read.csv("Daymet_Points/Chr_11208_lat_35.9311_lon_-84.3324_2019-06-05_130434.csv", skip=7))
+Dk1_daymet <- format_daymet(read.csv("Daymet_Points/Dk1_11211_lat_35.9712_lon_-79.0934_2019-06-05_130448.csv", skip=7))
+Dk2_daymet <- format_daymet(read.csv("Daymet_Points/Dk2_11211_lat_35.9736_lon_-79.1004_2019-06-05_130510.csv", skip=7))
+Goo_daymet <- format_daymet(read.csv("Daymet_Points/Goo_11206_lat_34.2647_lon_-89.8735_2019-06-05_130528.csv", skip=7))
+Mms_daymet <- format_daymet(read.csv("Daymet_Points/Mms_11567_lat_39.3232_lon_-86.4131_2019-06-05_130538.csv", skip=7))
+Nc2_daymet <- format_daymet(read.csv("Daymet_Points/Nc2_11212_lat_35.803_lon_-76.6685_2019-06-05_130600.csv", skip=7))
+Orv_daymet <- format_daymet(read.csv("Daymet_Points/Orv_11749_lat_40.0201_lon_-83.0183_2019-06-05_130616.csv", skip=7))
+
+Bo1_Temps <- merge(Bo1_Temp, Bo1_daymet, by="date")
+Cav_Temps <- merge(Cav_Temp, Cav_daymet, by="date")
+Chr_Temps <- merge(Chr_Temp, Chr_daymet, by="date")
+Dk1_Temps <- merge(Dk1_Temp, Dk1_daymet, by="date")
+Dk2_Temps <- merge(Dk2_Temp, Dk2_daymet, by="date")
+Goo_Temps <- merge(Goo_Temp, Goo_daymet, by="date")
+Mms_Temps <- merge(Mms_Temp, Mms_daymet, by="date")
+Nc2_Temps <- merge(Nc2_Temp, Nc2_daymet, by="date")
+Orv_Temps <- merge(Orv_Temp, Orv_daymet, by="date")
+
 
 #Load met data
 mms_met <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/mms_met_data.csv")
