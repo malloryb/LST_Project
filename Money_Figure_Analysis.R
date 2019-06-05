@@ -11,6 +11,7 @@ setwd("/Users/mallory/Documents/Datasets/")
 US_Akn <- read.csv("LST_Flux/AMF_US-Akn_BASE-BADM_4-1/AMF_US-Akn_BASE_HH_4-1.csv", na.strings=-9999, skip=2)
 US_Bo1 <- read.csv("LST_Flux/AMF_US-Bo1_BASE-BADM_2-1/AMF_US-Bo1_BASE_HH_2-1.csv", na.strings=-9999, skip=2)
 US_Cav <- read.csv("LST_Flux/AMF_US-CaV_BASE-BADM_2-1/AMF_US-CaV_BASE_HH_2-1.csv", na.strings=-9999, skip=2)
+US_Chr <- read.csv("LST_Flux/AMF_US-ChR_BASE-BADM_2-1/AMF_US-ChR_BASE_HH_2-1.csv", na.strings=-9999, skip=2)
 US_Goo <- read.csv("LST_Flux/AMF_US-Goo_BASE-BADM_2-1/AMF_US-Goo_BASE_HH_2-1.csv", na.strings=-9999, skip=2)
 US_Dk1 <- read.csv("LST_Flux/AMF_US-Dk1_BASE-BADM_4-5/AMF_US-Dk1_BASE_HH_4-5.csv", na.strings=-9999, skip=2)
 US_Dk2 <- read.csv("LST_Flux//AMF_US-Dk2_BASE-BADM_4-5/AMF_US-Dk2_BASE_HH_4-5.csv", na.strings=-9999, skip=2)
@@ -52,7 +53,9 @@ Format_Ameriflux <- function(x){
   #x$TS <- (x$LW_OUT_1_1_1/(sigma *(x$emiss)))^(0.25)
   return(x)}
 Mms_hourly <- Format_Ameriflux(US_Mms)
+Akn_30min <- Format_Ameriflux(US_Akn)
 Bo1_30min <- Format_Ameriflux(US_Bo1)
+Chr_30min <- Format_Ameriflux(US_Chr)
 Cav_30min <- Format_Ameriflux(US_Cav)
 Goo_30min <- Format_Ameriflux(US_Goo)
 Dk1_30min <- Format_Ameriflux(US_Dk1)
@@ -81,14 +84,36 @@ temp$Tower_TSmin <- temp$Tower_TSmin - 273.15
 temp <- temp[Reduce(`&`, lapply(temp, is.finite)),]
 return(temp)
 }
+Akn_Temp <- Daily_Temps(Akn_30min)
 Bo1_Temp <- Daily_Temps(Bo1_30min)
 Cav_Temp <- Daily_Temps(Cav_30min)
+Chr_Temp <- Daily_Temps(Chr_30min)
 Dk1_Temp <- Daily_Temps(Dk1_30min)
 Dk2_Temp <- Daily_Temps(Dk2_30min)
 Mms_Temp <- Daily_Temps(Mms_hourly)
 Nc2_Temp <- Daily_Temps(Nc2_30min)
 Orv_Temp <- Daily_Temps(Orv_30min)
 Sp1_Temp <- Daily_Temps(Sp1_30min)
+
+qplot(Akn_Temp$date, Akn_Temp$Tower_TSmax)
+qplot(Bo1_Temp$date, Bo1_Temp$Tower_TSmax)
+qplot(Cav_Temp$date, Cav_Temp$Tower_TSmax)
+qplot(Chr_Temp$date, Chr_Temp$Tower_TSmax)
+qplot(Dk1_Temp$date, Dk1_Temp$Tower_TSmax)
+qplot(Dk2_Temp$date, Dk2_Temp$Tower_TSmax)
+qplot(Mms_Temp$date, Mms_Temp$Tower_TSmax)
+qplot(Nc2_Temp$date, Nc2_Temp$Tower_TSmax)
+qplot(Orv_Temp$date, Orv_Temp$Tower_TSmax)
+qplot(Sp1_Temp$date, Sp1_Temp$Tower_TSmax)
+
+Bo1_Temp[which.max(Bo1_Temp$Tower_TSavg),]
+Cav_Temp[which.max(Cav_Temp$Tower_TSavg),]
+Chr_Temp[which.max(Chr_Temp$Tower_TSavg),]
+Dk1_Temp[which.max(Dk1_Temp$Tower_TSavg),]
+Dk2_Temp[which.max(Dk2_Temp$Tower_TSavg),]
+Mms_Temp[which.max(Mms_Temp$Tower_TSavg),]
+Nc2_Temp[which.max(Nc2_Temp$Tower_TSavg),]
+Orv_Temp[which.max(Orv_Temp$Tower_TSavg),]
 
 #Load met data
 mms_met <- read.csv("C:/Users/malbarn/Documents/LST_Project/Initial_Met_Comparisons/mms_met_data.csv")
