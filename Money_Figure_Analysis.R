@@ -194,11 +194,11 @@ Mms_Temps$forest <- raster::extract(Landcover_Rast, Mms, buffer=3000, fun=mean)
 Nc2_Temps$forest <- raster::extract(Landcover_Rast, Nc2, buffer=3000, fun=mean)
 Orv_Temps$forest <- raster::extract(Landcover_Rast, Orv, buffer=3000, fun=mean)
 
-Bo1_Temps$month <- month.abb[month(Bo1_Temps$date)]
-Bo1_Temps$year <- year(Bo1_Temps$date)
-Bo1_Temps$monthyear <- paste(Bo1_Temps$month, Bo1_Temps$year, sep="-")
+Bo1_Temps$month <- month(Bo1_Temps$date)
+Bo1_Temps$season <- ifelse(Bo1_Temps$month==6 | Bo1_Temps$month==7 | Bo1_Temps$month==8, "growing", 
+                     ifelse(Bo1_Temps$month==12 | Bo1_Temps$month==1 | Bo1_Temps$month==2, "dormant","neither"))
 str(Bo1_Temps)
-Bo1_Temps <- ddply(Bo1_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
+Bo1_Temps <- ddply(Bo1_Temps, .(season), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
 
 Cav_Temps$month <- month.abb[month(Cav_Temps$date)]
 Cav_Temps$year <- year(Cav_Temps$date)
@@ -242,13 +242,11 @@ Goo_Temps$monthyear <- paste(Goo_Temps$month, Goo_Temps$year, sep="-")
 str(Goo_Temps)
 Goo_Temps <- ddply(Goo_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
 
-
 Orv_Temps$month <- month.abb[month(Orv_Temps$date)]
 Orv_Temps$year <- year(Orv_Temps$date)
-Orv_Temps$monthyear <- paste(Orv_Temps$month, Orv_Temps$year, sep="-")
-str(Orv_Temps)
-Orv_Temps <- ddply(Orv_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
-
+#Orv_Temps$monthyear <- paste(Orv_Temps$month, Orv_Temps$year, sep="-")
+#str(Orv_Temps)
+#Orv_Temps <- ddply(Orv_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
 
 #-----------------
 #Temps_Hottest <-  rbind(Bo1_Temps[which.max(Bo1_Temps$Tower_TSavg),], Cav_Temps[which.max(Cav_Temps$Tower_TSavg),], Chr_Temps[which.max(Chr_Temps$Tower_TSavg),], Dk1_Temps[which.max(Dk1_Temps$Tower_TSavg),], Dk2_Temps[which.max(Dk2_Temps$Tower_TSavg),], Goo_Temps[which.max(Goo_Temps$Tower_TSavg),], Mms_Temps[which.max(Mms_Temps$Tower_TSavg),], Nc2_Temps[which.max(Nc2_Temps$Tower_TSavg),], Orv_Temps[which.max(Orv_Temps$Tower_TSavg),])
@@ -270,7 +268,7 @@ ggplot(toplot, aes(forest, value, colour=variable))+
   xlab("Forest Cover")
 
 
-
+Temps_Hottest
 
 
 # Get class counts for each polygon
