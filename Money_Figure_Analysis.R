@@ -32,10 +32,7 @@ Format_Ameriflux <- function(x){
   x$daynight <- ifelse(x$time>800 & x$time<1700, "day","night")
   #Calculate TS from albedo and LW_OUT using Stefan Boltzman
   sigma = 5.67 * 10^-8
-  #For MMS: 
-  #x$TA <- x$TA_1_1_1
   x$TA <- x$TA
-  #x$albedo <- (x$SW_OUT_1_1_1/x$SW_IN_1_1_1)
   x$albedo <- (x$SW_OUT/x$SW_IN)
   #Filter albedo
   #If albedo is less or equal to zero, means a negative or zero SW_IN value which is either incorrect or nighttime (replace with NA)
@@ -51,9 +48,35 @@ Format_Ameriflux <- function(x){
   x$emiss <- (-0.16*x$albedo + 0.99)
   #Calculate TS 
   x$TS <- (x$LW_OUT/(sigma *(x$emiss)))^(0.25)
-  #x$TS <- (x$LW_OUT_1_1_1/(sigma *(x$emiss)))^(0.25)
   return(x)}
-Mms_hourly <- Format_Ameriflux(US_Mms)
+Format_Ameriflux_MMF <- function(x){
+  #1) Parse tmestamp
+  x$date <- as.Date(paste(eval(substr(x$TIMESTAMP_START, 1,4)) ,eval(substr(x$TIMESTAMP_START, 5,6)), eval(substr(x$TIMESTAMP_START, 7,8)), sep="_"), format="%Y_%m_%d")
+  x$time <-as.numeric(substr(x$TIMESTAMP_START, 9,12)) 
+  x$month <-substr(x$TIMESTAMP_START, 5,6)
+  x$year <-substr(x$TIMESTAMP_START, 1,4)
+  x$daynight <- ifelse(x$time>800 & x$time<1700, "day","night")
+  #Calculate TS from albedo and LW_OUT using Stefan Boltzman
+  sigma = 5.67 * 10^-8
+  #For MMS: 
+  x$TA <- x$TA_1_1_1
+  x$albedo <- (x$SW_OUT_1_1_1/x$SW_IN_1_1_1)
+  #Filter albedo
+  #If albedo is less or equal to zero, means a negative or zero SW_IN value which is either incorrect or nighttime (replace with NA)
+  x$albedo[x$albedo <= 0] <- NA
+  #If albedo is over one, that is also impossible (replace with NA)
+  x$albedo[x$albedo > 1] <- NA
+  #Relate emissivity to albedo according to Juang et al. 2007 in GRL
+  #E = -0.16*albedo + 0.99
+  day <- subset(x, x$daynight== "day")
+  daytime_albedo <- ddply(day, .(date), summarize, daytime_albedo=mean(albedo, na.rm=TRUE))
+  x <- merge(x, daytime_albedo, all.x = TRUE)
+  x$albedo <- ifelse(x$time>800 & x$time<1700, x$albedo, x$daytime_albedo)
+  x$emiss <- (-0.16*x$albedo + 0.99)
+  #Calculate TS 
+  x$TS <- (x$LW_OUT_1_1_1/(sigma *(x$emiss)))^(0.25)
+  return(x)}
+Mms_hourly <- Format_Ameriflux_MMF(US_Mms)
 Akn_30min <- Format_Ameriflux(US_Akn)
 Bo1_30min <- Format_Ameriflux(US_Bo1)
 Chr_30min <- Format_Ameriflux(US_Chr)
