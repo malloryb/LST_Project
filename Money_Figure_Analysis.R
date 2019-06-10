@@ -48,6 +48,7 @@ Format_Ameriflux <- function(x){
   x$emiss <- (-0.16*x$albedo + 0.99)
   #Calculate TS 
   x$TS <- (x$LW_OUT/(sigma *(x$emiss)))^(0.25)
+  x$TS <- x$TS-273.15
   return(x)}
 Format_Ameriflux_MMF <- function(x){
   #1) Parse tmestamp
@@ -75,7 +76,9 @@ Format_Ameriflux_MMF <- function(x){
   x$emiss <- (-0.16*x$albedo + 0.99)
   #Calculate TS 
   x$TS <- (x$LW_OUT_1_1_1/(sigma *(x$emiss)))^(0.25)
+  x$TS <- x$TS-273.15
   return(x)}
+
 Mms_hourly <- Format_Ameriflux_MMF(US_Mms)
 Akn_30min <- Format_Ameriflux(US_Akn)
 Bo1_30min <- Format_Ameriflux(US_Bo1)
@@ -102,9 +105,6 @@ temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), TsMax= 
 #temp <- merge(temp, TOB2, by="date", all.x=TRUE)
 #sigma = 5.67 * 10^-8
 #temp$Tower_TScor <-(temp$LW_OUT/(sigma *(temp$emiss)))^(0.25) - 273.15
-temp$Tower_TSavg <- temp$Tower_TSavg - 273.15
-temp$Tower_TSmax <- temp$Tower_TSmax - 273.15
-temp$Tower_TSmin <- temp$Tower_TSmin - 273.15
 temp <- temp[Reduce(`&`, lapply(temp, is.finite)),]
 return(temp)
 }
@@ -161,17 +161,38 @@ Mms_Temps <- merge(Mms_Temp, Mms_daymet, by="date")
 Nc2_Temps <- merge(Nc2_Temp, Nc2_daymet, by="date")
 Orv_Temps <- merge(Orv_Temp, Orv_daymet, by="date")
 
+#Get the land cover types right------
+Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
+plot(Landcover_Rast)
+dataType(Landcover_Rast)="INT4S"
+barplot(Landcover_Rast)
+#Need to re-code raster. Non-forest = "0" and forest = "1". I think taking the mean of the buffer this way should result 
+#in the propeor % mature forest category I want. 
+#Forest values: 11, 12, 13, 14, and 15. Everything else is not forest (or mature forest)
+Landcover_Rast[Landcover_Rast>0 & Landcover_Rast <11] <- 0
+Landcover_Rast[Landcover_Rast>10 & Landcover_Rast <16] <- 1
+Landcover_Rast[Landcover_Rast>15 & Landcover_Rast <Inf] <- 0
+plot(Landcover_Rast)
+barplot(Landcover_Rast)
 
-
-Bo1_Temps$forest <-2
-Cav_Temps$forest <- 9.89
-Chr_Temps$forest <- 12.43
-Dk1_Temps$forest <- 14.91
-Dk2_Temps$forest <- 14.92
-Goo_Temps$forest<- 10.71
-Mms_Temps$forest <- 11
-Nc2_Temps$forest <- 13.94
-Orv_Temps$forest <- 1
+Bo1 <- cbind(-88.2904, 40.0062)
+Cav <- cbind(-79.4208, 39.0633)
+Chr <- cbind(-84.3324,	35.9311)
+Dk1 <- cbind(-79.0934,	35.9712)
+Dk2 <- cbind(-79.1004,	35.9736)
+Goo <- cbind(-89.8735,	34.2647)
+Mms <- cbind(-86.4131,	39.3232)
+Nc2 <- cbind(-76.6685,	35.803)
+Orv <- cbind(-83.0183,	40.0201)
+Bo1_Temps$forest <- raster::extract(Landcover_Rast, Bo1, buffer=3000, fun=mean)
+Cav_Temps$forest <- raster::extract(Landcover_Rast, Cav, buffer=3000, fun=mean)
+Chr_Temps$forest <- raster::extract(Landcover_Rast, Chr, buffer=3000, fun=mean)
+Dk1_Temps$forest <- raster::extract(Landcover_Rast, Dk1, buffer=3000, fun=mean)
+Dk2_Temps$forest <- raster::extract(Landcover_Rast, Dk2, buffer=3000, fun=mean)
+Goo_Temps$forest <- raster::extract(Landcover_Rast, Goo, buffer=3000, fun=mean)
+Mms_Temps$forest <- raster::extract(Landcover_Rast, Mms, buffer=3000, fun=mean)
+Nc2_Temps$forest <- raster::extract(Landcover_Rast, Nc2, buffer=3000, fun=mean)
+Orv_Temps$forest <- raster::extract(Landcover_Rast, Orv, buffer=3000, fun=mean)
 
 Bo1_Temps$month <- month.abb[month(Bo1_Temps$date)]
 Bo1_Temps$year <- year(Bo1_Temps$date)
@@ -248,27 +269,7 @@ ggplot(toplot, aes(forest, value, colour=variable))+
   ylab("Delta T")+
   xlab("Forest Cover")
 
-Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
-plot(Landcover_Rast)
-dataType(Landcover_Rast)="INT4S"
-Bo1 <- cbind(-88.2904, 40.0062)
-Cav <- cbind(-79.4208, 39.0633)
-Chr <- cbind(-84.3324,	35.9311)
-Dk1 <- cbind(-79.0934,	35.9712)
-Dk2 <- cbind(-79.1004,	35.9736)
-Goo <- cbind(-89.8735,	34.2647)
-Mms <- cbind(-86.4131,	39.3232)
-Nc2 <- cbind(-76.6685,	35.803)
-Orv <- cbind(-83.0183,	40.0201)
-raster::extract(Landcover_Rast, Bo1, buffer=1000, fun=mean)
-raster::extract(Landcover_Rast, Cav, buffer=1000, fun=mean)
-raster::extract(Landcover_Rast, Chr, buffer=1000, fun=mean)
-raster::extract(Landcover_Rast, Dk1, buffer=1000, fun=mean)
-raster::extract(Landcover_Rast, Dk2, buffer=1000, fun=mean)
-raster::extract(Landcover_Rast, Goo, buffer=1000, fun=mean)
-raster::extract(Landcover_Rast, Mms, buffer=1000, fun=mean)
-raster::extract(Landcover_Rast, Nc2, buffer=1000, fun=mean)
-raster::extract(Landcover_Rast, Orv, buffer=1000, fun=mean)
+
 
 
 
