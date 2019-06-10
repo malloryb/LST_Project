@@ -72,7 +72,7 @@ Daily_Temps <- function (x){
 #TOB <- subset(x, x$time>=1000 & x$time<=1100)
 #TOB2 <- ddply(TOB, .(date), summarize, TOB = mean(TA, na.rm=TRUE))
 #Get daily data
-temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), Tower_TSavg= mean(TS, na.rm=TRUE), 
+temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), TsMax= mean(TS, na.rm=TRUE), 
               Tower_TAmax= max(TA, na.rm=TRUE), Tower_TSmax = max(TS, na.rm=TRUE), 
               Tower_TAmin = min(TA, na.rm=TRUE), Tower_TSmin = min(TS, na.rm=TRUE), albedo= mean(albedo, trim=0.2, na.rm=TRUE),
               emiss=mean(emiss, na.rm=TRUE), LW_OUT=mean(LW_OUT, na.rm=TRUE))
@@ -138,6 +138,8 @@ Mms_Temps <- merge(Mms_Temp, Mms_daymet, by="date")
 Nc2_Temps <- merge(Nc2_Temp, Nc2_daymet, by="date")
 Orv_Temps <- merge(Orv_Temp, Orv_daymet, by="date")
 
+
+
 Bo1_Temps$forest <-2
 Cav_Temps$forest <- 9.89
 Chr_Temps$forest <- 12.43
@@ -148,17 +150,80 @@ Mms_Temps$forest <- 11
 Nc2_Temps$forest <- 13.94
 Orv_Temps$forest <- 1
 
+Bo1_Temps$month <- month.abb[month(Bo1_Temps$date)]
+Bo1_Temps$year <- year(Bo1_Temps$date)
+Bo1_Temps$monthyear <- paste(Bo1_Temps$month, Bo1_Temps$year, sep="-")
+str(Bo1_Temps)
+Bo1_Temps <- ddply(Bo1_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
 
-Bo1_Temps[which.max(Bo1_Temps$Tower_TSavg),]
-Cav_Temps[which.max(Cav_Temps$Tower_TSavg),]
-Chr_Temps[which.max(Chr_Temps$Tower_TSavg),]
-Dk1_Temps[which.max(Dk1_Temps$Tower_TSavg),]
-Dk2_Temps[which.max(Dk2_Temps$Tower_TSavg),]
-Goo_Temps[which.max(Goo_Temps$Tower_TSavg),]
-Mms_Temps[which.max(Mms_Temps$Tower_TSavg),]
-Nc2_Temps[which.max(Nc2_Temps$Tower_TSavg),]
-Orv_Temps[which.max(Orv_Temps$Tower_TSavg),]
+Cav_Temps$month <- month.abb[month(Cav_Temps$date)]
+Cav_Temps$year <- year(Cav_Temps$date)
+Cav_Temps$monthyear <- paste(Cav_Temps$month, Cav_Temps$year, sep="-")
+str(Cav_Temps)
+Cav_Temps <- ddply(Cav_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
 
+Chr_Temps$month <- month.abb[month(Chr_Temps$date)]
+Chr_Temps$year <- year(Chr_Temps$date)
+Chr_Temps$monthyear <- paste(Chr_Temps$month, Chr_Temps$year, sep="-")
+str(Chr_Temps)
+Chr_Temps <- ddply(Chr_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
+
+Dk1_Temps$month <- month.abb[month(Dk1_Temps$date)]
+Dk1_Temps$year <- year(Dk1_Temps$date)
+Dk1_Temps$monthyear <- paste(Dk1_Temps$month, Dk1_Temps$year, sep="-")
+str(Dk1_Temps)
+Dk1_Temps <- ddply(Dk1_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
+
+Dk2_Temps$month <- month.abb[month(Dk2_Temps$date)]
+Dk2_Temps$year <- year(Dk2_Temps$date)
+Dk2_Temps$monthyear <- paste(Dk2_Temps$month, Dk2_Temps$year, sep="-")
+str(Dk2_Temps)
+Dk2_Temps <- ddply(Dk2_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
+
+Mms_Temps$month <- month.abb[month(Mms_Temps$date)]
+Mms_Temps$year <- year(Mms_Temps$date)
+Mms_Temps$monthyear <- paste(Mms_Temps$month, Mms_Temps$year, sep="-")
+str(Mms_Temps)
+Mms_Temps <- ddply(Mms_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
+
+Nc2_Temps$month <- month.abb[month(Nc2_Temps$date)]
+Nc2_Temps$year <- year(Nc2_Temps$date)
+Nc2_Temps$monthyear <- paste(Nc2_Temps$month, Nc2_Temps$year, sep="-")
+str(Nc2_Temps)
+Nc2_Temps <- ddply(Nc2_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
+
+Goo_Temps$month <- month.abb[month(Goo_Temps$date)]
+Goo_Temps$year <- year(Goo_Temps$date)
+Goo_Temps$monthyear <- paste(Goo_Temps$month, Goo_Temps$year, sep="-")
+str(Goo_Temps)
+Goo_Temps <- ddply(Goo_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
+
+
+Orv_Temps$month <- month.abb[month(Orv_Temps$date)]
+Orv_Temps$year <- year(Orv_Temps$date)
+Orv_Temps$monthyear <- paste(Orv_Temps$month, Orv_Temps$year, sep="-")
+str(Orv_Temps)
+Orv_Temps <- ddply(Orv_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
+
+
+#-----------------
+#Temps_Hottest <-  rbind(Bo1_Temps[which.max(Bo1_Temps$Tower_TSavg),], Cav_Temps[which.max(Cav_Temps$Tower_TSavg),], Chr_Temps[which.max(Chr_Temps$Tower_TSavg),], Dk1_Temps[which.max(Dk1_Temps$Tower_TSavg),], Dk2_Temps[which.max(Dk2_Temps$Tower_TSavg),], Goo_Temps[which.max(Goo_Temps$Tower_TSavg),], Mms_Temps[which.max(Mms_Temps$Tower_TSavg),], Nc2_Temps[which.max(Nc2_Temps$Tower_TSavg),], Orv_Temps[which.max(Orv_Temps$Tower_TSavg),])
+#Temps_Hottest$Ts_Air <- Temps_Hottest$Tower_TSmax - Temps_Hottest$Daymet_Tmax
+#Temps_Hottest$Ta_Air <- Temps_Hottest$Tower_TAmax - Temps_Hottest$Daymet_Tmax
+#qplot(Temps_Hottest$forest, Temps_Hottest$Ts_Air)
+#qplot(Temps_Hottest$forest, Temps_Hottest$Ta_Air)
+
+Temps_Hottest <-  rbind(Bo1_Temps[which.max(Bo1_Temps$TsMax),], Cav_Temps[which.max(Cav_Temps$TsMax),], Chr_Temps[which.max(Chr_Temps$TsMax),], Dk1_Temps[which.max(Dk1_Temps$TsMax),], Dk2_Temps[which.max(Dk2_Temps$TsMax),], Goo_Temps[which.max(Goo_Temps$TsMax),], Mms_Temps[which.max(Mms_Temps$TsMax),], Nc2_Temps[which.max(Nc2_Temps$TsMax),], Orv_Temps[which.max(Orv_Temps$TsMax),])
+Temps_Hottest$Ts_Air <- Temps_Hottest$TsMax - Temps_Hottest$Daymet_Mean
+Temps_Hottest$Ta_Air <- Temps_Hottest$TaMax - Temps_Hottest$Daymet_Mean
+qplot(Temps_Hottest$forest, Temps_Hottest$Ts_Air)
+qplot(Temps_Hottest$forest, Temps_Hottest$Ta_Air)
+str(Temps_Hottest)
+toplot <- melt(Temps_Hottest, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
+ggplot(toplot, aes(forest, value, colour=variable))+
+  geom_point()+
+  ylab("Delta T")+
+  xlab("Forest Cover")
 
 Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
 plot(Landcover_Rast)
