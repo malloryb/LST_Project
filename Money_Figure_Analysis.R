@@ -108,6 +108,21 @@ temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), TsMax= 
 temp <- temp[Reduce(`&`, lapply(temp, is.finite)),]
 return(temp)
 }
+Daily_Temps_Mms <- function (x){
+  #TOB <- subset(x, x$time>=1000 & x$time<=1100)
+  #TOB2 <- ddply(TOB, .(date), summarize, TOB = mean(TA, na.rm=TRUE))
+  #Get daily data
+  temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), TsMax= mean(TS, na.rm=TRUE), 
+                Tower_TAmax= max(TA, na.rm=TRUE), Tower_TSmax = max(TS, na.rm=TRUE), 
+                Tower_TAmin = min(TA, na.rm=TRUE), Tower_TSmin = min(TS, na.rm=TRUE), albedo= mean(albedo, trim=0.2, na.rm=TRUE),
+                emiss=mean(emiss, na.rm=TRUE), LW_OUT=mean(LW_OUT_1_1_1, na.rm=TRUE))
+  #temp <- merge(temp, TOB2, by="date", all.x=TRUE)
+  #sigma = 5.67 * 10^-8
+  #temp$Tower_TScor <-(temp$LW_OUT/(sigma *(temp$emiss)))^(0.25) - 273.15
+  temp <- temp[Reduce(`&`, lapply(temp, is.finite)),]
+  return(temp)
+}
+
 Akn_Temp <- Daily_Temps(Akn_30min)
 Bo1_Temp <- Daily_Temps(Bo1_30min)
 Cav_Temp <- Daily_Temps(Cav_30min)
@@ -115,7 +130,7 @@ Chr_Temp <- Daily_Temps(Chr_30min)
 Dk1_Temp <- Daily_Temps(Dk1_30min)
 Dk2_Temp <- Daily_Temps(Dk2_30min)
 Goo_Temp <- Daily_Temps(Goo_30min)
-Mms_Temp <- Daily_Temps(Mms_hourly)
+Mms_Temp <- Daily_Temps_Mms(Mms_hourly)
 Nc2_Temp <- Daily_Temps(Nc2_30min)
 Orv_Temp <- Daily_Temps(Orv_30min)
 Sp1_Temp <- Daily_Temps(Sp1_30min)
@@ -138,6 +153,7 @@ x$date <- as.Date(paste(x$year, x$yday, sep="-"), format="%Y-%j")
 x <- plyr::rename(x, replace=c("tmin..deg.c." = "Daymet_Tmin", "tmax..deg.c."="Daymet_Tmax"))
 x <- x[,c("date","Daymet_Tmax","Daymet_Tmin")]
 x$Daymet_Tavg <- rowMeans(x[c('Daymet_Tmax', 'Daymet_Tmin')], na.rm=TRUE)
+x$MAT <- mean(x$Daymet_Tavg)
 return(x)
 }
 
@@ -172,8 +188,8 @@ barplot(Landcover_Rast)
 Landcover_Rast[Landcover_Rast>0 & Landcover_Rast <11] <- 0
 Landcover_Rast[Landcover_Rast>10 & Landcover_Rast <16] <- 1
 Landcover_Rast[Landcover_Rast>15 & Landcover_Rast <Inf] <- 0
-plot(Landcover_Rast)
-barplot(Landcover_Rast)
+#plot(Landcover_Rast)
+#barplot(Landcover_Rast)
 
 Bo1 <- cbind(-88.2904, 40.0062)
 Cav <- cbind(-79.4208, 39.0633)
@@ -193,6 +209,17 @@ Goo_Temps$forest <- raster::extract(Landcover_Rast, Goo, buffer=3000, fun=mean)
 Mms_Temps$forest <- raster::extract(Landcover_Rast, Mms, buffer=3000, fun=mean)
 Nc2_Temps$forest <- raster::extract(Landcover_Rast, Nc2, buffer=3000, fun=mean)
 Orv_Temps$forest <- raster::extract(Landcover_Rast, Orv, buffer=3000, fun=mean)
+
+Format_plot_temps <- function(x){
+  x$month <- month(x$date)
+  x$season <- ifelse(x$month==6 | x$month==7 | x$month==8, "growing", 
+                     ifelse(x$month==12 | x$month==1 | x$month==2, "dormant","neither"))
+  y <- ddply(x, .(season), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest), MAT=mean(MAT))
+  return(y)
+}
+sitelist <- list(Bo1_Temps, Cav_Temps, Chr_Temps, Dk1_Temps, 
+              Dk2_Temps, Goo_Temps, Mms_Temps, Nc2_Temps, Orv_Temps)
+To_Plot <- do.call("rbind", lapply(sitelist, Format_plot_temps))
 
 Bo1_Temps$month <- month(Bo1_Temps$date)
 Bo1_Temps$season <- ifelse(Bo1_Temps$month==6 | Bo1_Temps$month==7 | Bo1_Temps$month==8, "growing", 
