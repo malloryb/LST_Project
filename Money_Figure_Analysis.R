@@ -221,60 +221,6 @@ sitelist <- list(Bo1_Temps, Cav_Temps, Chr_Temps, Dk1_Temps,
               Dk2_Temps, Goo_Temps, Mms_Temps, Nc2_Temps, Orv_Temps)
 To_Plot <- do.call("rbind", lapply(sitelist, Format_plot_temps))
 
-Bo1_Temps$month <- month(Bo1_Temps$date)
-Bo1_Temps$season <- ifelse(Bo1_Temps$month==6 | Bo1_Temps$month==7 | Bo1_Temps$month==8, "growing", 
-                     ifelse(Bo1_Temps$month==12 | Bo1_Temps$month==1 | Bo1_Temps$month==2, "dormant","neither"))
-str(Bo1_Temps)
-Bo1_Temps <- ddply(Bo1_Temps, .(season), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
-
-Cav_Temps$month <- month.abb[month(Cav_Temps$date)]
-Cav_Temps$year <- year(Cav_Temps$date)
-Cav_Temps$monthyear <- paste(Cav_Temps$month, Cav_Temps$year, sep="-")
-str(Cav_Temps)
-Cav_Temps <- ddply(Cav_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
-
-Chr_Temps$month <- month.abb[month(Chr_Temps$date)]
-Chr_Temps$year <- year(Chr_Temps$date)
-Chr_Temps$monthyear <- paste(Chr_Temps$month, Chr_Temps$year, sep="-")
-str(Chr_Temps)
-Chr_Temps <- ddply(Chr_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
-
-Dk1_Temps$month <- month.abb[month(Dk1_Temps$date)]
-Dk1_Temps$year <- year(Dk1_Temps$date)
-Dk1_Temps$monthyear <- paste(Dk1_Temps$month, Dk1_Temps$year, sep="-")
-str(Dk1_Temps)
-Dk1_Temps <- ddply(Dk1_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
-
-Dk2_Temps$month <- month.abb[month(Dk2_Temps$date)]
-Dk2_Temps$year <- year(Dk2_Temps$date)
-Dk2_Temps$monthyear <- paste(Dk2_Temps$month, Dk2_Temps$year, sep="-")
-str(Dk2_Temps)
-Dk2_Temps <- ddply(Dk2_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
-
-Mms_Temps$month <- month.abb[month(Mms_Temps$date)]
-Mms_Temps$year <- year(Mms_Temps$date)
-Mms_Temps$monthyear <- paste(Mms_Temps$month, Mms_Temps$year, sep="-")
-str(Mms_Temps)
-Mms_Temps <- ddply(Mms_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
-
-Nc2_Temps$month <- month.abb[month(Nc2_Temps$date)]
-Nc2_Temps$year <- year(Nc2_Temps$date)
-Nc2_Temps$monthyear <- paste(Nc2_Temps$month, Nc2_Temps$year, sep="-")
-str(Nc2_Temps)
-Nc2_Temps <- ddply(Nc2_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
-
-Goo_Temps$month <- month.abb[month(Goo_Temps$date)]
-Goo_Temps$year <- year(Goo_Temps$date)
-Goo_Temps$monthyear <- paste(Goo_Temps$month, Goo_Temps$year, sep="-")
-str(Goo_Temps)
-Goo_Temps <- ddply(Goo_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
-
-Orv_Temps$month <- month.abb[month(Orv_Temps$date)]
-Orv_Temps$year <- year(Orv_Temps$date)
-#Orv_Temps$monthyear <- paste(Orv_Temps$month, Orv_Temps$year, sep="-")
-#str(Orv_Temps)
-#Orv_Temps <- ddply(Orv_Temps, .(monthyear), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest))
-
 #-----------------
 #Temps_Hottest <-  rbind(Bo1_Temps[which.max(Bo1_Temps$Tower_TSavg),], Cav_Temps[which.max(Cav_Temps$Tower_TSavg),], Chr_Temps[which.max(Chr_Temps$Tower_TSavg),], Dk1_Temps[which.max(Dk1_Temps$Tower_TSavg),], Dk2_Temps[which.max(Dk2_Temps$Tower_TSavg),], Goo_Temps[which.max(Goo_Temps$Tower_TSavg),], Mms_Temps[which.max(Mms_Temps$Tower_TSavg),], Nc2_Temps[which.max(Nc2_Temps$Tower_TSavg),], Orv_Temps[which.max(Orv_Temps$Tower_TSavg),])
 #Temps_Hottest$Ts_Air <- Temps_Hottest$Tower_TSmax - Temps_Hottest$Daymet_Tmax
