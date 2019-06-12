@@ -7,6 +7,7 @@ library(ggpubr)
 library(reshape2)
 library(gridExtra)
 library(raster)
+library(data.table)
 setwd("/Users/mallory/Documents/Datasets/")
 #Use na.strings argument in read.csv to change -9999 to NA
 US_Akn <- read.csv("LST_Flux/AMF_US-Akn_BASE-BADM_4-1/AMF_US-Akn_BASE_HH_4-1.csv", na.strings=-9999, skip=2)
@@ -230,6 +231,14 @@ dormant_toplot <- melt(dormant_plot, id.vars="forest", measure.vars=c("Ts_Air", 
 ggplot(growing_toplot, aes(forest, value, colour=variable))+
   geom_point(size=3)+
   scale_color_manual(values=c("red", "black"))+
+  geom_point(aes(growingcloudplot$MODIS, growingcloudplot$forest))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  scale_y_reverse(lim=c(4,-4))+
+  theme_bw()
+
+ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(bins = 70) +
   ylab("Delta T")+
   xlab("Forest Cover (%)")+
   scale_y_reverse(lim=c(4,-4))+
@@ -242,6 +251,38 @@ ggplot(dormant_toplot, aes(forest, value, colour=variable))+
   xlab("Forest Cover (%)")+
   scale_y_reverse(lim=c(4,-4))+
   theme_bw()
+
+ggplot(dormantcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(bins = 70) +
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  scale_y_reverse(lim=c(4,-4))+
+  theme_bw()
+
+
+#Get the rasters
+Diffs <- brick("/Users/mallory/Documents/Temp_Project/Ta_Ts_All.tif")
+Growing_Diffs <- mean(Diffs[[6:8]])
+Dormant_Diffs <- mean(Diffs[[1:2,12]])
+
+#Have to multiply everything by 1000 because it does by integers 
+pairOne = ((-88.775*1000):(-74.85*1000))
+pairTwo = ((29.25*1000):(41.41667*1000))
+nSamples = 20000
+
+dt = data.table(expand.grid(pairOne, pairTwo))
+dt2 = dt[sample(1:dim(dt)[1], size = nSamples), ]
+dt2 = dt2/1000
+str(dt2)
+
+cloud1 <- raster::extract(Landcover_Rast, SpatialPoints(dt2), buffer=3000, fun=mean, sp = T)  
+cloud2 <- raster::extract(Growing_Diffs, SpatialPoints(dt2), sp=T)
+cloud3 <- raster::extract(Dormant_Diffs, SpatialPoints(dt2), sp=T)
+growingcloudplot <- cbind(as.data.frame(cloud1$layer), as.data.frame(cloud2$layer))
+names(growingcloudplot) <- c("forest", "MODIS")  
+
+dormantcloudplot <- cbind(as.data.frame(cloud1$layer), as.data.frame(cloud3$layer))
+names(dormantcloudplot) <- c("forest", "MODIS")  
 
 
 
