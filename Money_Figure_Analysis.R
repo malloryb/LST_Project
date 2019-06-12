@@ -220,6 +220,29 @@ Format_plot_temps <- function(x){
 sitelist <- list(Bo1_Temps, Cav_Temps, Chr_Temps, Dk1_Temps, 
               Dk2_Temps, Goo_Temps, Mms_Temps, Nc2_Temps, Orv_Temps)
 To_Plot <- do.call("rbind", lapply(sitelist, Format_plot_temps))
+To_Plot$Ts_Air <- To_Plot$TsMax - To_Plot$Daymet_Mean
+To_Plot$Ta_Air <- To_Plot$TaMax - To_Plot$Daymet_Mean
+growing_plot <- subset(To_Plot, season=="growing")
+dormant_plot <- subset(To_Plot, season=="dormant")
+growing_toplot <- melt(growing_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
+dormant_toplot <- melt(dormant_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
+
+ggplot(growing_toplot, aes(forest, value, colour=variable))+
+  geom_point(size=3)+
+  scale_color_manual(values=c("red", "black"))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  scale_y_reverse(lim=c(4,-4))+
+  theme_bw()
+
+ggplot(dormant_toplot, aes(forest, value, colour=variable))+
+  geom_point(size=3)+
+  scale_color_manual(values=c("red", "black"))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  scale_y_reverse(lim=c(4,-4))+
+  theme_bw()
+
 
 #-----------------
 #Temps_Hottest <-  rbind(Bo1_Temps[which.max(Bo1_Temps$Tower_TSavg),], Cav_Temps[which.max(Cav_Temps$Tower_TSavg),], Chr_Temps[which.max(Chr_Temps$Tower_TSavg),], Dk1_Temps[which.max(Dk1_Temps$Tower_TSavg),], Dk2_Temps[which.max(Dk2_Temps$Tower_TSavg),], Goo_Temps[which.max(Goo_Temps$Tower_TSavg),], Mms_Temps[which.max(Mms_Temps$Tower_TSavg),], Nc2_Temps[which.max(Nc2_Temps$Tower_TSavg),], Orv_Temps[which.max(Orv_Temps$Tower_TSavg),])
@@ -227,6 +250,7 @@ To_Plot <- do.call("rbind", lapply(sitelist, Format_plot_temps))
 #Temps_Hottest$Ta_Air <- Temps_Hottest$Tower_TAmax - Temps_Hottest$Daymet_Tmax
 #qplot(Temps_Hottest$forest, Temps_Hottest$Ts_Air)
 #qplot(Temps_Hottest$forest, Temps_Hottest$Ta_Air)
+
 
 Temps_Hottest <-  rbind(Bo1_Temps[which.max(Bo1_Temps$TsMax),], Cav_Temps[which.max(Cav_Temps$TsMax),], Chr_Temps[which.max(Chr_Temps$TsMax),], Dk1_Temps[which.max(Dk1_Temps$TsMax),], Dk2_Temps[which.max(Dk2_Temps$TsMax),], Goo_Temps[which.max(Goo_Temps$TsMax),], Mms_Temps[which.max(Mms_Temps$TsMax),], Nc2_Temps[which.max(Nc2_Temps$TsMax),], Orv_Temps[which.max(Orv_Temps$TsMax),])
 Temps_Hottest$Ts_Air <- Temps_Hottest$TsMax - Temps_Hottest$Daymet_Mean
