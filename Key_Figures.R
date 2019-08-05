@@ -48,32 +48,15 @@ plot(greenbrown_test[[2]], col=pal(10), main="Slope of temperature trend: 1900-p
 #Change over time in terms of degrees C per 50 years
 temp_raster <- greenbrown_test[[2]]
 #writeRaster(temp_raster, "/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif")
+#Getting color ramp to diverge at zero
 temp_raster <- raster("/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif")
 temp_raster[temp_raster < -0.029] <-NA
-pal <- colorRampPalette(c("blue","cadetblue1","white","red", "red3"))
-colstemp <- colorRampPalette(rev(brewer.pal(9,"RdBu")))
-cols2 <- colorRampPalette(brewer.pal(9, "RdBu"))
-plot((temp_raster), col=colstemp(n=100), 
-     breaks=seq(-max(abs(cellStats(temp_raster,range))), max(abs(cellStats(temp_raster,range))), len=100))
-                                                  
-# main="Slope of temperature trend: 1900-present (Degrees C per 50 years)")
-p <- colorRampPalette(rev(brewer.pal(11, "RdBu")))
-#This seems to be the only thing working: 
-#Getting color ramp to diverge at zero
 devtools::source_gist('306e4b7e69c87b1826db')
-cutpts = seq(-max(abs(cellStats(temp_raster,range))), max(abs(cellStats(temp_raster,range))), len=11)
-p <- levelplot(temp_raster, margin=F, col.regions=(rev(brewer.pal(11,"RdBu"))), pretty=T)
+pal <- colorRampPalette(rev(brewer.pal(11, 'RdBu')))
+p <- levelplot(temp_raster*50, margin=F, col.regions=(rev(brewer.pal(11,"RdBu"))), pretty=T, interpolate=T)
 diverge0(p, ramp=pal)
-cols3 <- (rev(brewer.pal(11,'RdBu')))
-cols3 <-brewer.pal(11, "RdBu")
-pal <- colorRampPalette(rev(brewer.pal(13, 'RdBu')))
-yb <- colorRampPalette(c("yellow", "goldenrod", "darkred"))
 
-myTheme <- rasterTheme(colorRampPalette(rev(brewer.pal(11,'RdBu'))))
-levelplot(temp_raster,  at=seq(-max(abs(cellStats(temp_raster,range))), 
-                                                        max(abs(cellStats(temp_raster, range))), len=100))
-dev.off()
-?RedBuTHeme
+
 #Consider smoothing using a focal operation: 
 #y <- focal(x, w=matrix(1,5,5), mean)
 #y <- focal(greenbrown_test[[2]]*50, w=(matrix(1,5,5)), mean)
@@ -84,7 +67,11 @@ greenbrown_test1break <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=
 plot(greenbrown_test1break)
 plot(greenbrown_test1break, col=(brewer.pal(n=6, name='Spectral')))
 dev.off()
+breaks <- greenbrown_test1break[[3]]
 plot(greenbrown_test1break[[3]], zlim=c(1910,2010), col=rainbow(100), main="Break point in temperature trend (1900-present)")
+levelplot(breaks)
+trendclassmap <- TrendClassification(greenbrown_test1break, min.length=8, max.pval=0.05)
+plot(trendclassmap, col=c("cadetblue1", "white", "red3"), legend.width=2) 
 #Seeing slope differences between two sections
 plot(greenbrown_test1break[[4]], col=pal(10))
 plot(greenbrown_test1break[[5]], col=pal(10))
