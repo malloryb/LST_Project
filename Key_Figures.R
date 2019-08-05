@@ -14,6 +14,7 @@ Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal"
 library(greenbrown)
 library(rasterVis)
 library(devtools)
+library(RColorBrewer)
 lapply(Packages, library, character.only = TRUE)
 
  #Figure 1---------------------
@@ -55,14 +56,17 @@ plot((temp_raster), col=colstemp(n=100),
      breaks=seq(-max(abs(cellStats(temp_raster,range))), max(abs(cellStats(temp_raster,range))), len=100))
                                                   
 # main="Slope of temperature trend: 1900-present (Degrees C per 50 years)")
+colorRampPalette(cols3)
 
 #This seems to be the only thing working: 
 #Getting color ramp to diverge at zero
 devtools::source_gist('306e4b7e69c87b1826db')
 cutpts = seq(-max(abs(cellStats(temp_raster,range))), max(abs(cellStats(temp_raster,range))), len=11)
-levelplot(temp_raster, margin=F, col.regions=(rev(brewer.pal(11,"RdBu"))), at=cutpts, cuts=11, pretty=T)
-#diverge0(p, ramp=rev(brewer.pal(11,'RdBu'))
-
+p <- levelplot(temp_raster, margin=F, col.regions=(rev(brewer.pal(11,"RdBu"))), at=cutpts, cuts=11, pretty=T)
+diverge0(p, ramp=(rev(brewer.pal(11,"RdBu"))))
+cols3 <- rev(brewer.pal(11,'RdBu'))
+colorRampPalette(cols3)
+         
 myTheme <- rasterTheme(colorRampPalette(rev(brewer.pal(11,'RdBu'))))
 levelplot(temp_raster,  at=seq(-max(abs(cellStats(temp_raster,range))), 
                                                         max(abs(cellStats(temp_raster, range))), len=100))
