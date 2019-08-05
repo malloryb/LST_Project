@@ -5,17 +5,17 @@
 #Figure 3: Lily's figure
 #Figure 4: Flux synthesis figure
 
-#Set raster options
-rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
 #Load packages
-Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "spatialEco", "greenbrown", "RColorBrewer",
-              "MODIS", "rasterVis", "gridExtra", "plyr", "gridBase", "devtools")
+Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "greenbrown", "RColorBrewer",
+              "MODIS", "rasterVis", "gridExtra", "plyr", "gridBase", "devtools","spatialEco")
 
 library(greenbrown)
 library(rasterVis)
 library(devtools)
-library(RColorBrewer)
+sessionInfo()
 lapply(Packages, library, character.only = TRUE)
+#Set raster options
+rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
 
  #Figure 1---------------------
 #Using University of Delaware Air Temperature & Precipitation
@@ -47,7 +47,8 @@ greenbrown_test <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=0)
 plot(greenbrown_test[[2]], col=pal(10), main="Slope of temperature trend: 1900-present (Degrees C per year)")
 #Change over time in terms of degrees C per 50 years
 temp_raster <- greenbrown_test[[2]]
-writeRaster(temp_raster, "/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif")
+#writeRaster(temp_raster, "/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif")
+temp_raster <- raster("/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif")
 temp_raster[temp_raster < -0.029] <-NA
 pal <- colorRampPalette(c("blue","cadetblue1","white","red", "red3"))
 colstemp <- colorRampPalette(rev(brewer.pal(9,"RdBu")))
@@ -56,17 +57,18 @@ plot((temp_raster), col=colstemp(n=100),
      breaks=seq(-max(abs(cellStats(temp_raster,range))), max(abs(cellStats(temp_raster,range))), len=100))
                                                   
 # main="Slope of temperature trend: 1900-present (Degrees C per 50 years)")
-colorRampPalette(cols3)
-
+p <- colorRampPalette(rev(brewer.pal(11, "RdBu")))
 #This seems to be the only thing working: 
 #Getting color ramp to diverge at zero
 devtools::source_gist('306e4b7e69c87b1826db')
 cutpts = seq(-max(abs(cellStats(temp_raster,range))), max(abs(cellStats(temp_raster,range))), len=11)
-p <- levelplot(temp_raster, margin=F, col.regions=(rev(brewer.pal(11,"RdBu"))), at=cutpts, cuts=11, pretty=T)
-diverge0(p, ramp=(rev(brewer.pal(11,"RdBu"))))
-cols3 <- rev(brewer.pal(11,'RdBu'))
-colorRampPalette(cols3)
-         
+p <- levelplot(temp_raster, margin=F, col.regions=(rev(brewer.pal(11,"RdBu"))), pretty=T)
+diverge0(p, ramp=pal)
+cols3 <- (rev(brewer.pal(11,'RdBu')))
+cols3 <-brewer.pal(11, "RdBu")
+pal <- colorRampPalette(rev(brewer.pal(13, 'RdBu')))
+yb <- colorRampPalette(c("yellow", "goldenrod", "darkred"))
+
 myTheme <- rasterTheme(colorRampPalette(rev(brewer.pal(11,'RdBu'))))
 levelplot(temp_raster,  at=seq(-max(abs(cellStats(temp_raster,range))), 
                                                         max(abs(cellStats(temp_raster, range))), len=100))
