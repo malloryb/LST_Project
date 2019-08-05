@@ -9,8 +9,11 @@
 rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
 #Load packages
 Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "spatialEco", "greenbrown", "RColorBrewer",
-              "MODIS", "rasterVis", "gridExtra", "plyr", "gridBase")
+              "MODIS", "rasterVis", "gridExtra", "plyr", "gridBase", "devtools")
 
+library(greenbrown)
+library(rasterVis)
+library(devtools)
 lapply(Packages, library, character.only = TRUE)
 
  #Figure 1---------------------
@@ -42,7 +45,28 @@ plot(kendall_raster, col=pal(10))
 greenbrown_test <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=0)
 plot(greenbrown_test[[2]], col=pal(10), main="Slope of temperature trend: 1900-present (Degrees C per year)")
 #Change over time in terms of degrees C per 50 years
-plot((greenbrown_test[[2]]*50), col=pal(20), main="Slope of temperature trend: 1900-present (Degrees C per 50 years)")
+temp_raster <- greenbrown_test[[2]]
+writeRaster(temp_raster, "/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif")
+temp_raster[temp_raster < -0.029] <-NA
+pal <- colorRampPalette(c("blue","cadetblue1","white","red", "red3"))
+colstemp <- colorRampPalette(rev(brewer.pal(9,"RdBu")))
+cols2 <- colorRampPalette(brewer.pal(9, "RdBu"))
+plot((temp_raster*50), col=colstemp(n=100)), 
+     breaks=seq(-max(abs(cellStats(temp_raster,range))), max(abs(cellStats(temp_raster,range))), len=100))
+                                                  
+# main="Slope of temperature trend: 1900-present (Degrees C per 50 years)")
+
+#This seems to be the only thing working: 
+#Getting color ramp to diverge at zero
+devtools::source_gist('306e4b7e69c87b1826db')
+p <- levelplot(temp_raster*50, margin=F)
+diverge0(p, ramp=('RdBu'))
+
+myTheme <- rasterTheme(rev('RedBu'))
+levelplot(temp_raster, par.settings=myTheme, at=seq(-max(abs(cellStats(temp_raster,range))), 
+                                                        max(abs(cellStats(temp_raster, range))), len=100))
+dev.off()
+?RedBuTHeme
 #Consider smoothing using a focal operation: 
 #y <- focal(x, w=matrix(1,5,5), mean)
 #y <- focal(greenbrown_test[[2]]*50, w=(matrix(1,5,5)), mean)
@@ -82,7 +106,7 @@ cols <- colorRampPalette(brewer.pal(9,"RdBu"))
 my.at <- seq(-6,6,1)
 # create a level plot
 levelplot(Diffs, at=my.at, main="Difference between Air Temperature and Surface Temperature (Ta-Ts)",
-          col.regions=(cols))
+          col=(cols))
 #Fancy Plots: 
 #Density plot
 densityplot(Diffs)
@@ -316,6 +340,21 @@ x6plot <- ggplot(x6, aes(distance, LST)) +
 
 grid.arrange(x1plot, x2plot, x3plot, x4plot, x5plot, x6plot, nrow=3, top=grid::textGrob("8-day LST, July 21 2012",gp=grid::gpar(fontsize=16,font=3)), bottom=grid::textGrob("Forest to cropland along transect in km (~800 m apart)", gp=grid::gpar(fontsize=18)))
 grid.arrange(x1plot, x2plot, x3plot, x4plot, x5plot, x6plot, nrow=3, top=grid::textGrob("8-day LST, July 29 2016",gp=grid::gpar(fontsize=16,font=3)), bottom=grid::textGrob("Forest to cropland along transect in km (~800 m apart)", gp=grid::gpar(fontsize=18)))
+#Landsat Transects-----------------
+Landsat_pts <- read.csv("/Users/mallory/Documents/Temp_Project/Landsat_Points.csv")
+str(Landsat_pts)
+Landsat_pts$id <- as.factor(Landsat_pts$id)
+Landsat_pts$LandCover <- as.factor(Landsat_pts$LandCover)
+Landsat_pts$LE07CU02600 <- (Landsat_pts$LE07CU02600*0.1 - 273.15)
+Landsat_pts$LT05CU02101 <- (Landsat_pts$LT05CU02101*0.1 - 273.15)
+Landsat_pts$LT05CU02301 <- (Landsat_pts$LT05CU02301*0.1 - 273.15)
+Landsat_pts$LT05CU02501 <- (Landsat_pts$LT05CU02501*0.1 - 273.15)
+LandsatPlot <- ggplot(Landsat_pts, aes(distance, LT05CU02301, group=id, color=id)) +
+  geom_smooth()+
+  geom_point(color=Landsat_pts$LandCover)+
+  #xlab("Forest to Cropland along transect in km (~900 m apart)")+
+  ylab("Landsat LST")+
+  theme(axis.title.x = element_blank()) 
 
 #Create data frame for plotting comparisons ----------
 #df <- data.frame(Month=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
@@ -340,6 +379,7 @@ df$meanDec <- as.numeric(cellStats(Dec_Diff, stat='mean', na.rm=TRUE))
 df$sdDec <- as.numeric(cellStats(Dec_Diff, stat='sd', na.rm=TRUE))
 
 write.csv(df, "for_plotting.csv")
+df <- read.csv("/Users/mallory/Documents/Temp_Project/APPEARS_LST/for_plotting.csv")
 
 dft <- df[,c("Month", "meanUrban", "meanCrop", "meanFo")]
 dfm <- melt(dft, id="Month")
@@ -388,7 +428,7 @@ hh <- ggplot(df, aes(x=Month, group=1)) +
        x="Month")+
   scale_x_continuous(breaks=seq(1,12,3))+
   theme_bw()+
-  ylim(-4.4,5)
+  scale_y_reverse(lim=c(5,-4.4))
 
 
 ff <- ggplot(df, aes(x=Month, group=1)) + 
