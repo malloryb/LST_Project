@@ -67,6 +67,9 @@ dev.off()
 #Testing break points
 plot(TAS_test)
 greenbrown_test1break <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=1)
+greenbrown_maxbreak <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=1, funAnnual=max)
+plot(greenbrown_maxbreak)
+plot(greenbrown_maxbreak[[3]])
 plot(greenbrown_test1break)
 plot(greenbrown_test1break, col=(brewer.pal(n=6, name='Spectral')))
 breaks <- greenbrown_test1break[[3]]
@@ -82,7 +85,6 @@ names[names > 180] <- names[names > 180] - 360
 # Renaming the longitudes and switching back from a 'bathy' object to a raster
 rownames(temp) <- names
 breaks.modified <- as.raster(temp)
-
 #Plot finally
 plot(greenbrown_test1break[[3]], zlim=c(1910,2010), col=terrain(100), main="Break point in temperature trend (1900-present)")
 my.at <- seq(1910, 2010, 10)
@@ -97,17 +99,23 @@ IDs <- sapply(strsplit(boundaries$names, ":"), function(x) x[1])
 bPols <- map2SpatialPolygons(boundaries, IDs=IDs,
                              proj4string=CRS(projection(breaks)))
 
-levelplot(breaks.modified)
-levelplot(breaks.modified, at=my.at, margin=F,col.regions=((brewer.pal(11,"Set3"))))+latticeExtra::layer(sp.polygons(bPols))
+png("/Users/mallory/Documents/Temp_Project/Fig1b.png", width=2, height=2, units="in", res=300)
+levelplot(breaks.modified, at=my.at, margin=F,col.regions=((brewer.pal(12,"Paired"))))+latticeExtra::layer(sp.polygons(bPols))
+dev.off()
 
 trendclassmap <- TrendClassification(greenbrown_test1break, min.length=8, max.pval=0.05)
-plot(trendclassmap, col=c("cadetblue1", "white", "red3"), legend.width=2) 
+plot(trendclassmap, col=pal(n=11), legend.width=2) 
 #Seeing slope differences between two sections
+slopes <- stack(greenbrown_test1break[[4]], greenbrown_test1break[[5]])
+slopes[slopes < -0.015] <-NA
+slopes[slopes > 0.015] <-NA
+
+
+
 plot(greenbrown_test1break[[4]], col=pal(10))
 plot(greenbrown_test1break[[5]], col=pal(10))
 slope_diff <- greenbrown_test1break[[5]]-greenbrown_test1break[[4]]
 plot(slope_diff, col=pal(10))
-
 gradient <- TrendGradient(TAS_test, start=c(1900, 1), freq=12)
 #Trying with 2 break point
 greenbrown_test2break <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=2)
@@ -625,16 +633,20 @@ F2 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/se_age0
 F3 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/nl_age06_1km.tif")
 F4 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/ne_age06_1km.tif")
 F5 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/np_age06_1km.tif")
+F6 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/pnw_age06_1km.tif")
+F7 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/psw_age06_1km.tif")
+F1 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/conus_age06_1km.tif")
 
 F_m1 <- merge(F1, F2,tolerance = 0.2)
 F_m2 <- merge(F_m1, F3, tolerance=0.2)
 F_m3 <- merge(F_m2, F4, tolerance=0.2)
 F4 <- merge(F_m3, F5,tolerance=0.2)
-Forest_Proj <- projectRaster(F4, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+Forest_Proj <- projectRaster(F1, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 plot(Forest_Proj)
 ext <- extent(Diffs)
 Forest_Proj_crop <- crop(Forest_Proj, ext)
 Forest_Proj
+plot(Forest_Proj_crop)
 Forest_Age<- resample(Forest_Proj_crop,LST,method='bilinear')
 plot(Forest_Age)
 Diffs
