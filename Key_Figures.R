@@ -54,6 +54,8 @@ plot(kendall_raster, col=pal(10))
 #Figure 1a: Change over time
 #greenbrown_test <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=1)
 greenbrown_test <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=0)
+greenbrown_test2 <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=0, method="STM")
+plot(greenbrown_test2[[2]], col=pal(10), main="Slope of temperature trend: 1900-present (Degrees C per year)")
 plot(greenbrown_test[[2]], col=pal(10), main="Slope of temperature trend: 1900-present (Degrees C per year)")
 #Change over time in terms of degrees C per 50 years
 temp_raster <- greenbrown_test[[2]]
@@ -661,6 +663,9 @@ png("/Users/mallory/Documents/Temp_Project/Fig1c.png", width=4, height=4, units=
 levelplot(Fo_crop, at=my.at, margin=F, col.regions=topo.colors(100), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
 dev.off()
 
+#Cor between fig 1a and Fig 1c?
+library(spatialEco)
+Check <- spatialEco::rasterCorrelation(Fo_crop, temp_raster.modified, s = 5, type = "pearson", file.name = NULL)
 ext <- extent(Diffs)
 Forest_Proj_crop <- crop(Forest_Proj, ext)
 Forest_Proj
