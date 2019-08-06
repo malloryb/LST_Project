@@ -22,6 +22,12 @@ lapply(Packages, library, character.only = TRUE)
 rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
 
  #Figure 1---------------------
+#Create bounding box out of extent of Diffs
+Diffs <- brick("/Users/mallory/Documents/Temp_Project/Ta_Ts_All.tif")
+library(sp)
+e <- as(raster::extent(Diffs), "SpatialPolygons")
+proj4string(e) <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+plot(e)
 #Using University of Delaware Air Temperature & Precipitation
 # Data product accessed from: https://www.esrl.noaa.gov/psd/data/gridded/data.UDel_AirT_Precip.html
 #Open air temp file (0.5 degree)
@@ -57,9 +63,22 @@ temp_raster <- raster("/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif
 temp_raster[temp_raster < -0.029] <-NA
 devtools::source_gist('306e4b7e69c87b1826db')
 pal <- colorRampPalette(rev(brewer.pal(11, 'RdBu')))
+#Gotta fix this from the -360 again (with Mar package)
+# Switching from a raster to a matrix of class 'bathy'
+library(marmap)
+temp <- as.bathy(temp_raster)
+summary(temp)
+
+# Changing the relevant longitude
+names <- as.numeric(row.names(temp))
+names[names > 180] <- names[names > 180] - 360
+
+# Renaming the longitudes and switching back from a 'bathy' object to a raster
+rownames(temp) <- names
+temp_raster.modified <- as.raster(temp)
 while (!is.null(dev.list()))  dev.off()
 png("/Users/mallory/Documents/Temp_Project/Fig1a.png", width=4, height=4, units="in", res=300)
-p <- levelplot(temp_raster*50, margin=F, col.regions=(rev(brewer.pal(11,"RdBu"))), pretty=T, interpolate=T)
+p <- levelplot(temp_raster.modified*50, margin=F, col.regions=(rev(brewer.pal(11,"RdBu"))), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
 diverge0(p, ramp=pal)
 dev.off()
 
@@ -99,10 +118,10 @@ IDs <- sapply(strsplit(boundaries$names, ":"), function(x) x[1])
 bPols <- map2SpatialPolygons(boundaries, IDs=IDs,
                              proj4string=CRS(projection(breaks)))
 
-png("/Users/mallory/Documents/Temp_Project/Fig1b.png", width=2, height=2, units="in", res=300)
-levelplot(breaks.modified, at=my.at, margin=F,col.regions=((brewer.pal(12,"Paired"))))+latticeExtra::layer(sp.polygons(bPols))
+png("/Users/mallory/Documents/Temp_Project/Fig1b.png", width=4, height=4, units="in", res=300)
+levelplot(breaks.modified, at=my.at, margin=F,col.regions=((brewer.pal(12,"Paired"))))+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
 dev.off()
-
+plot(cars)
 trendclassmap <- TrendClassification(greenbrown_test1break, min.length=8, max.pval=0.05)
 plot(trendclassmap, col=pal(n=11), legend.width=2) 
 #Seeing slope differences between two sections
@@ -644,6 +663,7 @@ F4 <- merge(F_m3, F5,tolerance=0.2)
 Forest_Proj <- projectRaster(F1, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 plot(Forest_Proj)
 ext <- extent(Diffs)
+
 Forest_Proj_crop <- crop(Forest_Proj, ext)
 Forest_Proj
 plot(Forest_Proj_crop)
