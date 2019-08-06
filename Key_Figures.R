@@ -53,9 +53,10 @@ temp_raster <- raster("/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif
 temp_raster[temp_raster < -0.029] <-NA
 devtools::source_gist('306e4b7e69c87b1826db')
 pal <- colorRampPalette(rev(brewer.pal(11, 'RdBu')))
+png("/Users/mallory/Documents/Temp_Project/Fig1a.png", width=4, height=4, units="in", res=300)
 p <- levelplot(temp_raster*50, margin=F, col.regions=(rev(brewer.pal(11,"RdBu"))), pretty=T, interpolate=T)
 diverge0(p, ramp=pal)
-
+dev.off
 
 #Consider smoothing using a focal operation: 
 #y <- focal(x, w=matrix(1,5,5), mean)
@@ -67,9 +68,13 @@ greenbrown_test1break <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=
 plot(greenbrown_test1break)
 plot(greenbrown_test1break, col=(brewer.pal(n=6, name='Spectral')))
 dev.off()
+plot(greenbrown_testbreak)
 breaks <- greenbrown_test1break[[3]]
-plot(greenbrown_test1break[[3]], zlim=c(1910,2010), col=rainbow(100), main="Break point in temperature trend (1900-present)")
-levelplot(breaks)
+plot(greenbrown_test1break[[3]], zlim=c(1910,2010), col=terrain(100), main="Break point in temperature trend (1900-present)")
+my.at <- seq(1910, 2010, 10)
+shape <- readOGR(dsn = "/Users/mallory/Documents/Papers_In_Progress/Quan Paper/us_medium_shoreline", layer = "us_medium_shoreline")
+levelplot(breaks, at=my.at, margin=F,col.regions=((brewer.pal(11,"Set3"))))+
+  layer(sp.lines(shape, col="gray", lwd=0.5))
 trendclassmap <- TrendClassification(greenbrown_test1break, min.length=8, max.pval=0.05)
 plot(trendclassmap, col=c("cadetblue1", "white", "red3"), legend.width=2) 
 #Seeing slope differences between two sections
@@ -77,6 +82,8 @@ plot(greenbrown_test1break[[4]], col=pal(10))
 plot(greenbrown_test1break[[5]], col=pal(10))
 slope_diff <- greenbrown_test1break[[5]]-greenbrown_test1break[[4]]
 plot(slope_diff, col=pal(10))
+
+gradient <- TrendGradient(TAS_test, start=c(1900, 1), freq=12)
 #Trying with 2 break point
 greenbrown_test2break <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=2)
 plot(greenbrown_test2break)
