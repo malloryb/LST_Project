@@ -12,6 +12,10 @@ Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal"
 library(greenbrown)
 library(rasterVis)
 library(devtools)
+library(maps)
+library(mapdata)
+library(maptools)
+#
 sessionInfo()
 lapply(Packages, library, character.only = TRUE)
 #Set raster options
@@ -53,28 +57,49 @@ temp_raster <- raster("/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif
 temp_raster[temp_raster < -0.029] <-NA
 devtools::source_gist('306e4b7e69c87b1826db')
 pal <- colorRampPalette(rev(brewer.pal(11, 'RdBu')))
+while (!is.null(dev.list()))  dev.off()
 png("/Users/mallory/Documents/Temp_Project/Fig1a.png", width=4, height=4, units="in", res=300)
 p <- levelplot(temp_raster*50, margin=F, col.regions=(rev(brewer.pal(11,"RdBu"))), pretty=T, interpolate=T)
 diverge0(p, ramp=pal)
-dev.off
+dev.off()
 
-#Consider smoothing using a focal operation: 
-#y <- focal(x, w=matrix(1,5,5), mean)
-#y <- focal(greenbrown_test[[2]]*50, w=(matrix(1,5,5)), mean)
-#plot(y, col=pal(20))
-
-#Testing break points-------
+#Figure 1b-----------------
+#Testing break points
+plot(TAS_test)
 greenbrown_test1break <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=1)
 plot(greenbrown_test1break)
 plot(greenbrown_test1break, col=(brewer.pal(n=6, name='Spectral')))
-dev.off()
-plot(greenbrown_testbreak)
 breaks <- greenbrown_test1break[[3]]
+# Switching from a raster to a matrix of class 'bathy'
+library(marmap)
+temp <- as.bathy(breaks)
+summary(temp)
+
+# Changing the relevant longitude
+names <- as.numeric(row.names(temp))
+names[names > 180] <- names[names > 180] - 360
+
+# Renaming the longitudes and switching back from a 'bathy' object to a raster
+rownames(temp) <- names
+breaks.modified <- as.raster(temp)
+
+#Plot finally
 plot(greenbrown_test1break[[3]], zlim=c(1910,2010), col=terrain(100), main="Break point in temperature trend (1900-present)")
 my.at <- seq(1910, 2010, 10)
-shape <- readOGR(dsn = "/Users/mallory/Documents/Papers_In_Progress/Quan Paper/us_medium_shoreline", layer = "us_medium_shoreline")
-levelplot(breaks, at=my.at, margin=F,col.regions=((brewer.pal(11,"Set3"))))+
-  layer(sp.lines(shape, col="gray", lwd=0.5))
+#Add boundary
+ext <- as.vector(extent(breaks.modified))
+#ext[1] <- 233-360
+#ext[2] <- 290-360
+boundaries <- map('worldHires', fill=TRUE,
+                  xlim=ext[1:2], ylim=ext[3:4],
+                  plot=FALSE)
+IDs <- sapply(strsplit(boundaries$names, ":"), function(x) x[1])
+bPols <- map2SpatialPolygons(boundaries, IDs=IDs,
+                             proj4string=CRS(projection(breaks)))
+
+levelplot(breaks.modified)
+levelplot(breaks.modified, at=my.at, margin=F,col.regions=((brewer.pal(11,"Set3"))))+latticeExtra::layer(sp.polygons(bPols))
+
 trendclassmap <- TrendClassification(greenbrown_test1break, min.length=8, max.pval=0.05)
 plot(trendclassmap, col=c("cadetblue1", "white", "red3"), legend.width=2) 
 #Seeing slope differences between two sections
