@@ -645,25 +645,20 @@ xx <- ggplot(dfMid, aes(x=Month, group=1)) +
   ylim(-6,6)
 
 
-#
 #----------now looking at forest data
-F1 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/sc_age06_1km.tif")
-F2 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/se_age06_1km.tif")
-F3 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/nl_age06_1km.tif")
-F4 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/ne_age06_1km.tif")
-F5 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/np_age06_1km.tif")
-F6 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/pnw_age06_1km.tif")
-F7 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/psw_age06_1km.tif")
+#Level plot for 1c------
 F1 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/conus_age06_1km.tif")
-
-F_m1 <- merge(F1, F2,tolerance = 0.2)
-F_m2 <- merge(F_m1, F3, tolerance=0.2)
-F_m3 <- merge(F_m2, F4, tolerance=0.2)
-F4 <- merge(F_m3, F5,tolerance=0.2)
 Forest_Proj <- projectRaster(F1, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
-plot(Forest_Proj)
-ext <- extent(Diffs)
+#Make it so you can see the lower intervals better
+Forest_age_2019 <- Forest_Proj + 13
+writeRaster(Forest_age_2019, "/Users/mallory/Documents/Temp_Project/Forest_Age_Conus.tif")
+my.at=c(0,15,30,45,60,80,100,125,150,200,250,300,400,500)
+my.brks=seq(0, 500, by=25)
+myColorkey <- list(at=my.brks, labels=list(at=my.brks, labels=my.at), space="bottom")
+levelplot(Forest_age_2019, at=my.at, margin=F, col.regions=topo.colors(100), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
 
+
+ext <- extent(Diffs)
 Forest_Proj_crop <- crop(Forest_Proj, ext)
 Forest_Proj
 plot(Forest_Proj_crop)
