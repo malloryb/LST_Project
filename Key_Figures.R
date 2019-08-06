@@ -652,11 +652,14 @@ Forest_Proj <- projectRaster(F1, crs="+proj=longlat +datum=WGS84 +no_defs +ellps
 #Make it so you can see the lower intervals better
 Forest_age_2019 <- Forest_Proj + 13
 writeRaster(Forest_age_2019, "/Users/mallory/Documents/Temp_Project/Forest_Age_Conus.tif")
-my.at=c(0,15,30,45,60,80,100,125,150,200,250,300,400,500)
-my.brks=seq(0, 500, by=25)
-myColorkey <- list(at=my.brks, labels=list(at=my.brks, labels=my.at), space="bottom")
-levelplot(Forest_age_2019, at=my.at, margin=F, col.regions=topo.colors(100), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
+my.at=c(15,30,50,75,100,150,200,300)
+my.brks=seq(0, 300, by=25)
+Fo_crop <- crop(Forest_age_2019, temp_raster.modified)
 
+myColorkey <- list(at=my.brks, labels=list(at=my.brks, labels=my.at), space="bottom")
+png("/Users/mallory/Documents/Temp_Project/Fig1c.png", width=4, height=4, units="in", res=300)
+levelplot(Fo_crop, at=my.at, margin=F, col.regions=topo.colors(100), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
+dev.off()
 
 ext <- extent(Diffs)
 Forest_Proj_crop <- crop(Forest_Proj, ext)
