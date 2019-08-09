@@ -15,7 +15,6 @@ library(devtools)
 library(maps)
 library(mapdata)
 library(maptools)
-#
 sessionInfo()
 lapply(Packages, library, character.only = TRUE)
 #Set raster options
@@ -663,8 +662,92 @@ png("/Users/mallory/Documents/Temp_Project/Fig1c.png", width=4, height=4, units=
 levelplot(Fo_crop, at=my.at, margin=F, col.regions=topo.colors(100), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
 dev.off()
 
-#Cor between fig 1a and Fig 1c?
-library(spatialEco)
+#Cor between fig 1a and Fig 1c?-------
+#Plan: cut up rasters into bins by latitude and look at the correlation between forest age and delta T within 
+#each bin. 
+Diffs <- brick("/Users/mallory/Documents/Temp_Project/Ta_Ts_All.tif")
+extent(Diffs)
+
+temp_raster <- raster("/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif")
+temp_raster[temp_raster < -0.029] <-NA
+devtools::source_gist('306e4b7e69c87b1826db')
+pal <- colorRampPalette(rev(brewer.pal(11, 'RdBu')))
+#Gotta fix this from the -360 again (with Mar package)
+# Switching from a raster to a matrix of class 'bathy'
+library(marmap)
+temp <- as.bathy(temp_raster)
+summary(temp)
+
+# Changing the relevant longitude
+names <- as.numeric(row.names(temp))
+names[names > 180] <- names[names > 180] - 360
+
+# Renaming the longitudes and switching back from a 'bathy' object to a raster
+rownames(temp) <- names
+temp_raster.modified <- as.raster(temp)
+
+Forest_age_2019 <- raster("/Users/mallory/Documents/Temp_Project/Forest_Age_Conus.tif")
+Fo_crop <- crop(Forest_age_2019, temp_raster.modified)
+Fo_toanalyze <- resample(Fo_crop, temp_raster.modified, method="bilinear")
+
+plot(Fo_toanalyze)
+Fo_toanalyze[Fo_toanalyze < 18] <- NA
+plot(temp_raster.modified)
+
+corr_stack <- stack(Fo_toanalyze, temp_raster.modified)
+#slice up by latitude: 
+#N = 51-43
+#Central = 43-37
+#S= 37-28
+n_ext <- c(-127, -70, 43,51) 
+c_ext <- c(-127, -70, 37,43)
+s_ext <- c(-127,-70, 27,37)
+N<- crop(corr_stack, n_ext)
+C <- crop(corr_stack, c_ext)
+S <- crop(corr_stack, s_ext)
+plot(N)
+plot(C)
+plot(S)
+
+Ncor <- as.data.frame(cbind(getValues(N[[1]]), (getValues(N[[2]]))))
+cor(Ncor$V1, Ncor$V2, use="complete.obs")
+Ncor$V2 <- Ncor$V2*50
+
+Ccor <- as.data.frame(cbind(getValues(C[[1]]), getValues(C[[2]])))
+cor(Ccor$V1, Ccor$V2, use="complete.obs")
+Ccor$V2 <- Ccor$V2*50
+
+Scor <- as.data.frame(cbind(getValues(S[[1]]), getValues(S[[2]])))
+Scor$V2 <- Scor$V2*50
+cor(Scor$V1, Scor$V2, use="complete.obs")
+
+library("ggpubr")
+Nplot <- ggscatter(Ncor, x = "V1", y = "V2", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "", ylab = "Δ°C / 50 years", size=0.7)+
+          ylim(-0.55, 1.2)+
+          xlim(10,220)
+
+Cplot <- ggscatter(Ccor, x = "V1", y = "V2", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "", ylab="Δ°C / 50 years", size=0.7)+
+  ylim(-0.55, 1.2)+
+  xlim(10,220)
+
+Splot <- ggscatter(Scor, x = "V1", y = "V2", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab ="Forest Age", ylab="Δ°C / 50 years", size=0.7)+
+  ylim(-0.55, 1.2)+
+  xlim(10,220)
+
+library(gridExtra)
+png("/Users/mallory/Documents/Temp_Project/Fig1def.png", res=300, width=4, height=9, unit="in")
+grid.arrange(Nplot, Cplot, Splot, ncol=1)
+dev.off()
+
 Check <- spatialEco::rasterCorrelation(Fo_crop, temp_raster.modified, s = 5, type = "pearson", file.name = NULL)
 ext <- extent(Diffs)
 Forest_Proj_crop <- crop(Forest_Proj, ext)
