@@ -135,7 +135,15 @@ x$emiss <- (-0.16*x$albedo + 0.99)
 #Calculate TS 
 x$TS <- (x$outLWMean/(sigma *(x$emiss)))^(0.25)
 x$TS <- x$TS-273.15
-return(x)
+temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), TsMax= mean(TS, na.rm=TRUE), 
+              Tower_TAmax= max(TA, na.rm=TRUE), Tower_TSmax = max(TS, na.rm=TRUE), 
+              Tower_TAmin = min(TA, na.rm=TRUE), Tower_TSmin = min(TS, na.rm=TRUE), albedo= mean(albedo, trim=0.2, na.rm=TRUE),
+              emiss=mean(emiss, na.rm=TRUE), LW_OUT=mean(outLWMean, na.rm=TRUE))
+#temp <- merge(temp, TOB2, by="date", all.x=TRUE)
+#sigma = 5.67 * 10^-8
+#temp$Tower_TScor <-(temp$LW_OUT/(sigma *(temp$emiss)))^(0.25) - 273.15
+temp <- temp[Reduce(`&`, lapply(temp, is.finite)),]
+return(temp)
 }
 #WORKS
 #files <- list.files(path=".", pattern='\\W*(BARC)\\W(.*)\\W*(30min)\\W*', recursive=TRUE)
