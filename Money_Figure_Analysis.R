@@ -135,7 +135,7 @@ x$emiss <- (-0.16*x$albedo + 0.99)
 #Calculate TS 
 x$TS <- (x$outLWMean/(sigma *(x$emiss)))^(0.25)
 x$TS <- x$TS-273.15
-temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), TsMax= mean(TS, na.rm=TRUE), 
+temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), Tower_TSavg= mean(TS, na.rm=TRUE), 
               Tower_TAmax= max(TA, na.rm=TRUE), Tower_TSmax = max(TS, na.rm=TRUE), 
               Tower_TAmin = min(TA, na.rm=TRUE), Tower_TSmin = min(TS, na.rm=TRUE), albedo= mean(albedo, trim=0.2, na.rm=TRUE),
               emiss=mean(emiss, na.rm=TRUE), LW_OUT=mean(outLWMean, na.rm=TRUE))
@@ -152,7 +152,7 @@ Daily_Temps <- function (x){
 #TOB <- subset(x, x$time>=1000 & x$time<=1100)
 #TOB2 <- ddply(TOB, .(date), summarize, TOB = mean(TA, na.rm=TRUE))
 #Get daily data
-temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), TsMax= mean(TS, na.rm=TRUE), 
+temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), Tower_TSavg= mean(TS, na.rm=TRUE), 
               Tower_TAmax= max(TA, na.rm=TRUE), Tower_TSmax = max(TS, na.rm=TRUE), 
               Tower_TAmin = min(TA, na.rm=TRUE), Tower_TSmin = min(TS, na.rm=TRUE), albedo= mean(albedo, trim=0.2, na.rm=TRUE),
               emiss=mean(emiss, na.rm=TRUE), LW_OUT=mean(LW_OUT, na.rm=TRUE))
@@ -166,7 +166,7 @@ Daily_Temps_Mms <- function (x){
   #TOB <- subset(x, x$time>=1000 & x$time<=1100)
   #TOB2 <- ddply(TOB, .(date), summarize, TOB = mean(TA, na.rm=TRUE))
   #Get daily data
-  temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), TsMax= mean(TS, na.rm=TRUE), 
+  temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), Tower_TSavg= mean(TS, na.rm=TRUE), 
                 Tower_TAmax= max(TA, na.rm=TRUE), Tower_TSmax = max(TS, na.rm=TRUE), 
                 Tower_TAmin = min(TA, na.rm=TRUE), Tower_TSmin = min(TS, na.rm=TRUE), albedo= mean(albedo, trim=0.2, na.rm=TRUE),
                 emiss=mean(emiss, na.rm=TRUE), LW_OUT=mean(LW_OUT_1_1_1, na.rm=TRUE))
@@ -317,46 +317,49 @@ Clbj<- cbind(-97.57, 33.40123)
 Oaes<- cbind(-99.058779, 35.410599) 
 Prin<- cbind(-97.782312, 33.378517)
 
-Bo1_Temps$forest <- raster::extract(Landcover_Rast, Bo1, buffer=2000, fun=mean)
-Cav_Temps$forest <- raster::extract(Landcover_Rast, Cav, buffer=2000, fun=mean)
-Chr_Temps$forest <- raster::extract(Landcover_Rast, Chr, buffer=2000, fun=mean)
-Dk1_Temps$forest <- raster::extract(Landcover_Rast, Dk1, buffer=2000, fun=mean)
-Dk2_Temps$forest <- raster::extract(Landcover_Rast, Dk2, buffer=2000, fun=mean)
-Goo_Temps$forest <- raster::extract(Landcover_Rast, Goo, buffer=2000, fun=mean)
-Mms_Temps$forest <- raster::extract(Landcover_Rast, Mms, buffer=2000, fun=mean)
-Nc2_Temps$forest <- raster::extract(Landcover_Rast, Nc2, buffer=2000, fun=mean)
-Orv_Temps$forest <- raster::extract(Landcover_Rast, Orv, buffer=2000, fun=mean)
+Bo1_Temps$forest <- raster::extract(Landcover_Rast, Bo1, buffer=3000, fun=mean)
+Cav_Temps$forest <- raster::extract(Landcover_Rast, Cav, buffer=3000, fun=mean)
+Chr_Temps$forest <- raster::extract(Landcover_Rast, Chr, buffer=3000, fun=mean)
+Dk1_Temps$forest <- raster::extract(Landcover_Rast, Dk1, buffer=3000, fun=mean)
+Dk2_Temps$forest <- raster::extract(Landcover_Rast, Dk2, buffer=3000, fun=mean)
+Goo_Temps$forest <- raster::extract(Landcover_Rast, Goo, buffer=3000, fun=mean)
+Mms_Temps$forest <- raster::extract(Landcover_Rast, Mms, buffer=3000, fun=mean)
+Nc2_Temps$forest <- raster::extract(Landcover_Rast, Nc2, buffer=3000, fun=mean)
+Orv_Temps$forest <- raster::extract(Landcover_Rast, Orv, buffer=3000, fun=mean)
 
-Barc_Temps$forest <- raster::extract(Landcover_Rast, Barc, buffer=2000, fun=mean)
-Dsny_Temps$forest <- raster::extract(Landcover_Rast, Dsny, buffer=2000, fun=mean)
-Flnt_Temps$forest <- raster::extract(Landcover_Rast, Flnt, buffer=2000, fun=mean)
-Jerc_Temps$forest <- raster::extract(Landcover_Rast, Jerc, buffer=2000, fun=mean)
-Osbs_Temps$forest <- raster::extract(Landcover_Rast, Osbs, buffer=2000, fun=mean)
-Sugg_Temps$forest <- raster::extract(Landcover_Rast, Sugg, buffer=2000, fun=mean)
-Dela_Temps$forest <- raster::extract(Landcover_Rast, Dela, buffer=2000, fun=mean)
-Leno_Temps$forest <- raster::extract(Landcover_Rast, Leno, buffer=2000, fun=mean)
-Mayf_Temps$forest <- raster::extract(Landcover_Rast, Mayf, buffer=2000, fun=mean)
-Tall_Temps$forest <- raster::extract(Landcover_Rast, Tall, buffer=2000, fun=mean)
-Blue_Temps$forest <- raster::extract(Landcover_Rast, Blue, buffer=2000, fun=mean)
-Clbj_Temps$forest <- raster::extract(Landcover_Rast, Clbj, buffer=2000, fun=mean)
-Oaes_Temps$forest <- raster::extract(Landcover_Rast, Oaes, buffer=2000, fun=mean)
-Prin_Temps$forest <- raster::extract(Landcover_Rast, Prin, buffer=2000, fun=mean)
+Barc_Temps$forest <- raster::extract(Landcover_Rast, Barc, buffer=3000, fun=mean)
+Dsny_Temps$forest <- raster::extract(Landcover_Rast, Dsny, buffer=3000, fun=mean)
+Flnt_Temps$forest <- raster::extract(Landcover_Rast, Flnt, buffer=3000, fun=mean)
+Jerc_Temps$forest <- raster::extract(Landcover_Rast, Jerc, buffer=3000, fun=mean)
+Osbs_Temps$forest <- raster::extract(Landcover_Rast, Osbs, buffer=3000, fun=mean)
+Sugg_Temps$forest <- raster::extract(Landcover_Rast, Sugg, buffer=3000, fun=mean)
+Dela_Temps$forest <- raster::extract(Landcover_Rast, Dela, buffer=3000, fun=mean)
+Leno_Temps$forest <- raster::extract(Landcover_Rast, Leno, buffer=3000, fun=mean)
+Mayf_Temps$forest <- raster::extract(Landcover_Rast, Mayf, buffer=3000, fun=mean)
+Tall_Temps$forest <- raster::extract(Landcover_Rast, Tall, buffer=3000, fun=mean)
+Blue_Temps$forest <- raster::extract(Landcover_Rast, Blue, buffer=3000, fun=mean)
+Clbj_Temps$forest <- raster::extract(Landcover_Rast, Clbj, buffer=3000, fun=mean)
+Oaes_Temps$forest <- raster::extract(Landcover_Rast, Oaes, buffer=3000, fun=mean)
+Prin_Temps$forest <- raster::extract(Landcover_Rast, Prin, buffer=3000, fun=mean)
 
 
 Format_plot_temps <- function(x){
   x$month <- month(x$date)
   x$season <- ifelse(x$month==6 | x$month==7 | x$month==8, "growing", 
                      ifelse(x$month==12 | x$month==1 | x$month==2, "dormant","neither"))
-  y <- ddply(x, .(season), summarize, Daymet_Mean=mean(Daymet_Tmax, na.rm=TRUE), TsMax=mean(Tower_TSmax, na.rm=TRUE), TaMax=mean(Tower_TAmax, na.rm=TRUE), forest=mean(forest), MAT=mean(MAT))
+  x$Ts_Air <- x$Tower_TSavg - x$Tower_TAavg
+  x$Ta_Air <- x$Daymet_Tavg - x$Tower_TAavg
+  y <- ddply(x, .(season), summarize, Ts_Air = mean(Ts_Air, na.rm=TRUE), Ts_Air_max=Ts_Air[which.max( abs(Ts_Air) )], 
+             Ta_Air= mean(Ta_Air, na.rm=TRUE), Ta_Air_max = Ta_Air[which.max( abs(Ta_Air) )], forest=mean(forest), MAT=mean(MAT))
   return(y)
 }
+
+head(Bo1_Temps)
 sitelist <- list(Bo1_Temps, Cav_Temps, Chr_Temps, Dk1_Temps, 
               Dk2_Temps, Goo_Temps, Mms_Temps, Nc2_Temps, Orv_Temps, Barc_Temps, Dsny_Temps, 
               Flnt_Temps, Jerc_Temps, Osbs_Temps, Sugg_Temps, Leno_Temps, Mayf_Temps, Tall_Temps, Blue_Temps, Clbj_Temps, 
               Oaes_Temps, Prin_Temps)
 To_Plot <- do.call("rbind", lapply(sitelist, Format_plot_temps))
-To_Plot$Ts_Air <- To_Plot$TsMax - To_Plot$Daymet_Mean
-To_Plot$Ta_Air <- To_Plot$TaMax - To_Plot$Daymet_Mean
 growing_plot <- subset(To_Plot, season=="growing")
 dormant_plot <- subset(To_Plot, season=="dormant")
 growing_toplot <- melt(growing_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
@@ -367,7 +370,7 @@ x1 <- ggplot(growing_toplot, aes(forest, value, colour=variable))+
   scale_color_manual(values=c("red", "black"))+
   ylab("Delta T")+
   xlab("Forest Cover (%)")+
-  scale_y_reverse(lim=c(5,-5))+
+  scale_y_reverse(lim=c(5,-12))+
   theme_bw()
 
 
@@ -427,7 +430,7 @@ dt2 = dt[sample(1:dim(dt)[1], size = nSamples), ]
 dt2 = dt2/1000
 str(dt2)
 
-cloud1 <- raster::extract(Landcover_Rast, SpatialPoints(dt2), buffer=20000, fun=mean, sp = T)  
+cloud1 <- raster::extract(Landcover_Rast, SpatialPoints(dt2), buffer=3000, fun=mean, sp = T)  
 cloud2 <- raster::extract(Growing_Diffs, SpatialPoints(dt2), sp=T)
 cloud3 <- raster::extract(Dormant_Diffs, SpatialPoints(dt2), sp=T)
 
