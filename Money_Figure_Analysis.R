@@ -94,6 +94,24 @@ Sp1_30min <- Format_Ameriflux(US_Sp1)
                           
 #Do this over again with proper file read in as "x"...maybe not the best idea but it's what is 
 #going on for now 
+setwd("/Users/mallory/Documents/Datasets/")
+Get_Daily_NEON <- function(site){
+site <- deparse(substitute(site))
+files <- list.files(path=".", pattern=paste0("\\W*(", site, ")\\W(.*)\\W*(SLRNR_30min)\\W*"), recursive=TRUE)
+files2 <- list.files(path=".", pattern=paste0("\\W*(", site, ")\\W(.*)\\W*(SAAT_30min)\\W*"), recursive=TRUE)
+tables <- lapply(files, read.csv, header = TRUE)
+tables2 <- lapply(files2, read.csv, header = TRUE)
+combined.df <- do.call(rbind , tables)
+print(head(combined.df))
+combined.df2 <- do.call(rbind, tables2)
+print(head(combined.df2))
+all_sitewide <- merge(combined.df, combined.df2, by="startDateTime")
+return(all_sitewide)
+}
+#WORKS
+#files <- list.files(path=".", pattern='\\W*(BARC)\\W(.*)\\W*(30min)\\W*', recursive=TRUE)
+
+Get_Daily_NEON(site=BARC)
 
 Daily_Temps <- function (x){
 #TOB <- subset(x, x$time>=1000 & x$time<=1100)
@@ -148,6 +166,39 @@ qplot(Nc2_Temp$date, Nc2_Temp$Tower_TSmax)
 qplot(Orv_Temp$date, Orv_Temp$Tower_TSmax)
 qplot(Sp1_Temp$date, Sp1_Temp$Tower_TSmax)
 
+#We also need those NEON flux sites: 
+#Need to get daily in 1 file by site
+
+Format_NEON <- function(x){
+  #1) Parse tmestamp
+  x$date <- as.Date(paste(eval(substr(x$TIMESTAMP_START, 1,4)) ,eval(substr(x$TIMESTAMP_START, 5,6)), eval(substr(x$TIMESTAMP_START, 7,8)), sep="_"), format="%Y_%m_%d")
+  x$time <-as.numeric(substr(x$TIMESTAMP_START, 9,12)) 
+  x$month <-substr(x$TIMESTAMP_START, 5,6)
+  x$year <-substr(x$TIMESTAMP_START, 1,4)
+  x$daynight <- ifelse(x$time>800 & x$time<1700, "day","night")
+  #Calculate TS from albedo and LW_OUT using Stefan Boltzman
+  sigma = 5.67 * 10^-8
+  x$TA <- x$TA
+  x$albedo <- (x$SW_OUT/x$SW_IN)
+  #Filter albedo
+  #If albedo is less or equal to zero, means a negative or zero SW_IN value which is either incorrect or nighttime (replace with NA)
+  x$albedo[x$albedo <= 0] <- NA
+  #If albedo is over one, that is also impossible (replace with NA)
+  x$albedo[x$albedo > 1] <- NA
+  #Relate emissivity to albedo according to Juang et al. 2007 in GRL
+  #E = -0.16*albedo + 0.99
+  day <- subset(x, x$daynight== "day")
+  daytime_albedo <- ddply(day, .(date), summarize, daytime_albedo=mean(albedo, na.rm=TRUE))
+  x <- merge(x, daytime_albedo, all.x = TRUE)
+  x$albedo <- ifelse(x$time>800 & x$time<1700, x$albedo, x$daytime_albedo)
+  x$emiss <- (-0.16*x$albedo + 0.99)
+  #Calculate TS 
+  x$TS <- (x$LW_OUT/(sigma *(x$emiss)))^(0.25)
+  x$TS <- x$TS-273.15
+  return(x)}
+
+#Need to read all files and get daily (?) values of: SW_OUT, SW_IN
+read.csv("/Users/mallory/Documents/Datasets/NEON_rad-net/NEON.D03.BARC.DP1.00023.001.2017-08.basic.20180403T162433Z/NEON.D03.BARC.DP1.00023.001.200.000.030.SLRNR_30min.2017-08.basic.20180403T162433Z.csv")
 
 format_daymet<- function(x){
 x$date <- as.Date(paste(x$year, x$yday, sep="-"), format="%Y-%j")
@@ -211,6 +262,7 @@ Mms_Temps$forest <- raster::extract(Landcover_Rast, Mms, buffer=3000, fun=mean)
 Nc2_Temps$forest <- raster::extract(Landcover_Rast, Nc2, buffer=3000, fun=mean)
 Orv_Temps$forest <- raster::extract(Landcover_Rast, Orv, buffer=3000, fun=mean)
 
+
 Format_plot_temps <- function(x){
   x$month <- month(x$date)
   x$season <- ifelse(x$month==6 | x$month==7 | x$month==8, "growing", 
@@ -228,23 +280,7 @@ dormant_plot <- subset(To_Plot, season=="dormant")
 growing_toplot <- melt(growing_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
 dormant_toplot <- melt(dormant_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
 
-ggplot(growing_toplot, aes(forest, value, colour=variable))+
-  geom_point(size=3)+
-  scale_color_manual(values=c("red", "black"))+
-  geom_point(aes(growingcloudplot$MODIS, growingcloudplot$forest))+
-  ylab("Delta T")+
-  xlab("Forest Cover (%)")+
-  scale_y_reverse(lim=c(4,-4))+
-  theme_bw()
-
-ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
-  geom_hex(bins = 70) +
-  ylab("Delta T")+
-  xlab("Forest Cover (%)")+
-  scale_y_reverse(lim=c(4,-4))+
-  theme_bw()
-
-ggplot(dormant_toplot, aes(forest, value, colour=variable))+
+x1 <- ggplot(growing_toplot, aes(forest, value, colour=variable))+
   geom_point(size=3)+
   scale_color_manual(values=c("red", "black"))+
   ylab("Delta T")+
@@ -252,18 +288,51 @@ ggplot(dormant_toplot, aes(forest, value, colour=variable))+
   scale_y_reverse(lim=c(4,-4))+
   theme_bw()
 
-ggplot(dormantcloudplot, aes(x=forest, y=MODIS) ) +
-  geom_hex(bins = 70) +
+x2 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(binwidth = c(.05, 0.2)) +
+  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
   ylab("Delta T")+
   xlab("Forest Cover (%)")+
   scale_y_reverse(lim=c(4,-4))+
   theme_bw()
 
+x3 <- ggplot(dormant_toplot, aes(forest, value, colour=variable))+
+  geom_point(size=3)+
+  scale_color_manual(values=c("red", "black"))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  scale_y_reverse(lim=c(4,-4))+
+  theme_bw()
+
+x4 <- ggplot(dormantcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(binwidth = c(.05, 0.2)) +
+  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  scale_y_reverse(lim=c(4,-4))+
+  theme_bw()
+
+grid.arrange(x1,x2, ncol=1)
+grid.arrange(x3,x4, ncol=1)
+
+hh <- ggplot(df, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanUrban), color="red") + 
+  geom_errorbar(aes(x=Month, ymin=meanUrban-seUrban, ymax=meanUrban+seUrban), width=0.2, size=0.5,color="red")+
+  geom_line(aes(y=meanCrop), color="yellowgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanCrop-seCrop, ymax=meanCrop+seCrop), width=0.2, size=0.5, color="yellowgreen")+
+  geom_line(aes(y=meanFo), color="darkgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanFo-seFo, ymax=meanFo+seFo),width=0.2, size=0.5, color="darkgreen")+
+  labs(title="Ta-Ts by Land Cover Type", 
+       y="Ta-Ts (degrees C)", 
+       x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_bw()+
+  scale_y_reverse(lim=c(5,-4.4))
 
 #Get the rasters
 Diffs <- brick("/Users/mallory/Documents/Temp_Project/Ta_Ts_All.tif")
 Growing_Diffs <- mean(Diffs[[6:8]])
-Dormant_Diffs <- mean(Diffs[[1:2,12]])
+Dormant_Diffs <- mean(Diffs[[1:2& 12]])
 
 #Have to multiply everything by 1000 because it does by integers 
 pairOne = ((-88.775*1000):(-74.85*1000))
@@ -280,9 +349,27 @@ cloud2 <- raster::extract(Growing_Diffs, SpatialPoints(dt2), sp=T)
 cloud3 <- raster::extract(Dormant_Diffs, SpatialPoints(dt2), sp=T)
 growingcloudplot <- cbind(as.data.frame(cloud1$layer), as.data.frame(cloud2$layer))
 names(growingcloudplot) <- c("forest", "MODIS")  
-
 dormantcloudplot <- cbind(as.data.frame(cloud1$layer), as.data.frame(cloud3$layer))
 names(dormantcloudplot) <- c("forest", "MODIS")  
 
 
+# Need to take a look at geom_density by latitude
+x2 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(binwidth = c(.05, 0.2)) +
+  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  scale_y_reverse(lim=c(4,-4))+
+  theme_bw()
 
+growingcloudtoplot <- as.data.frame(growingcloudplot)
+
+ggplot(growingcloudtoplot, aes(x=forest, y=MODIS))+
+  geom_density2d()+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  scale_y_reverse(lim=c(4,-4))+
+  theme_bw()
+  
+  
+str(growingcloudplot)
