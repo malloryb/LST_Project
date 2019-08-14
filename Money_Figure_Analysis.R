@@ -94,6 +94,12 @@ Sp1_30min <- Format_Ameriflux(US_Sp1)
                           
 #Do this over again with proper file read in as "x"...maybe not the best idea but it's what is 
 #going on for now 
+
+#We also need those NEON flux sites: 
+#Need to get daily in 1 file by site
+
+
+#Need to read all files and get daily (?) values of: SW_OUT, SW_IN
 setwd("/Users/mallory/Documents/Datasets/")
 Get_Daily_NEON <- function(site){
 site <- deparse(substitute(site))
@@ -102,11 +108,34 @@ files2 <- list.files(path=".", pattern=paste0("\\W*(", site, ")\\W(.*)\\W*(SAAT_
 tables <- lapply(files, read.csv, header = TRUE)
 tables2 <- lapply(files2, read.csv, header = TRUE)
 combined.df <- do.call(rbind , tables)
-print(head(combined.df))
 combined.df2 <- do.call(rbind, tables2)
-print(head(combined.df2))
-all_sitewide <- merge(combined.df, combined.df2, by="startDateTime")
-return(all_sitewide)
+x <- merge(combined.df, combined.df2, by="startDateTime", all=TRUE)
+#All Concatenated 
+x$date <- as.Date(paste(eval(substr(x$startDateTime, 1,4)) ,eval(substr(x$startDateTime, 6,7)), eval(substr(x$startDateTime, 9,10)), sep="_"), format="%Y_%m_%d")
+x$time <-as.numeric(paste(eval(substr(x$startDateTime, 12,13)), eval(substr(x$startDateTime, 15,16)), sep=""))
+x$month <-substr(x$startDateTime, 6,7)
+x$year <-substr(x$startDateTime, 1,4)
+x$daynight <- ifelse(x$time>800 & x$time<1700, "day","night")
+#Calculate TS from albedo and LW_OUT using Stefan Boltzman
+sigma = 5.67 * 10^-8
+x$TA <- x$tempSingleMean
+x$albedo <- (x$outSWMean/x$inSWMean)
+#Filter albedo
+#If albedo is less or equal to zero, means a negative or zero SW_IN value which is either incorrect or nighttime (replace with NA)
+x$albedo[x$albedo <= 0] <- NA
+#If albedo is over one, that is also impossible (replace with NA)
+x$albedo[x$albedo > 1] <- NA
+#Relate emissivity to albedo according to Juang et al. 2007 in GRL
+#E = -0.16*albedo + 0.99
+day <- subset(x, x$daynight== "day")
+daytime_albedo <- ddply(day, .(date), summarize, daytime_albedo=mean(albedo, na.rm=TRUE))
+x <- merge(x, daytime_albedo, all.x = TRUE)
+x$albedo <- ifelse(x$time>800 & x$time<1700, x$albedo, x$daytime_albedo)
+x$emiss <- (-0.16*x$albedo + 0.99)
+#Calculate TS 
+x$TS <- (x$outLWMean/(sigma *(x$emiss)))^(0.25)
+x$TS <- x$TS-273.15
+return(x)
 }
 #WORKS
 #files <- list.files(path=".", pattern='\\W*(BARC)\\W(.*)\\W*(30min)\\W*', recursive=TRUE)
@@ -165,40 +194,6 @@ qplot(Mms_Temp$date, Mms_Temp$Tower_TSmax)
 qplot(Nc2_Temp$date, Nc2_Temp$Tower_TSmax)
 qplot(Orv_Temp$date, Orv_Temp$Tower_TSmax)
 qplot(Sp1_Temp$date, Sp1_Temp$Tower_TSmax)
-
-#We also need those NEON flux sites: 
-#Need to get daily in 1 file by site
-
-Format_NEON <- function(x){
-  #1) Parse tmestamp
-  x$date <- as.Date(paste(eval(substr(x$TIMESTAMP_START, 1,4)) ,eval(substr(x$TIMESTAMP_START, 5,6)), eval(substr(x$TIMESTAMP_START, 7,8)), sep="_"), format="%Y_%m_%d")
-  x$time <-as.numeric(substr(x$TIMESTAMP_START, 9,12)) 
-  x$month <-substr(x$TIMESTAMP_START, 5,6)
-  x$year <-substr(x$TIMESTAMP_START, 1,4)
-  x$daynight <- ifelse(x$time>800 & x$time<1700, "day","night")
-  #Calculate TS from albedo and LW_OUT using Stefan Boltzman
-  sigma = 5.67 * 10^-8
-  x$TA <- x$TA
-  x$albedo <- (x$SW_OUT/x$SW_IN)
-  #Filter albedo
-  #If albedo is less or equal to zero, means a negative or zero SW_IN value which is either incorrect or nighttime (replace with NA)
-  x$albedo[x$albedo <= 0] <- NA
-  #If albedo is over one, that is also impossible (replace with NA)
-  x$albedo[x$albedo > 1] <- NA
-  #Relate emissivity to albedo according to Juang et al. 2007 in GRL
-  #E = -0.16*albedo + 0.99
-  day <- subset(x, x$daynight== "day")
-  daytime_albedo <- ddply(day, .(date), summarize, daytime_albedo=mean(albedo, na.rm=TRUE))
-  x <- merge(x, daytime_albedo, all.x = TRUE)
-  x$albedo <- ifelse(x$time>800 & x$time<1700, x$albedo, x$daytime_albedo)
-  x$emiss <- (-0.16*x$albedo + 0.99)
-  #Calculate TS 
-  x$TS <- (x$LW_OUT/(sigma *(x$emiss)))^(0.25)
-  x$TS <- x$TS-273.15
-  return(x)}
-
-#Need to read all files and get daily (?) values of: SW_OUT, SW_IN
-read.csv("/Users/mallory/Documents/Datasets/NEON_rad-net/NEON.D03.BARC.DP1.00023.001.2017-08.basic.20180403T162433Z/NEON.D03.BARC.DP1.00023.001.200.000.030.SLRNR_30min.2017-08.basic.20180403T162433Z.csv")
 
 format_daymet<- function(x){
 x$date <- as.Date(paste(x$year, x$yday, sep="-"), format="%Y-%j")
