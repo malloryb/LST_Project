@@ -317,30 +317,30 @@ Clbj<- cbind(-97.57, 33.40123)
 Oaes<- cbind(-99.058779, 35.410599) 
 Prin<- cbind(-97.782312, 33.378517)
 
-Bo1_Temps$forest <- raster::extract(Landcover_Rast, Bo1, buffer=3000, fun=mean)
-Cav_Temps$forest <- raster::extract(Landcover_Rast, Cav, buffer=3000, fun=mean)
-Chr_Temps$forest <- raster::extract(Landcover_Rast, Chr, buffer=3000, fun=mean)
-Dk1_Temps$forest <- raster::extract(Landcover_Rast, Dk1, buffer=3000, fun=mean)
-Dk2_Temps$forest <- raster::extract(Landcover_Rast, Dk2, buffer=3000, fun=mean)
-Goo_Temps$forest <- raster::extract(Landcover_Rast, Goo, buffer=3000, fun=mean)
-Mms_Temps$forest <- raster::extract(Landcover_Rast, Mms, buffer=3000, fun=mean)
-Nc2_Temps$forest <- raster::extract(Landcover_Rast, Nc2, buffer=3000, fun=mean)
-Orv_Temps$forest <- raster::extract(Landcover_Rast, Orv, buffer=3000, fun=mean)
+Bo1_Temps$forest <- raster::extract(Landcover_Rast, Bo1, buffer=2000, fun=mean)
+Cav_Temps$forest <- raster::extract(Landcover_Rast, Cav, buffer=2000, fun=mean)
+Chr_Temps$forest <- raster::extract(Landcover_Rast, Chr, buffer=2000, fun=mean)
+Dk1_Temps$forest <- raster::extract(Landcover_Rast, Dk1, buffer=2000, fun=mean)
+Dk2_Temps$forest <- raster::extract(Landcover_Rast, Dk2, buffer=2000, fun=mean)
+Goo_Temps$forest <- raster::extract(Landcover_Rast, Goo, buffer=2000, fun=mean)
+Mms_Temps$forest <- raster::extract(Landcover_Rast, Mms, buffer=2000, fun=mean)
+Nc2_Temps$forest <- raster::extract(Landcover_Rast, Nc2, buffer=2000, fun=mean)
+Orv_Temps$forest <- raster::extract(Landcover_Rast, Orv, buffer=2000, fun=mean)
 
-Barc_Temps$forest <- raster::extract(Landcover_Rast, Barc, buffer=3000, fun=mean)
-Dsny_Temps$forest <- raster::extract(Landcover_Rast, Dsny, buffer=3000, fun=mean)
-Flnt_Temps$forest <- raster::extract(Landcover_Rast, Flnt, buffer=3000, fun=mean)
-Jerc_Temps$forest <- raster::extract(Landcover_Rast, Jerc, buffer=3000, fun=mean)
-Osbs_Temps$forest <- raster::extract(Landcover_Rast, Osbs, buffer=3000, fun=mean)
-Sugg_Temps$forest <- raster::extract(Landcover_Rast, Sugg, buffer=3000, fun=mean)
-Dela_Temps$forest <- raster::extract(Landcover_Rast, Dela, buffer=3000, fun=mean)
-Leno_Temps$forest <- raster::extract(Landcover_Rast, Leno, buffer=3000, fun=mean)
-Mayf_Temps$forest <- raster::extract(Landcover_Rast, Mayf, buffer=3000, fun=mean)
-Tall_Temps$forest <- raster::extract(Landcover_Rast, Tall, buffer=3000, fun=mean)
-Blue_Temps$forest <- raster::extract(Landcover_Rast, Blue, buffer=3000, fun=mean)
-Clbj_Temps$forest <- raster::extract(Landcover_Rast, Clbj, buffer=3000, fun=mean)
-Oaes_Temps$forest <- raster::extract(Landcover_Rast, Oaes, buffer=3000, fun=mean)
-Prin_Temps$forest <- raster::extract(Landcover_Rast, Prin, buffer=3000, fun=mean)
+Barc_Temps$forest <- raster::extract(Landcover_Rast, Barc, buffer=2000, fun=mean)
+Dsny_Temps$forest <- raster::extract(Landcover_Rast, Dsny, buffer=2000, fun=mean)
+Flnt_Temps$forest <- raster::extract(Landcover_Rast, Flnt, buffer=2000, fun=mean)
+Jerc_Temps$forest <- raster::extract(Landcover_Rast, Jerc, buffer=2000, fun=mean)
+Osbs_Temps$forest <- raster::extract(Landcover_Rast, Osbs, buffer=2000, fun=mean)
+Sugg_Temps$forest <- raster::extract(Landcover_Rast, Sugg, buffer=2000, fun=mean)
+Dela_Temps$forest <- raster::extract(Landcover_Rast, Dela, buffer=2000, fun=mean)
+Leno_Temps$forest <- raster::extract(Landcover_Rast, Leno, buffer=2000, fun=mean)
+Mayf_Temps$forest <- raster::extract(Landcover_Rast, Mayf, buffer=2000, fun=mean)
+Tall_Temps$forest <- raster::extract(Landcover_Rast, Tall, buffer=2000, fun=mean)
+Blue_Temps$forest <- raster::extract(Landcover_Rast, Blue, buffer=2000, fun=mean)
+Clbj_Temps$forest <- raster::extract(Landcover_Rast, Clbj, buffer=2000, fun=mean)
+Oaes_Temps$forest <- raster::extract(Landcover_Rast, Oaes, buffer=2000, fun=mean)
+Prin_Temps$forest <- raster::extract(Landcover_Rast, Prin, buffer=2000, fun=mean)
 
 
 Format_plot_temps <- function(x){
@@ -361,14 +361,15 @@ growing_plot <- subset(To_Plot, season=="growing")
 dormant_plot <- subset(To_Plot, season=="dormant")
 growing_toplot <- melt(growing_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
 dormant_toplot <- melt(dormant_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
-
+growing_toplot
 x1 <- ggplot(growing_toplot, aes(forest, value, colour=variable))+
   geom_point(size=3)+
   scale_color_manual(values=c("red", "black"))+
   ylab("Delta T")+
   xlab("Forest Cover (%)")+
-  scale_y_reverse(lim=c(4,-4))+
+  scale_y_reverse(lim=c(5,-5))+
   theme_bw()
+
 
 x2 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
   geom_hex(binwidth = c(.05, 0.2)) +
@@ -426,22 +427,21 @@ dt2 = dt[sample(1:dim(dt)[1], size = nSamples), ]
 dt2 = dt2/1000
 str(dt2)
 
-cloud1 <- raster::extract(Landcover_Rast, SpatialPoints(dt2), buffer=3000, fun=mean, sp = T)  
+cloud1 <- raster::extract(Landcover_Rast, SpatialPoints(dt2), buffer=20000, fun=mean, sp = T)  
 cloud2 <- raster::extract(Growing_Diffs, SpatialPoints(dt2), sp=T)
 cloud3 <- raster::extract(Dormant_Diffs, SpatialPoints(dt2), sp=T)
-growingcloudplot <- cbind(as.data.frame(cloud1$layer), as.data.frame(cloud2$layer))
+
+growingcloudplot <- cbind(as.data.frame(cloud1$landcover_proj), as.data.frame(cloud2$layer))
 names(growingcloudplot) <- c("forest", "MODIS")  
-dormantcloudplot <- cbind(as.data.frame(cloud1$layer), as.data.frame(cloud3$layer))
+dormantcloudplot <- cbind(as.data.frame(cloud1$landcover_proj), as.data.frame(cloud3$layer))
 names(dormantcloudplot) <- c("forest", "MODIS")  
-
-
 # Need to take a look at geom_density by latitude
 x2 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
   geom_hex(binwidth = c(.05, 0.2)) +
   scale_fill_gradientn(colours = rev(terrain.colors(10)))+
   ylab("Delta T")+
   xlab("Forest Cover (%)")+
-  scale_y_reverse(lim=c(4,-4))+
+  scale_y_reverse(lim=c(10,-6))+
   theme_bw()
 
 growingcloudtoplot <- as.data.frame(growingcloudplot)
