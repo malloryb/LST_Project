@@ -148,8 +148,6 @@ return(temp)
 #WORKS
 #files <- list.files(path=".", pattern='\\W*(BARC)\\W(.*)\\W*(30min)\\W*', recursive=TRUE)
 
-Get_Daily_NEON(site=BARC)
-
 Daily_Temps <- function (x){
 #TOB <- subset(x, x$time>=1000 & x$time<=1100)
 #TOB2 <- ddply(TOB, .(date), summarize, TOB = mean(TA, na.rm=TRUE))
@@ -190,6 +188,23 @@ Mms_Temp <- Daily_Temps_Mms(Mms_hourly)
 Nc2_Temp <- Daily_Temps(Nc2_30min)
 Orv_Temp <- Daily_Temps(Orv_30min)
 Sp1_Temp <- Daily_Temps(Sp1_30min)
+Barc_Temp <- Get_Daily_NEON(site=BARC)
+Dsny_Temp <- Get_Daily_NEON(site=DSNY)
+Flnt_Temp <- Get_Daily_NEON(site=BARC)
+Jerc_Temp<- Get_Daily_NEON(site=JERC)
+Osbs_Temp<- Get_Daily_NEON(site=OSBS)
+Sugg_Temp<- Get_Daily_NEON(site=SUGG)
+Dela_Temp<- Get_Daily_NEON(site=DELA)
+Leno_Temp<- Get_Daily_NEON(site=LENO)
+Mayf_Temp<- Get_Daily_NEON(site=MAYF)
+Tall_Temp<- Get_Daily_NEON(site=TALL)
+Blue_Temp<- Get_Daily_NEON(site=BLUE)
+Clbj_Temp<- Get_Daily_NEON(site=CLBJ)
+Oaes_Temp<- Get_Daily_NEON(site=OAES)
+Prin_Temp<- Get_Daily_NEON(site=PRIN)
+
+
+
 
 qplot(Akn_Temp$date, Akn_Temp$Tower_TSmax)
 qplot(Bo1_Temp$date, Bo1_Temp$Tower_TSmax)
@@ -222,6 +237,22 @@ Mms_daymet <- format_daymet(read.csv("Daymet_Points/Mms_11567_lat_39.3232_lon_-8
 Nc2_daymet <- format_daymet(read.csv("Daymet_Points/Nc2_11212_lat_35.803_lon_-76.6685_2019-06-05_130600.csv", skip=7))
 Orv_daymet <- format_daymet(read.csv("Daymet_Points/Orv_11749_lat_40.0201_lon_-83.0183_2019-06-05_130616.csv", skip=7))
 
+Barc_daymet <- format_daymet(read.csv("Daymet_Points/Barc_10669_lat_29.675982_lon_-82.008414_2019-08-14_130111.csv", skip=7))
+Dsny_daymet <- format_daymet(read.csv("Daymet_Points/Dsny_10670_lat_28.12505_lon_-81.43619_2019-08-14_130219.csv", skip=7))
+Flnt_daymet <- format_daymet(read.csv("Daymet_Points/Flnt_10848_lat_31.18542_lon_-84.437403_2019-08-14_130233.csv", skip=7))
+Jerc_daymet <- format_daymet(read.csv("Daymet_Points/Jerc_10848_lat_31.194839_lon_-84.468623_2019-08-14_130244.csv", skip=7))
+Osbs_daymet <- format_daymet(read.csv("Daymet_Points/Osbs_10670_lat_29.689282_lon_-81.993431_2019-08-14_130300.csv", skip=7))
+Sugg_daymet <- format_daymet(read.csv("Daymet_Points/Sugg_10669_lat_29.68778_lon_-82.017745_2019-08-14_130310.csv", skip=7))
+Dela_daymet <- format_daymet(read.csv("Daymet_Points/Dela_11027_lat_32.541727_lon_-87.803877_2019-08-14_134103.csv", skip=7))
+Leno_daymet <- format_daymet(read.csv("Daymet_Points/Leno_10846_lat_31.853861_lon_-88.161181_2019-08-14_134119.csv", skip=7))
+Mayf_daymet <- format_daymet(read.csv("Daymet_Points/Mayf_11027_lat_32.960365_lon_-87.407688_2019-08-14_134132.csv", skip=7))
+Tall_daymet <- format_daymet(read.csv("Daymet_Points/Tall_11027_lat_32.95047_lon_-87.393259_2019-08-14_134141.csv", skip=7))
+Blue_daymet <- format_daymet(read.csv("Daymet_Points/Blue_11202_lat_34.444218_lon_-96.624201_2019-08-14_134152.csv", skip=7))
+Clbj_daymet <- format_daymet(read.csv("Daymet_Points/Clbj_11022_lat_33.40123_lon_-97.57_2019-08-14_134204.csv", skip=7))
+Oaes_daymet <- format_daymet(read.csv("Daymet_Points/Oaes_11201_lat_35.410599_lon_-99.058779_2019-08-14_134211.csv", skip=7))
+Prin_daymet <- format_daymet(read.csv("Daymet_Points/Prin_11022_lat_33.378517_lon_-97.782312_2019-08-14_134218.csv", skip=7))
+
+
 Bo1_Temps <- merge(Bo1_Temp, Bo1_daymet, by="date")
 Cav_Temps <- merge(Cav_Temp, Cav_daymet, by="date")
 Chr_Temps <- merge(Chr_Temp, Chr_daymet, by="date")
@@ -231,6 +262,22 @@ Goo_Temps <- merge(Goo_Temp, Goo_daymet, by="date")
 Mms_Temps <- merge(Mms_Temp, Mms_daymet, by="date")
 Nc2_Temps <- merge(Nc2_Temp, Nc2_daymet, by="date")
 Orv_Temps <- merge(Orv_Temp, Orv_daymet, by="date")
+
+Barc_Temps <- merge(Barc_Temp, Barc_daymet, by="date")
+Dsny_Temps <- merge(Dsny_Temp, Dsny_daymet, by="date")
+Flnt_Temps <- merge(Flnt_Temp, Flnt_daymet, by="date")
+Jerc_Temps <- merge(Jerc_Temp, Jerc_daymet, by="date")
+Osbs_Temps <- merge(Osbs_Temp, Osbs_daymet, by="date")
+Sugg_Temps <- merge(Sugg_Temp, Sugg_daymet, by="date")
+Dela_Temps <- merge(Dela_Temp, Dela_daymet, by="date")
+Leno_Temps <- merge(Leno_Temp, Leno_daymet, by="date")
+Mayf_Temps <- merge(Mayf_Temp, Mayf_daymet, by="date")
+Tall_Temps <- merge(Tall_Temp, Tall_daymet, by="date")
+Blue_Temps <- merge(Blue_Temp, Blue_daymet, by="date")
+Clbj_Temps <- merge(Clbj_Temp, Clbj_daymet, by="date")
+Oaes_Temps <- merge(Oaes_Temp, Oaes_daymet, by="date")
+Prin_Temps <- merge(Prin_Temp, Prin_daymet, by="date")
+
 
 #Get the land cover types right------
 Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
@@ -255,6 +302,21 @@ Goo <- cbind(-89.8735,	34.2647)
 Mms <- cbind(-86.4131,	39.3232)
 Nc2 <- cbind(-76.6685,	35.803)
 Orv <- cbind(-83.0183,	40.0201)
+Barc <- cbind(-82.008414, 29.675982)
+Dsny <- cbind(-81.43619,  28.12505)
+Flnt <- cbind(-84.437403, 31.18542)
+Jerc <- cbind(-84.468623, 31.194839)
+Osbs <- cbind(-81.993431, 29.689282)
+Sugg <- cbind(-82.017745, 29.68778)
+Dela <- cbind(-87.803877, 32.541727)
+Leno <- cbind(-88.161181, 32.541727)
+Mayf<- cbind(-87.407688, 32.960365)
+Tall<- cbind(-87.393259, 32.95047)
+Blue<- cbind(-96.624201, 34.444218)
+Clbj<- cbind(-97.57, 33.40123)
+Oaes<- cbind(-99.058779, 35.410599) 
+Prin<- cbind(-97.782312, 33.378517)
+
 Bo1_Temps$forest <- raster::extract(Landcover_Rast, Bo1, buffer=3000, fun=mean)
 Cav_Temps$forest <- raster::extract(Landcover_Rast, Cav, buffer=3000, fun=mean)
 Chr_Temps$forest <- raster::extract(Landcover_Rast, Chr, buffer=3000, fun=mean)
@@ -265,6 +327,21 @@ Mms_Temps$forest <- raster::extract(Landcover_Rast, Mms, buffer=3000, fun=mean)
 Nc2_Temps$forest <- raster::extract(Landcover_Rast, Nc2, buffer=3000, fun=mean)
 Orv_Temps$forest <- raster::extract(Landcover_Rast, Orv, buffer=3000, fun=mean)
 
+Barc_Temps$forest <- raster::extract(Landcover_Rast, Barc, buffer=3000, fun=mean)
+Dsny_Temps$forest <- raster::extract(Landcover_Rast, Dsny, buffer=3000, fun=mean)
+Flnt_Temps$forest <- raster::extract(Landcover_Rast, Flnt, buffer=3000, fun=mean)
+Jerc_Temps$forest <- raster::extract(Landcover_Rast, Jerc, buffer=3000, fun=mean)
+Osbs_Temps$forest <- raster::extract(Landcover_Rast, Osbs, buffer=3000, fun=mean)
+Sugg_Temps$forest <- raster::extract(Landcover_Rast, Sugg, buffer=3000, fun=mean)
+Dela_Temps$forest <- raster::extract(Landcover_Rast, Dela, buffer=3000, fun=mean)
+Leno_Temps$forest <- raster::extract(Landcover_Rast, Leno, buffer=3000, fun=mean)
+Mayf_Temps$forest <- raster::extract(Landcover_Rast, Mayf, buffer=3000, fun=mean)
+Tall_Temps$forest <- raster::extract(Landcover_Rast, Tall, buffer=3000, fun=mean)
+Blue_Temps$forest <- raster::extract(Landcover_Rast, Blue, buffer=3000, fun=mean)
+Clbj_Temps$forest <- raster::extract(Landcover_Rast, Clbj, buffer=3000, fun=mean)
+Oaes_Temps$forest <- raster::extract(Landcover_Rast, Oaes, buffer=3000, fun=mean)
+Prin_Temps$forest <- raster::extract(Landcover_Rast, Prin, buffer=3000, fun=mean)
+
 
 Format_plot_temps <- function(x){
   x$month <- month(x$date)
@@ -274,7 +351,9 @@ Format_plot_temps <- function(x){
   return(y)
 }
 sitelist <- list(Bo1_Temps, Cav_Temps, Chr_Temps, Dk1_Temps, 
-              Dk2_Temps, Goo_Temps, Mms_Temps, Nc2_Temps, Orv_Temps)
+              Dk2_Temps, Goo_Temps, Mms_Temps, Nc2_Temps, Orv_Temps, Barc_Temps, Dsny_Temps, 
+              Flnt_Temps, Jerc_Temps, Osbs_Temps, Sugg_Temps, Leno_Temps, Mayf_Temps, Tall_Temps, Blue_Temps, Clbj_Temps, 
+              Oaes_Temps, Prin_Temps)
 To_Plot <- do.call("rbind", lapply(sitelist, Format_plot_temps))
 To_Plot$Ts_Air <- To_Plot$TsMax - To_Plot$Daymet_Mean
 To_Plot$Ta_Air <- To_Plot$TaMax - To_Plot$Daymet_Mean
