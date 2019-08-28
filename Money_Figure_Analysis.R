@@ -139,6 +139,7 @@ temp <- ddply(x, .(date), summarize, Tower_TAavg = mean(TA, na.rm=TRUE), Tower_T
               Tower_TAmax= max(TA, na.rm=TRUE), Tower_TSmax = max(TS, na.rm=TRUE), 
               Tower_TAmin = min(TA, na.rm=TRUE), Tower_TSmin = min(TS, na.rm=TRUE), albedo= mean(albedo, trim=0.2, na.rm=TRUE),
               emiss=mean(emiss, na.rm=TRUE), LW_OUT=mean(outLWMean, na.rm=TRUE))
+
 #temp <- merge(temp, TOB2, by="date", all.x=TRUE)
 #sigma = 5.67 * 10^-8
 #temp$Tower_TScor <-(temp$LW_OUT/(sigma *(temp$emiss)))^(0.25) - 273.15
@@ -278,6 +279,21 @@ Clbj_Temps <- merge(Clbj_Temp, Clbj_daymet, by="date")
 Oaes_Temps <- merge(Oaes_Temp, Oaes_daymet, by="date")
 Prin_Temps <- merge(Prin_Temp, Prin_daymet, by="date")
 
+#Test of Tavg-----------------
+library(data.table)
+List_Ameriflux <- list(Bo1_Temps, Cav_Temps, Dk1_Temps, Dk2_Temps, Goo_Temps, Mms_Temps, Nc2_Temps, 
+                   Orv_Temps)
+List_NEON <- list(Barc_Temps, Dsny_Temps, Flnt_Temps, Jerc_Temps, Osbs_Temps, Sugg_Temps,
+                  Dela_Temps, Leno_Temps, Mayf_Temps, Tall_Temps, Blue_Temps, Clbj_Temps, Oaes_Temps, Prin_Temps)
+
+List_All <- list(Bo1_Temps, Cav_Temps, Dk1_Temps, Dk2_Temps, Goo_Temps, Mms_Temps, Nc2_Temps, 
+                Orv_Temps, Barc_Temps, Dsny_Temps, Flnt_Temps, Jerc_Temps, Osbs_Temps, Sugg_Temps,
+                Dela_Temps, Leno_Temps, Mayf_Temps, Tall_Temps, Blue_Temps, Clbj_Temps, Oaes_Temps, Prin_Temps)
+
+Test_Temps <- rbindlist(List_All)
+head(Test_Temps)
+summary(lm(formula= Tower_TAavg~ Tower_TAmax+Tower_TAmin, data=Test_Temps))
+summary(lm(forumal=TA))
 
 #Get the land cover types right------
 Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
