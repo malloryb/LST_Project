@@ -3,6 +3,7 @@
 #Urban "c51b7d"
 #Forest "#276419"
 #Grass "#7fbc41"
+#Update 7/4/2019: Re-doing change point analyses!
 
 #Load file for plotting
 df <- read.csv("for_plotting.csv")
@@ -71,5 +72,51 @@ ggplot(df2, aes(fill=LandCover, y=change, x=LandCover)) +
   theme(legend.text = element_text(colour="black", size = 12, face = "bold"), legend.title = element_blank())
 
 ggsave("Land_Cover_Change.pdf")
-  
 
+
+#--------- Lily Data
+allmeans <- read.csv("/Users/mallory/Documents/Temp_Project/Lily_Data/allmeans200mupdateddata.csv")
+fomeans <- read.csv("/Users/mallory/Documents/Temp_Project/Lily_Data/allmeans200mupdateddata.csv")
+agmeans <- read.csv("/Users/mallory/Documents/Temp_Project/Lily_Data/allmeans200mupdateddata.csv")
+
+allmeans$category <- "all"
+agmeans$category <- "ag"
+fomeans$category <- "for"
+
+alltoplot <- rbind(rbind(allmeans, agmeans), fomeans)
+ggplot(alltoplot, aes(x=year, y=y, color=category))+
+  geom_line()
+
+alltoplot
+
+#---------------Remaking Lily's figs. 
+headers <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", header = F, nrows=1, as.is=T)
+Tavg <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
+names(Tavg) <- headers
+Tavg_site <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", nrows=3, header=T)
+colnames(Tavg_site)[1] <- "Type"
+Tavg_site <- as.data.frame(t(Tavg_site))
+#If rowmax is <0.5, then LC will be "NA"
+Tavg_site$V1 <- as.numeric(levels(Tavg_site$V1)[Tavg_site$V1])
+Tavg_site$V2 <- as.numeric(levels(Tavg_site$V2)[Tavg_site$V2])
+Tavg_site$V3 <- as.numeric(levels(Tavg_site$V3)[Tavg_site$V3])
+Tavg_site <- na.omit(Tavg_site)
+Tavg_site$LC <- ifelse(Tavg_site$V1>=0.52, "Dev",ifelse(Tavg_site$V2 >=0.52,"Ag", ifelse(Tavg_site$V3 >=0.52, "For", NA)))
+Tavg_site <- na.omit(Tavg_site)
+Tavg_site
+#First 3 rows decide which land cover type it is
+#Then, it goes from 1900 to 2019 or whatever
+str(Tavg)
+head(Tavg_site)
+#Create lookup table 
+T_site_lookup <- cbind(names = rownames(Tavg_site), Tavg_site)
+rownames(T_site_lookup) <- c()
+T_site_lookup <- as.data.frame(T_site_lookup[c(1,5)])
+#Get list of forest sites 
+Fo_list <- as.vector(T_site_lookup$names[T_site_lookup$LC=="For"])
+df.subset <- Tavg[, Fo_list]
+str(df.subset)
+str(Fo_list)
+allowedVars <- c("species", "family", "location")
+Tmax<- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/TMAX_20190621_Allsiteswithnames200mbufferlandcover.csv")
+Tmin <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/TMIN_20190621_Allsiteswithnames200mbufferlandcover.csv")
