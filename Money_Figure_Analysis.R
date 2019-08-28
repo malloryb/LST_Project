@@ -347,14 +347,15 @@ Format_plot_temps <- function(x){
   x$month <- month(x$date)
   x$season <- ifelse(x$month==6 | x$month==7 | x$month==8, "growing", 
                      ifelse(x$month==12 | x$month==1 | x$month==2, "dormant","neither"))
-  x$Ts_Air <- x$Tower_TSavg - x$Tower_TAavg
-  x$Ta_Air <- x$Daymet_Tavg - x$Tower_TAavg
-  y <- ddply(x, .(season), summarize, Ts_Air = mean(Ts_Air, na.rm=TRUE), Ts_Air_max=Ts_Air[which.max( abs(Ts_Air) )], 
-             Ta_Air= mean(Ta_Air, na.rm=TRUE), Ta_Air_max = Ta_Air[which.max( abs(Ta_Air) )], forest=mean(forest), MAT=mean(MAT))
+  x$Ts_Air <- x$Tower_TSmax - x$Daymet_Tmax
+  x$Ta_Air <- x$Daymet_Tmax - x$Tower_TAmax
+  print(head(x))
+  y <- ddply(x, .(season), summarize, Ts_Air_min=min(Ts_Air, na.rm = TRUE), Ta_Air_max =max(Ta_Air, na.rm=TRUE), Ts_Air = mean(Ts_Air, na.rm=TRUE),  
+             Ta_Air= mean(Ta_Air, na.rm=TRUE), forest=mean(forest), MAT=mean(MAT))
   return(y)
 }
 
-head(Bo1_Temps)
+ 
 sitelist <- list(Bo1_Temps, Cav_Temps, Chr_Temps, Dk1_Temps, 
               Dk2_Temps, Goo_Temps, Mms_Temps, Nc2_Temps, Orv_Temps, Barc_Temps, Dsny_Temps, 
               Flnt_Temps, Jerc_Temps, Osbs_Temps, Sugg_Temps, Leno_Temps, Mayf_Temps, Tall_Temps, Blue_Temps, Clbj_Temps, 
@@ -370,7 +371,7 @@ x1 <- ggplot(growing_toplot, aes(forest, value, colour=variable))+
   scale_color_manual(values=c("red", "black"))+
   ylab("Delta T")+
   xlab("Forest Cover (%)")+
-  scale_y_reverse(lim=c(5,-12))+
+  scale_y_reverse(lim=c(5,-5))+
   theme_bw()
 
 
@@ -456,5 +457,14 @@ ggplot(growingcloudtoplot, aes(x=forest, y=MODIS))+
   scale_y_reverse(lim=c(4,-4))+
   theme_bw()
   
+
+library(matrixStats)
+delta <- 
+d_q1 <- rowQuantiles(delta, probs = c(0.25, 0.75))
+
+delta2 <- as.data.frame(cbind(delta,d_q1))
+dim(delta2) # 12579    23
+
+library(dplyr)
+delta2 <- filter(delta2, delta2[,1:21] <= `25%` & delta2[,1:21] >= delta2$`75%`)
   
-str(growingcloudplot)
