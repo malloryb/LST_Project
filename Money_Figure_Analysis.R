@@ -8,6 +8,8 @@ library(reshape2)
 library(gridExtra)
 library(raster)
 library(data.table)
+#Making some changes, need to test: Daily Daytime Temperature, NOT Tavg. Going to use tower data to then modify 
+#the daily MODIS data. 
 setwd("/Users/mallory/Documents/Datasets/")
 #Use na.strings argument in read.csv to change -9999 to NA
 US_Akn <- read.csv("LST_Flux/AMF_US-Akn_BASE-BADM_4-1/AMF_US-Akn_BASE_HH_4-1.csv", na.strings=-9999, skip=2)
@@ -97,8 +99,6 @@ Sp1_30min <- Format_Ameriflux(US_Sp1)
 
 #We also need those NEON flux sites: 
 #Need to get daily in 1 file by site
-
-
 #Need to read all files and get daily (?) values of: SW_OUT, SW_IN
 setwd("/Users/mallory/Documents/Datasets/")
 Get_Daily_NEON <- function(site){
