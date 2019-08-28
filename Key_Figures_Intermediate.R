@@ -9,7 +9,7 @@
 #2: Daymet Air Temperature - monthly -> 1980-2017 
 
 #1) Creating Monthly LST files for years 2000 - 2017 from MODIS LST Data -------------
-setwd("/Users/mallory/Documents/Temp_Project/APPEARS_LST/")
+setwd("/Users/mallory/Documents/Temp_Project/APPEARS_LST/Aqua/")
 mean_na <- function(x) {
   mean(x,na.rm=T)
 }
