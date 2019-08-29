@@ -296,26 +296,28 @@ summary(lm(formula= Tower_TAavg~ Tower_TAmax+Tower_TAmin, data=Test_Temps))
 summary(lm(forumal=TA))
 
 #Get the land cover types right------
-#Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
+Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
 rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
 Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NLCD_Land_Cover_L48_2019424_full_zip/NLCD_2008_Land_Cover_L48_20190424.img")
-dataType(Landcover_Rast)="INT4S"
-e2 <- extent(-40000, 2300000, 177285, 400000)
 plot(Landcover_Rast)
+dataType(Landcover_Rast)="INT4S"
+extent(Landcover_Rast)
+extent(e2)
+e2 <- extent(500000, 2300000, 177285, 2900000)
 cropped <- crop(Landcover_Rast, e2)
-print("projecting raster")
-Ta <- projectRaster(cropped, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+plot(cropped)
+Landcover <- projectRaster(cropped, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 ext <- extent(-88.775, -74.85, 29.25, 41.41667)
-print("second crop")
+plot(Landcover_Rast)
 
 
 
 #Need to re-code raster. Non-forest = "0" and forest = "1". I think taking the mean of the buffer this way should result 
 #in the propeor % mature forest category I want. 
 #Forest values: 11, 12, 13, 14, and 15. Everything else is not forest (or mature forest)
-#Landcover_Rast[Landcover_Rast>0 & Landcover_Rast <11] <- 0
-#Landcover_Rast[Landcover_Rast>10 & Landcover_Rast <16] <- 1
-#Landcover_Rast[Landcover_Rast>15 & Landcover_Rast <Inf] <- 0
+Landcover_Rast[Landcover_Rast>0 & Landcover_Rast <11] <- 0
+Landcover_Rast[Landcover_Rast>10 & Landcover_Rast <16] <- 1
+Landcover_Rast[Landcover_Rast>15 & Landcover_Rast <Inf] <- 0
 
 # Recode NCLD raster according to data types here: https://www.mrlc.gov/data/legends/national-land-cover-database-2016-nlcd2016-legend
 Landcover_Rast[Landcover_Rast>0 & Landcover_Rast <41] <- 0
