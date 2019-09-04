@@ -296,7 +296,7 @@ summary(lm(formula= Tower_TAavg~ Tower_TAmax+Tower_TAmin, data=Test_Temps))
 summary(lm(forumal=TA))
 
 #Get the land cover types right------
-Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
+#Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
 rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
 Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NLCD_Land_Cover_L48_2019424_full_zip/NLCD_2008_Land_Cover_L48_20190424.img")
 plot(Landcover_Rast)
@@ -305,8 +305,30 @@ extent(Landcover_Rast)
 extent(e2)
 e2 <- extent(500000, 2300000, 177285, 2900000)
 cropped <- crop(Landcover_Rast, e2)
-plot(cropped)
-Landcover <- projectRaster(cropped, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+#faster.Agg fun from: 
+#Josh O'Brien - the point is to make it coarser so things go faster. 
+#https://stackoverflow.com/questions/37229450/a-faster-function-to-lower-the-resolution-of-a-raster-r
+# This isn't working right now
+fasterAgg.Fun <- function(x,...) {
+  myRle.Alt <- function (x1) {
+    n1 <- length(x1)
+    y1 <- x1[-1L] != x1[-n1]
+    i <- c(which(y1), n1)
+    x1[i][which.max(diff(c(0L, i)))]
+  }
+  
+  if (sum(x)==0) {
+    return(NA)
+  } else {
+    myRle.Alt(sort(x, method="quick"))
+  }
+}
+#cropped2<- aggregate(cropped, fact=10, fun=fasterAgg.Fun)
+cropped2<-aggregate(cropped, fact=10, fun=modal)
+str(cropped2)
+plot(cropped2)
+#Trying to project 
+Landcover <- projectRaster(cropped2, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 ext <- extent(-88.775, -74.85, 29.25, 41.41667)
 plot(Landcover_Rast)
 
