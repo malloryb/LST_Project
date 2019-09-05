@@ -9,6 +9,7 @@
 Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "greenbrown", "RColorBrewer",
               "MODIS", "rasterVis", "gridExtra", "plyr", "gridBase", "devtools","spatialEco")
 
+library(raster)
 library(greenbrown)
 library(rasterVis)
 library(devtools)
@@ -21,8 +22,9 @@ lapply(Packages, library, character.only = TRUE)
 rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
 
  #Figure 1---------------------
-#Create bounding box out of extent of Diffs
+#Create bounding box out of extent of D
 Diffs <- brick("/Users/mallory/Documents/Temp_Project/Ta_Ts_All.tif")
+Diffs  <- brick("/Users/mallory/Documents/Temp_Project/Ta_AquaTs_All.tif")
 library(sp)
 e <- as(raster::extent(Diffs), "SpatialPolygons")
 proj4string(e) <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
@@ -156,11 +158,14 @@ plot(greenbrown_test3break[[7]], zlim=c(1910,2010), col=  rainbow(100), main="Br
 
 #Figure 2: Create Ta-Ts map for the US ---------
 Diffs <- brick("/Users/mallory/Documents/Temp_Project/Ta_Ts_All.tif")
+Diffs <- brick("/Users/mallory/Documents/Temp_Project/Ta_AquaTs_All.tif")
+plot(Diffs)
 cols <- colorRampPalette(brewer.pal(9,"RdBu"))
 my.at <- seq(-6,6,1)
 # create a level plot
+levelplot(Diffs)
 levelplot(Diffs, at=my.at, main="Difference between Air Temperature and Surface Temperature (Ta-Ts)",
-          col=(cols))
+          col.regions=(cols))
 #Fancy Plots: 
 #Density plot
 densityplot(Diffs)
@@ -787,3 +792,5 @@ sp <- ggplot(r1Extraction, aes(x=layer, y=Jun)) +
   geom_point()
 sp + stat_density_2d(aes(fill = ..level..), geom="polygon")+
   scale_fill_gradient(low="blue", high="red")
+
+
