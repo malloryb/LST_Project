@@ -1,0 +1,764 @@
+---
+title: "Key_Figs_Sept"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "greenbrown", "RColorBrewer","rasterVis", "gridExtra", "plyr", "gridBase", "devtools","dplyr")
+
+library(raster)
+library(lubridate)
+library(greenbrown)
+library(rasterVis)
+library(devtools)
+library(maps)
+library(mapdata)
+library(maptools)
+library(RColorBrewer)
+library(data.table)
+sessionInfo()
+lapply(Packages, library, character.only = TRUE)
+rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
+
+```
+
+## R Markdown
+
+Key Figures for Septemeber 2019 on LST Mansucript. These figures are for Kim's talks as well as my own. 
+Figure: Differences Between Surface Temperature and Air Temperature. 
+Delta T = Ts- Ta such that Delta T is NEGATIVE when the surface is cooler than the air. 
+
+```{r Diffs, echo=FALSE}
+Diffs  <- brick("/Users/mallory/Documents/Temp_Project/Ta_AquaTs_All.tif")
+names(Diffs) <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+Diffs2 <- -Diffs
+cols <- (colorRampPalette(rev(brewer.pal(9,"RdBu"))))
+my.at <- seq(-6,6,1)
+# create a level plot
+#levelplot(Diffs, at=my.at, main="Difference between Air Temperature and Surface Temperature (Ta-Ts)", col.regions=(cols))
+levelplot(Diffs2, at=my.at, main="Difference between Surface Temperature and Air Temperature (Ts-Ta)", col.regions=(cols))
+
+```
+
+#By land cover type
+
+```{r Landcover, echo=FALSE}
+LC_proj <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
+ext <- extent(Diffs)
+LC_crop <- crop(LC_proj, ext)
+#Create 3 masks: 
+#1: Urban (1)
+Urbanmask <- LC_crop
+Urbanmask[Urbanmask >1] <- NA
+Urbanmask <- resample(Urbanmask, Diffs2, method="bilinear")
+#2: Croplands (2,6)
+Cropmask <- LC_crop
+Cropmask[Cropmask <2 | Cropmask>6 | Cropmask==3 | Cropmask==4 | Cropmask==5] <- NA
+Cropmask <- resample(Cropmask, Diffs2, method="bilinear")
+#2b: Testing Croplands again (2,4,5,6)
+Cropmask2 <- LC_crop
+Cropmask2[Cropmask2 <2 | Cropmask2>6 | Cropmask2==3] <- NA
+Cropmask2 <- resample(Cropmask2, Diffs2, method="bilinear")
+#3: Deciduous forests (11,12)
+Decfomask <- LC_crop
+Decfomask[Decfomask <11 |  Decfomask>12] <- NA
+Decfomask <- resample(Decfomask, Diffs2, method="bilinear")
+#4: Evergreen forests (13,14)
+Evmask <- LC_crop
+Evmask[Evmask <13 |  Evmask>14] <- NA
+Evmask <- resample(Evmask, Diffs2, method="bilinear")
+#5: All forests (11-15)
+Fomask <- LC_crop
+Fomask[Fomask <11 |  Fomask>15] <- NA
+Fomask <- resample(Fomask, Diffs2, method="bilinear")
+
+Urban_Diff <- mask(Diffs2, Urbanmask)
+Crop_Diff <- mask(Diffs2,Cropmask)
+Crop2_Diff <- mask(Diffs2,Cropmask2)
+Dec_Diff <- mask(Diffs2, Decfomask)
+Ev_Diff <- mask(Diffs2, Evmask)
+Fo_Diff <- mask(Diffs2, Fomask)
+
+#Levelplots by land cover type-------------
+my.at <- seq(-6,6,1)
+cols <- (colorRampPalette(rev(brewer.pal(9,"RdBu"))))
+levelplot(Fo_Diff, at=my.at, main="Ts-Ta in forests", col.regions=(cols))
+levelplot(Crop_Diff, at=my.at, main="Ts-Ta in croplands",col.regions=(cols))
+levelplot(Crop2_Diff, at=my.at, main="Ts-Ta in croplands",col.regions=(cols))
+
+```
+
+
+
+```{r LineGraphs, echo=FALSE}
+#df <- data.frame(Month=c(1:12))
+#df$Month <- as.numeric(df$Month)
+#df$meanUrban <- as.numeric(cellStats(Urban_Diff, stat='mean', na.rm=TRUE))
+#df$sdUrban <- as.numeric(cellStats(Urban_Diff, stat='sd', na.rm=TRUE))
+#df$seUrban <- (df$sdUrban)/(sqrt(ncell(Urban_Diff)))
+#df$meanCrop <- as.numeric(cellStats(Crop_Diff, stat='mean', na.rm=TRUE))
+#df$sdCrop <- as.numeric(cellStats(Crop_Diff, stat='sd', na.rm=TRUE))
+#df$seCrop <- (df$sdCrop)/(sqrt(ncell(Crop_Diff)))
+#df$meanCrop2 <- as.numeric(cellStats(Crop2_Diff, stat='mean', na.rm=TRUE))
+#df$sdCrop2 <- as.numeric(cellStats(Crop2_Diff, stat='sd', na.rm=TRUE))
+#df$seCrop2 <- (df$sdCrop)/(sqrt(ncell(Crop2_Diff)))
+#df$meanFo <- as.numeric(cellStats(Fo_Diff, stat='mean', na.rm=TRUE))
+#df$sdFo <- as.numeric(cellStats(Fo_Diff, stat='sd', na.rm=TRUE))
+#df$seFo <- (df$sdFo)/(sqrt(ncell(Fo_Diff)))
+#df$meanEv <- as.numeric(cellStats(Ev_Diff, stat='mean', na.rm=TRUE))
+#df$sdEv <- as.numeric(cellStats(Ev_Diff, stat='sd', na.rm=TRUE))
+#df$seEv <- (df$sdEv)/(sqrt(ncell(Ev_Diff)))
+#df$meanDec <- as.numeric(cellStats(Dec_Diff, stat='mean', na.rm=TRUE))
+#df$sdDec <- as.numeric(cellStats(Dec_Diff, stat='sd', na.rm=TRUE))
+
+#write.csv(df, "/Users/mallory/Documents/Temp_Project/APPEARS_LST/Aqua_for_plotting.csv")
+df <- read.csv("/Users/mallory/Documents/Temp_Project/APPEARS_LST/Aqua_for_plotting.csv")
+
+dft <- df[,c("Month", "meanUrban", "meanCrop", "meanFo")]
+dfm <- melt(dft, id="Month")
+#ggplot(data = dfm, aes(x = Month, y = value, color = variable)) + 
+  #geom_line(size=5) +
+  #scale_color_manual(labels = c("Forest", "Cropland", "Urban"), values = c("darkgreen", "yellowgreen", "red"))+
+  #labs(color = "Land Cover\n") 
+
+
+hh <- ggplot(df, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanUrban), color="red") + 
+  geom_errorbar(aes(x=Month, ymin=meanUrban-seUrban, ymax=meanUrban+seUrban), width=0.2, size=0.5,color="red")+
+  geom_line(aes(y=meanCrop), color="yellowgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanCrop-seCrop, ymax=meanCrop+seCrop), width=0.2, size=0.5, color="yellowgreen")+
+  geom_line(aes(y=meanFo), color="darkgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanFo-seFo, ymax=meanFo+seFo),width=0.2, size=0.5, color="darkgreen")+
+  labs(title="Ts-Ta by Land Cover Type", 
+       y="Ts-Ta (degrees C)", 
+       x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_classic()+
+  geom_hline(yintercept=0, linetype="dashed")+
+  ylim(-4,8)
+
+ff <- ggplot(df, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanDec), color="orange") + 
+  geom_errorbar(aes(x=Month, ymin=meanDec-sdDec, ymax=meanDec+sdDec), width=0.2, size=0.5,color="orange")+
+  geom_line(aes(y=meanEv), color="green") + 
+  geom_errorbar(aes(x=Month, ymin=meanEv-sdEv, ymax=meanEv+sdEv), width=0.2, size=0.5, color="green")+
+  geom_line(aes(y=meanFo), color="darkgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanFo-sdFo, ymax=meanFo+sdFo),width=0.2, size=0.5, color="darkgreen")+
+  labs(title="Ts-Ta by Forest Type", y="Ts-Ta (degrees C)",  x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_classic()+
+  geom_hline(yintercept=0, linetype="dashed")+
+  ylim(-4,7)
+hh
+ff
+
+
+```
+
+```{r LinegraphsLandsat, echo=FALSE}
+Landcover <- raster("/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NCLD_2008_processed.tif")
+ext <- extent(Diffs2)
+Landsat_crop <- crop(Landcover, ext)
+#Create 3 masks: 
+#1: Urban (22,23,24)
+Urbanmask_landsat <- Landsat_crop
+Urbanmask_landsat[Urbanmask_landsat <22 | Urbanmask_landsat >24] <- NA
+Urbanmask_landsat <- resample(Urbanmask_landsat, Diffs2, method="bilinear")
+#2: Croplands (81,82)
+Cropmask_landsat <- Landsat_crop
+Cropmask_landsat[Cropmask_landsat <81 | Cropmask_landsat>82] <- NA
+Cropmask_landsat <- resample(Cropmask_landsat, Diffs2, method="bilinear")
+#2b: Herbaceous (71,72,73,74)
+Herbaceous_landsat <- Landsat_crop
+Herbaceous_landsat[Herbaceous_landsat <71 | Herbaceous_landsat>74] <-NA
+Herbaceous_landsat <- resample(Herbaceous_landsat, Diffs2, method="bilinear")
+#3: Deciduous forests (41)
+Decfomask_landsat <- Landsat_crop
+Decfomask_landsat[Decfomask_landsat <41 |  Decfomask_landsat>41] <- NA
+Decfomask_landsat <- resample(Decfomask_landsat, Diffs2, method="bilinear")
+#4: Evergreen forests (42)
+Evmask_landsat <- Landsat_crop
+Evmask_landsat[Evmask_landsat <42 |  Evmask_landsat>42] <- NA
+Evmask_landsat <- resample(Evmask_landsat, Diffs2, method="bilinear")
+#5: All forests (41,42,43)
+Fomask_landsat <- Landsat_crop
+Fomask_landsat[Fomask_landsat <41 |  Fomask_landsat>43] <- NA
+Fomask_landsat <- resample(Fomask_landsat, Diffs2, method="bilinear")
+
+Urbanland_Diff <- mask(Diffs2, Urbanmask_landsat)
+Cropland_Diff <- mask(Diffs2,Cropmask_landsat)
+Herbland_Diff <- mask(Diffs2,Herbaceous_landsat)
+Decland_Diff <- mask(Diffs2, Decfomask_landsat)
+Evland_Diff <- mask(Diffs2, Evmask_landsat)
+Foland_Diff <- mask(Diffs2, Fomask_landsat)
+
+#Levelplots by land cover type-------------
+my.at <- seq(-6,6,1)
+cols <- (colorRampPalette(rev(brewer.pal(9,"RdBu"))))
+levelplot(Foland_Diff, at=my.at, main="Ts-Ta in forests", col.regions=(cols))
+levelplot(Cropland_Diff, at=my.at, main="Ts-Ta in croplands",col.regions=(cols))
+levelplot(Herbland_Diff, at=my.at, main="Ts-Ta in grasses",col.regions=(cols))
+levelplot(Urbanland_Diff, at=my.at, main="Ts-Ta in urban", col.regions=(cols))
+
+dfland <- data.frame(Month=c(1:12))
+dfland$Month <- as.numeric(dfland$Month)
+dfland$meanUrbanland <- as.numeric(cellStats(Urbanland_Diff, stat='mean', na.rm=TRUE))
+dfland$sdUrbanland <- as.numeric(cellStats(Urbanland_Diff, stat='sd', na.rm=TRUE))
+dfland$seUrbanland <- (dfland$sdUrbanland)/(sqrt(ncell(Urbanland_Diff)))
+dfland$meanCropland <- as.numeric(cellStats(Cropland_Diff, stat='mean', na.rm=TRUE))
+dfland$sdCropland <- as.numeric(cellStats(Cropland_Diff, stat='sd', na.rm=TRUE))
+dfland$seCropland <- (dfland$sdCropland)/(sqrt(ncell(Cropland_Diff)))
+dfland$meanHerbland <- as.numeric(cellStats(Herbland_Diff, stat='mean', na.rm=TRUE))
+dfland$sdHerbland <- as.numeric(cellStats(Herbland_Diff, stat='sd', na.rm=TRUE))
+dfland$seHerbland <- (dfland$sdHerbland)/(sqrt(ncell(Herbland_Diff)))
+dfland$meanFoland<- as.numeric(cellStats(Foland_Diff, stat='mean', na.rm=TRUE))
+dfland$sdFoland<- as.numeric(cellStats(Foland_Diff, stat='sd', na.rm=TRUE))
+dfland$seFoland <- (dfland$sdFoland)/(sqrt(ncell(Foland_Diff)))
+dfland$meanEvland <- as.numeric(cellStats(Evland_Diff, stat='mean', na.rm=TRUE))
+dfland$sdEvland <- as.numeric(cellStats(Evland_Diff, stat='sd', na.rm=TRUE))
+dfland$seEvland <- (dfland$sdEvland)/(sqrt(ncell(Evland_Diff)))
+dfland$meanDecland <- as.numeric(cellStats(Decland_Diff, stat='mean', na.rm=TRUE))
+dfland$sdDecland <- as.numeric(cellStats(Decland_Diff, stat='sd', na.rm=TRUE))
+dfland$seDecland <- (dfland$sdDecland)/(sqrt(ncell(Decland_Diff)))
+
+#write.csv(dfland, "/Users/mallory/Documents/Temp_Project/APPEARS_LST/Aqua_Landsat_plotting.csv")
+df_landsat <- read.csv("/Users/mallory/Documents/Temp_Project/APPEARS_LST/Aqua_Landsat_plotting.csv")
+#Thisis for the legend
+dft <- df_landsat[,c("Month", "meanHerbland", "meanCropland", "meanFoland")]
+dfm <- melt(dft, id="Month")
+ggplot(data = dfm, aes(x = Month, y = value, color = variable)) + 
+  geom_line(size=5) +
+  scale_color_manual(labels = c("Forest", "Grasslands", "Cropland"), values = c("darkgreen", "red", "purple"))+
+  labs(color = "Land Cover\n") 
+
+ggplot(data = dfm, aes(x = Month, y = value, color = variable)) + 
+  geom_line(size=5) +
+  scale_color_manual(labels = c("All Forests", "Evergreen", "Deciduous"), values = c("darkgreen", "green", "orange"))+
+  labs(color = "Land Cover\n") 
+
+str(df_landsat)
+dfm
+pp <- ggplot(df_landsat, aes(x=Month, group=1)) + 
+  #geom_line(aes(y=meanUrbanland), color="red") + 
+  #geom_errorbar(aes(x=Month, ymin=meanUrbanland-seUrbanland, ymax=meanUrbanland+seUrbanland), width=0.2, size=0.5,color="red")+
+  geom_line(aes(y=meanHerbland), color="red") + 
+  geom_errorbar(aes(x=Month, ymin=meanHerbland-seHerbland, ymax=meanHerbland+seHerbland), width=0.2, size=0.5,color="red")+
+  geom_line(aes(y=meanCropland), color="purple") + 
+  geom_errorbar(aes(x=Month, ymin=meanCropland-seCropland, ymax=meanCropland+seCropland), width=0.2, size=0.5, color="purple")+
+  geom_line(aes(y=meanFoland), color="darkgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanFoland-seFoland, ymax=meanFoland+seFoland),width=0.2, size=0.5, color="darkgreen")+
+  labs(title="Ts-Ta by Land Cover Type", 
+       y="Ts-Ta (degrees C)", 
+       x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_classic()+
+  geom_hline(yintercept=0, linetype="dashed")+
+  ylim(-5,5)
+
+qq <- ggplot(df_landsat, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanDecland), color="orange") + 
+  geom_errorbar(aes(x=Month, ymin=meanDecland-seDecland, ymax=meanDecland+seDecland), width=0.2, size=0.5,color="orange")+
+  geom_line(aes(y=meanEvland), color="green") + 
+  geom_errorbar(aes(x=Month, ymin=meanEvland-seEvland, ymax=meanEvland+seEvland), width=0.2, size=0.5, color="green")+
+  geom_line(aes(y=meanFoland), color="darkgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanFoland-seFoland, ymax=meanFoland+seFoland),width=0.2, size=0.5, color="darkgreen")+
+  labs(title="Ts-Ta by Forest Type", y="Ts-Ta (degrees C)",  x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_classic()+
+  geom_hline(yintercept=0, linetype="dashed")+
+  ylim(-4,7)
+pp
+qq
+
+```
+
+```{r AirTemps, echo=FALSE}
+#Just TA (how does it vary by land cover type)-----
+Ta <- brick("/Users/mallory/Documents/Temp_Project/Ta_All.tif")
+# create a level plot - plot
+#Recreating figure 4 (by land cover type) but for air temperature 
+FomaskTa <- resample(Fomask, Ta, method="bilinear")
+CropmaskTa <- resample(Cropmask2, Ta, method="bilinear")
+UrbanmaskTa <- resample(Urbanmask, Ta, method="bilinear")
+
+Urban_Ta <- mask(Ta, UrbanmaskTa)
+Crop_Ta <- mask(Ta,CropmaskTa)
+Fo_Ta <- mask(Ta, FomaskTa)
+
+dfTa <- data.frame(Month=c(1:12))
+dfTa$Month <- as.numeric(dfTa$Month)
+dfTa$meanUrban <- as.numeric(cellStats(Urban_Ta, stat='mean', na.rm=TRUE))
+dfTa$sdUrban <- as.numeric(cellStats(Urban_Ta, stat='sd', na.rm=TRUE))
+dfTa$seUrban <- (df$sdUrban)/(sqrt(ncell(Urban_Ta)))
+dfTa$meanCrop <- as.numeric(cellStats(Crop_Ta, stat='mean', na.rm=TRUE))
+dfTa$sdCrop <- as.numeric(cellStats(Crop_Ta, stat='sd', na.rm=TRUE))
+dfTa$seCrop <- (df$sdCrop)/(sqrt(ncell(Crop_Ta)))
+dfTa$meanFo <- as.numeric(cellStats(Fo_Ta, stat='mean', na.rm=TRUE))
+dfTa$sdFo <- as.numeric(cellStats(Fo_Ta, stat='sd', na.rm=TRUE))
+dfTa$seFo <- (df$sdFo)/(sqrt(ncell(Fo_Ta)))
+
+kk <- ggplot(dfTa, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanUrban), color="red") + 
+  geom_errorbar(aes(x=Month, ymin=meanUrban-seUrban, ymax=meanUrban+seUrban), width=0.2, size=0.5,color="red")+
+  geom_line(aes(y=meanCrop), color="yellowgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanCrop-seCrop, ymax=meanCrop+seCrop), width=0.2, size=0.5, color="yellowgreen")+
+  geom_line(aes(y=meanFo), color="darkgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanFo-seFo, ymax=meanFo+seFo),width=0.2, size=0.5, color="darkgreen")+
+  labs(title="Ta by Land Cover Type", 
+       y="Ta (degrees C)", 
+       x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_classic()+
+  ylim(0,35)
+
+grid.arrange(kk, hh, ncol=2)
+```
+
+```{r DiffsLat, echo=FALSE}
+#43°N to 51°N, central (e 37°N to 43°N), and southern f 27°N to 36°N
+
+DiffsBrick <- brick(Diffs)
+extent(DiffsBrick)
+#High_Lat_Ext <- extent(-88.775, -74.85, 43, 51)
+#Mid_Lat_Ext <- extent(-88.775, -74.85, 37,43)
+#Low_Lat_Ext <- extent(-88.775, -74.85, 27,36)
+
+High_Lat_Ext <- extent(-88.775, -74.85, 37.75, 41.41667)
+Mid_Lat_Ext <- extent(-88.775, -74.85, 33.25, 37.75)
+Low_Lat_Ext <- extent(-88.775, -74.85, 29.25, 33.25)
+
+High_Lat <- crop(Diffs, High_Lat_Ext)
+Mid_Lat <- crop(Diffs,Mid_Lat_Ext)
+Low_Lat <- crop(Diffs, Low_Lat_Ext)
+
+fg <- data.frame(Month=c(1:12))
+
+fg$Month <- as.numeric(fg$Month)
+fg$meanHigh <- as.numeric(cellStats(High_Lat, stat='mean', na.rm=TRUE))
+fg$sdHigh <- as.numeric(cellStats(High_Lat, stat='sd', na.rm=TRUE))
+fg$seHigh <- (fg$sdHigh)/(sqrt(ncell(High_Lat)))
+fg$meanMid <- as.numeric(cellStats(Mid_Lat, stat='mean', na.rm=TRUE))
+fg$sdMid <- as.numeric(cellStats(Mid_Lat, stat='sd', na.rm=TRUE))
+fg$seMid <- (fg$sdMid)/(sqrt(ncell(Mid_Lat)))
+fg$meanLow <- as.numeric(cellStats(Low_Lat, stat='mean', na.rm=TRUE))
+fg$sdLow <- as.numeric(cellStats(Low_Lat, stat='sd', na.rm=TRUE))
+fg$seLow <- (fg$sdLow)/(sqrt(ncell(Low_Lat)))
+
+
+jj <- ggplot(fg, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanHigh), color="purple") + 
+  geom_errorbar(aes(x=Month, ymin=meanHigh-seHigh, ymax=meanHigh+seHigh), width=0.2, size=0.5,color="purple")+
+  geom_line(aes(y=meanMid), color="blue") + 
+  geom_errorbar(aes(x=Month, ymin=meanMid-seMid, ymax=meanMid+seMid), width=0.2, size=0.5, color="blue")+
+  geom_line(aes(y=meanLow), color="red") + 
+  geom_errorbar(aes(x=Month, ymin=meanLow-seLow, ymax=meanLow+seLow),width=0.2, size=0.5, color="red")+
+  #geom_line(aes(y=meanLow), color="orange") + 
+  #geom_errorbar(aes(x=Month, ymin=meanLow-seLow, ymax=meanLow+seLow),width=0.2, size=0.5, color="orange")+
+  labs(title="Ts-Ta by Latitude", y="Ts-Ta (degrees C)",  x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_classic()+
+  geom_hline(yintercept=0, linetype="dashed")+
+  ylim(-8,8)
+
+
+grid.arrange(jj, hh, ncol=2)
+```
+
+```{r DiffsLat, echo=FALSE}
+#Need to confirm that differences within land cover types still exist within a given latitude. 
+plot(High_Lat)
+plot(Mid_Lat)
+plot(Low_Lat)
+
+#Just checking
+FomaskMid <- resample(Fomask, High_Lat, method="bilinear")
+CropmaskMid <- resample(Cropmask2, High_Lat, method="bilinear")
+UrbanmaskMid <- resample(Urbanmask, High_Lat, method="bilinear")
+plot(FomaskMid)
+plot(CropmaskMid)
+plot(UrbanmaskMid)
+Urban_Mid <- mask(High_Lat, UrbanmaskMid)
+Crop_Mid <- mask(High_Lat,CropmaskMid)
+Fo_Mid <- mask(High_Lat, FomaskMid)
+
+dfMid <- data.frame(Month=c(1:12))
+dfMid$Month <- as.numeric(dfMid$Month)
+dfMid$meanUrban <- as.numeric(cellStats(Urban_Mid, stat='mean', na.rm=TRUE))
+dfMid$sdUrban <- as.numeric(cellStats(Urban_Mid, stat='sd', na.rm=TRUE))
+dfMid$seUrban <- (df$sdUrban)/(sqrt(ncell(Urban_Mid)))
+dfMid$meanCrop <- as.numeric(cellStats(Crop_Mid, stat='mean', na.rm=TRUE))
+dfMid$sdCrop <- as.numeric(cellStats(Crop_Mid, stat='sd', na.rm=TRUE))
+dfMid$seCrop <- (df$sdCrop)/(sqrt(ncell(Crop_Mid)))
+dfMid$meanFo <- as.numeric(cellStats(Fo_Mid, stat='mean', na.rm=TRUE))
+dfMid$sdFo <- as.numeric(cellStats(Fo_Mid, stat='sd', na.rm=TRUE))
+dfMid$seFo <- (df$sdFo)/(sqrt(ncell(Fo_Mid)))
+
+xx <- ggplot(dfMid, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanUrban), color="red") + 
+  geom_errorbar(aes(x=Month, ymin=meanUrban-seUrban, ymax=meanUrban+seUrban), width=0.2, size=0.5,color="red")+
+  geom_line(aes(y=meanCrop), color="yellowgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanCrop-seCrop, ymax=meanCrop+seCrop), width=0.2, size=0.5, color="yellowgreen")+
+  geom_line(aes(y=meanFo), color="darkgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanFo-seFo, ymax=meanFo+seFo),width=0.2, size=0.5, color="darkgreen")+
+  labs(title="Ta by Land Cover Type", 
+       y="Ta (degrees C)", 
+       x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_bw()+
+  ylim(-6,6)
+```
+
+```{r Landcover, echo=FALSE}
+mean_na <- function(x) {
+  mean(x,na.rm=T)
+}
+
+#July_2012 - Super drought month, going to see what 'money figure' looks like here
+Diffs3 <- Diff_2012[[7]]
+Diffs4 <- Diff_2012[[6]]
+
+#Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NCLD_2008_processed.tif")
+#Need to re-code raster. Herbaceous and cropland= "0" and forest = "1". Everything else zero. I think taking the mean of the buffer this way should result in the proper % mature forest category I want. 
+
+# Recode NCLD raster according to data types here: https://www.mrlc.gov/data/legends/national-land-cover-database-2016-nlcd2016-legend
+
+#LC <- reclassify(Landcover_Rast, c(-Inf,41,NA, 40,43,1, 71,74,0, 81,82,0, 43,71,NA, 74,81, NA, 82,Inf,NA))
+#plot(LC)
+#barplot(LC)
+#writeRaster(LC, "/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NCLD_Mask.tif")
+Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NCLD_Mask.tif")
+
+#All site points
+Bo1 <- cbind(-88.2904, 40.0062)
+Cav <- cbind(-79.4208, 39.0633)
+Chr <- cbind(-84.3324,	35.9311)
+Dk1 <- cbind(-79.0934,	35.9712)
+Dk2 <- cbind(-79.1004,	35.9736)
+Goo <- cbind(-89.8735,	34.2647)
+Mms <- cbind(-86.4131,	39.3232)
+Nc2 <- cbind(-76.6685,	35.803)
+Orv <- cbind(-83.0183,	40.0201)
+Barc <- cbind(-82.008414, 29.675982)
+Dsny <- cbind(-81.43619,  28.12505)
+Flnt <- cbind(-84.437403, 31.18542)
+Jerc <- cbind(-84.468623, 31.194839)
+Osbs <- cbind(-81.993431, 29.689282)
+Sugg <- cbind(-82.017745, 29.68778)
+Dela <- cbind(-87.803877, 32.541727)
+Leno <- cbind(-88.161181, 32.541727)
+Mayf<- cbind(-87.407688, 32.960365)
+Tall<- cbind(-87.393259, 32.95047)
+Blue<- cbind(-96.624201, 34.444218)
+Clbj<- cbind(-97.57, 33.40123)
+Oaes<- cbind(-99.058779, 35.410599) 
+Prin<- cbind(-97.782312, 33.378517)
+
+#Extract points from landcover raster to get % forest cover 
+Bo1_Temps$forest <- raster::extract(Landcover_Rast, Bo1, buffer=1000, fun=mean_na)
+Cav_Temps$forest <- raster::extract(Landcover_Rast, Cav, buffer=1000, fun=mean_na)
+Chr_Temps$forest <- raster::extract(Landcover_Rast, Chr, buffer=1000, fun=mean_na)
+Dk1_Temps$forest <- raster::extract(Landcover_Rast, Dk1, buffer=1000, fun=mean_na)
+Dk2_Temps$forest <- raster::extract(Landcover_Rast, Dk2, buffer=1000, fun=mean_na)
+Goo_Temps$forest <- raster::extract(Landcover_Rast, Goo, buffer=1000, fun=mean_na)
+Mms_Temps$forest <- raster::extract(Landcover_Rast, Mms, buffer=1000, fun=mean_na)
+Nc2_Temps$forest <- raster::extract(Landcover_Rast, Nc2, buffer=1000, fun=mean_na)
+Orv_Temps$forest <- raster::extract(Landcover_Rast, Orv, buffer=1000, fun=mean_na)
+
+Barc_Temps$forest <- raster::extract(Landcover_Rast, Barc, buffer=1000, fun=mean_na)
+Dsny_Temps$forest <- raster::extract(Landcover_Rast, Dsny, buffer=1000, fun=mean_na)
+Flnt_Temps$forest <- raster::extract(Landcover_Rast, Flnt, buffer=1000, fun=mean_na)
+Jerc_Temps$forest <- raster::extract(Landcover_Rast, Jerc, buffer=1000, fun=mean_na)
+Osbs_Temps$forest <- raster::extract(Landcover_Rast, Osbs, buffer=1000, fun=mean_na)
+Sugg_Temps$forest <- raster::extract(Landcover_Rast, Sugg, buffer=1000, fun=mean_na)
+Dela_Temps$forest <- raster::extract(Landcover_Rast, Dela, buffer=1000, fun=mean_na)
+Leno_Temps$forest <- raster::extract(Landcover_Rast, Leno, buffer=1000, fun=mean_na)
+Mayf_Temps$forest <- raster::extract(Landcover_Rast, Mayf, buffer=1000, fun=mean_na)
+Tall_Temps$forest <- raster::extract(Landcover_Rast, Tall, buffer=1000, fun=mean_na)
+Blue_Temps$forest <- raster::extract(Landcover_Rast, Blue, buffer=1000, fun=mean_na)
+Clbj_Temps$forest <- raster::extract(Landcover_Rast, Clbj, buffer=1000, fun=mean_na)
+Oaes_Temps$forest <- raster::extract(Landcover_Rast, Oaes, buffer=1000, fun=mean_na)
+Prin_Temps$forest <- raster::extract(Landcover_Rast, Prin, buffer=1000, fun=mean_na)
+
+Bo1_Temps$sitename <- "Bo1"
+Cav_Temps$sitename <- "Cav"
+Chr_Temps$sitename <- "Chr"
+Dk1_Temps$sitename <- "Dk1"
+Dk2_Temps$sitename <- "Dk2"
+Goo_Temps$sitename <- "Goo"
+Mms_Temps$sitename <- "Mms"
+Nc2_Temps$sitename <- "Nc2"
+Orv_Temps$sitename <- "Orv"
+Barc_Temps$sitename <- "Barc"
+Dsny_Temps$sitename <- "Dsny"
+Flnt_Temps$sitename <- "Flnt"
+Jerc_Temps$sitename <- "Jerc"
+Osbs_Temps$sitename <- "Osbs"
+Sugg_Temps$sitename <- "Sugg"
+Dela_Temps$sitename <- "Dela"
+Leno_Temps$sitename <- "Leno"
+Mayf_Temps$sitename <- "Mayf"
+Tall_Temps$sitename <- "Tall"
+Blue_Temps$sitename <- "Blue"
+Clbj_Temps$sitename <- "Clbj"
+Oaes_Temps$sitename <- "Oaes"
+Prin_Temps$sitename <- "Prin"
+
+sitelist <- list(Bo1_Temps, Cav_Temps, Chr_Temps, Dk1_Temps,Dk2_Temps, Goo_Temps, Mms_Temps, Nc2_Temps, Orv_Temps, Barc_Temps, Dsny_Temps, Flnt_Temps, Jerc_Temps, Osbs_Temps, Sugg_Temps, Dela_Temps, Leno_Temps, Mayf_Temps, Tall_Temps, Blue_Temps, Clbj_Temps, Oaes_Temps, Prin_Temps)
+
+Writeout <- bind_rows(sitelist)
+write.csv(Writeout, "/Users/mallory/Documents/Temp_Project/09072019_all_files_daily.csv")
+write.csv(To_Plot, "/Users/mallory/Documents/Temp_Project/090719_Forplottingmoneyfig.csv")
+
+#Format temps from Flux Data files 
+Format_plot_temps <- function(x){
+  x$month <- month(x$date)
+  x$season <- ifelse(x$month==6 | x$month==7 | x$month==8, "growing", 
+                     ifelse(x$month==12 | x$month==1 | x$month==2, "dormant","neither"))
+  x$Ts_Air <- x$Tower_TSmax - x$Daymet_Tmax
+  x$Ta_Air <- x$Daymet_Tmax - x$Tower_TAmax
+  print(head(x)) 
+  y <- ddply(x, .(season), summarize,Ts_Air = mean(Ts_Air, na.rm=TRUE),  
+             Ta_Air= mean(Ta_Air, na.rm=TRUE), forest=mean(forest), MAT=mean(MAT))
+
+             
+#Ts_Air_min=min(Ts_Air, na.rm = TRUE), Ta_Air_max =max(Ta_Air, na.rm=TRUE)
+
+  
+  y$sitename <- x$sitename[1]
+  return(y)
+}
+
+Format_plot_drought <- function(x){
+  #want only worst drought month and leadup
+  #want daily values now I think (?)
+  x$month <- month(x$date)
+  x$year <- year(x$date)
+  x$drought <- ifelse(x$month==7 & x$year==2012, "drought", ifelse(x$month==6 | x$month==5, "lildrought", "nodrought"))
+  x$Ts_Air <- x$Tower_TSmax - x$Daymet_Tmax
+  x$Ta_Air <- x$Daymet_Tmax - x$Tower_TAmax
+  print(head(x))
+  y <- ddply(x, .(drought), summarize,Ts_Air = mean(Ts_Air, na.rm=TRUE),  
+             Ta_Air= mean(Ta_Air, na.rm=TRUE), forest=mean(forest), MAT=mean(MAT))
+
+             
+#Ts_Air_min=min(Ts_Air, na.rm = TRUE), Ta_Air_max =max(Ta_Air, na.rm=TRUE)
+  return(y)
+}
+
+ 
+
+
+To_Plot <- do.call("rbind", lapply(sitelist, Format_plot_temps))
+To_Plot_Drought <- do.call("rbind", lapply(sitelist, Format_plot_drought))
+str(To_Plot)
+growing_plot <- subset(To_Plot, season=="growing")
+dormant_plot <- subset(To_Plot, season=="dormant")
+drought_plot <- subset(To_Plot_Drought, drought=="drought")
+lildrought_plot <- subset(To_Plot_Drought, drought=="lildrought")
+
+growing_toplot <- melt(growing_plot, id.vars=c("sitename", "forest"), measure.vars=c("Ts_Air", "Ta_Air"))
+coldgrowing_toplot <- melt(growing_plot, id.vars="forest", measure.vars=c("Ts_Air_min", "Ta_Air"))
+growing_toplotMAT <- melt(growing_plot, id.vars="MAT", measure.vars=c("Ts_Air_min", "Ta_Air"))
+dormant_toplot <- melt(dormant_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
+drought_toplot <- melt(drought_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
+lildrought_toplot <- melt(lildrought_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
+#Get the rasters
+Growing_Diffs <- mean_na(Diffs2[[6:8]])
+Dormant_Diffs <- mean_na(Diffs2[[1:2& 12]])
+plot(Growing_Diffs)
+plot(Dormant_Diffs)
+#Have to multiply everything by 1000 because it does by integers 
+pairOne = ((-88.775*1000):(-74.85*1000))
+pairTwo = ((29.25*1000):(41.41667*1000))
+nSamples = 20000
+
+dt = data.table(expand.grid(pairOne, pairTwo))
+dt2 = dt[sample(1:dim(dt)[1], size = nSamples), ]
+dt2 = dt2/1000
+str(dt2)
+
+plot(Landcover_Rast)
+cloud1 <- raster::extract(SpatialPoints(dt2),buffer=1000, fun=mean_na, sp=T)  
+cloud2 <- raster::extract(Growing_Diffs, SpatialPoints(dt2), sp=T)
+cloud3 <- raster::extract(Dormant_Diffs, SpatialPoints(dt2), sp=T)
+cloud4 <- raster::extract(Diffs3, SpatialPoints(dt2), sp=T)
+cloud5 <- raster::extract(Diffs4, SpatialPoints(dt2), sp=T)
+
+
+growingcloudplot <- cbind(as.data.frame(cloud1$NCLD_Mask), as.data.frame(cloud2$layer))
+names(growingcloudplot) <- c("forest", "MODIS")  
+dormantcloudplot <- cbind(as.data.frame(cloud1$NCLD_Mask), as.data.frame(cloud3$layer))
+names(dormantcloudplot) <- c("forest", "MODIS")  
+droughtcloudplot <- cbind(as.data.frame(cloud1$NCLD_Mask), as.data.frame(cloud4$layer.7))
+names(droughtcloudplot) <- c("forest", "MODIS")
+lildroughtcloudplot <- cbind(as.data.frame(cloud1$NCLD_Mask), as.data.frame(cloud5$layer.6))
+names(lildroughtcloudplot) <- c("forest", "MODIS")  
+
+x1 <- ggplot(growing_toplot, aes(forest, value, label=sitename, colour=variable))+
+  geom_point(size=3)+
+   geom_text(hjust = 0, nudge_x = 0.02, angle=45, size=3)+
+  scale_color_manual(values=c("red", "black"))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  geom_hline(yintercept=0, linetype="dashed")+
+  xlim(-0.1,1.2)+
+  ylim(-7,16)+
+  theme_classic()
+
+x8 <- ggplot(coldgrowing_toplot, aes(forest, value, colour=variable))+
+  geom_point(size=3)+
+  scale_color_manual(values=c("red", "black"))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  geom_hline(yintercept=0, linetype="dashed")+
+  xlim(0,1)+
+  ylim(-5,15)+
+  theme_classic()
+
+x10 <- ggplot(growing_toplotMAT, aes(MAT, value, colour=variable))+
+  geom_point(size=3)+
+  scale_color_manual(values=c("red", "black"))+
+  ylab("Delta T")+
+  xlab("Site MAT")+
+  geom_hline(yintercept=0, linetype="dashed")+
+  #xlim(0,1)+
+  #ylim(-5,15)+
+  theme_classic()
+
+
+xd <- ggplot(drought_toplot, aes(forest, value, colour=variable))+
+  geom_point(size=3)+
+  scale_color_manual(values=c("red", "black"))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  geom_hline(yintercept=0, linetype="dashed")+
+  xlim(0,1)+
+  ylim(-5,5)+
+  theme_classic()
+
+xd2 <- ggplot(droughtcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(binwidth = c(.05, 0.2)) +
+  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  theme_classic()
+
+xd3 <- ggplot(lildroughtcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(binwidth = c(.05, 0.2)) +
+  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  theme_classic()
+
+x2 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(binwidth = c(.06, 0.3)) +
+  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  xlim(0,1)+
+  ylim(-5,5)+
+  theme_classic()
+
+o4 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
+  stat_density_2d(aes(fill = stat(density)), geom = 'raster', contour = FALSE) +       
+  scale_fill_viridis_c() +
+  coord_cartesian(expand = FALSE) +
+  geom_point(shape = '.', col = 'white')
+
+
+x3 <- ggplot(dormant_toplot, aes(forest, value, colour=variable))+
+  geom_point(size=3)+
+  scale_color_manual(values=c("red", "black"))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  geom_hline(yintercept=0, linetype="dashed")+
+  xlim(0,1)+
+  ylim(-15,15)+
+  #scale_y_reverse(lim=c(4,-4))+
+  theme_classic()
+
+dormant_toplot
+x4 <- ggplot(dormantcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(binwidth = c(.06, 0.3)) +
+  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  xlim(0,1)+
+  ylim(-5,5)+
+  theme_classic()
+
+o3 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
+  stat_density_2d(aes(fill = stat(level)), geom = 'polygon') +
+  scale_fill_viridis_c(name = "density") +
+  geom_point(shape = '.')
+
+library("ggpubr")
+cor(growingcloudplot$forest, growingcloudplot$MODIS, use="complete.obs")
+cor(dormantcloudplot$forest, dormantcloudplot$MODIS, use="complete.obs")
+
+Nplot <- ggscatter(growingcloudplot, x=growingcloudplot$forest, y=growingcloudplot$MODIS, 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "", ylab = "ΔT (Ts-Ta)", size=0.7)+
+          ylim(-5, 5)+
+          xlim(0,1)
+
+Cplot <- ggscatter(dormantcloudplot, x = forest, y = MODIS, 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "", ylab="ΔT (Ts-Ta)", size=0.7)+
+  ylim(-5, 5)+
+  xlim(0,1)
+
+grid.arrange(x1,x2, ncol=1)
+grid.arrange(x3,x4, ncol=1)
+grid.arrange(x2,x4, ncol=2)
+
+grid.arrange(xd3, xd2, ncol=1)
+
+
+hh <- ggplot(df, aes(x=Month, group=1)) + 
+  geom_line(aes(y=meanUrban), color="red") + 
+  geom_errorbar(aes(x=Month, ymin=meanUrban-seUrban, ymax=meanUrban+seUrban), width=0.2, size=0.5,color="red")+
+  geom_line(aes(y=meanCrop), color="yellowgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanCrop-seCrop, ymax=meanCrop+seCrop), width=0.2, size=0.5, color="yellowgreen")+
+  geom_line(aes(y=meanFo), color="darkgreen") + 
+  geom_errorbar(aes(x=Month, ymin=meanFo-seFo, ymax=meanFo+seFo),width=0.2, size=0.5, color="darkgreen")+
+  labs(title="Ta-Ts by Land Cover Type", 
+       y="Ta-Ts (degrees C)", 
+       x="Month")+
+  scale_x_continuous(breaks=seq(1,12,3))+
+  theme_bw()+
+  scale_y_reverse(lim=c(5,-4.4))
+
+# Need to take a look at geom_density by latitude
+x2 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(binwidth = c(.08, 0.6)) +
+  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  scale_y_reverse(lim=c(10,-6))+
+  theme_bw()
+
+
+growingcloudtoplot <- as.data.frame(growingcloudplot)
+
+ggplot(growingcloudtoplot, aes(x=forest, y=MODIS))+
+  geom_density2d()+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  scale_y_reverse(lim=c(4,-4))+
+  theme_bw()
+  
+
+library(matrixStats)
+delta <- 
+d_q1 <- rowQuantiles(delta, probs = c(0.25, 0.75))
+
+delta2 <- as.data.frame(cbind(delta,d_q1))
+dim(delta2) # 12579    23
+
+library(dplyr)
+delta2 <- filter(delta2, delta2[,1:21] <= `25%` & delta2[,1:21] >= delta2$`75%`)
+```
