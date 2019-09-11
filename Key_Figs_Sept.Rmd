@@ -5,29 +5,20 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "greenbrown", "RColorBrewer","rasterVis", "gridExtra", "plyr", "gridBase", "devtools","dplyr")
+Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "greenbrown", "RColorBrewer","rasterVis", "gridExtra", "plyr", "gridBase", "devtools","dplyr", "lubridate", "maps", "maptools", "data.table")
 
-library(raster)
-library(lubridate)
-library(greenbrown)
-library(rasterVis)
-library(devtools)
-library(maps)
-library(mapdata)
-library(maptools)
-library(RColorBrewer)
-library(data.table)
-sessionInfo()
 lapply(Packages, library, character.only = TRUE)
 rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
-
+sessionInfo()
 ```
-
-## R Markdown
 
 Key Figures for Septemeber 2019 on LST Mansucript. These figures are for Kim's talks as well as my own. 
 Figure: Differences Between Surface Temperature and Air Temperature. 
 Delta T = Ts- Ta such that Delta T is NEGATIVE when the surface is cooler than the air. 
+
+```{r, warminghole_map, echo=FALSE}
+
+```
 
 ```{r Diffs, echo=FALSE}
 Diffs  <- brick("/Users/mallory/Documents/Temp_Project/Ta_AquaTs_All.tif")
