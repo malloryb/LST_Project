@@ -539,17 +539,14 @@ Format_plot_temps <- function(x){
   x$Ts_Air <- x$Tower_TSmax - x$Daymet_Tmax
   x$Ta_Air <- x$Daymet_Tmax - x$Tower_TAmax
   print(head(x)) 
-  y <- ddply(x, .(season), summarize,Ts_Air = mean(Ts_Air, na.rm=TRUE),  
-             Ta_Air= mean(Ta_Air, na.rm=TRUE), forest=mean(forest), MAT=mean(MAT)) 
-
-             
-#Ts_Air_min=min(Ts_Air, na.rm = TRUE), Ta_Air_max =max(Ta_Air, na.rm=TRUE)
-
+  
+  y <- ddply(x, .(season), summarize,Ts_Air_min=min(Ts_Air, na.rm = TRUE), Ta_Air_max=max(Ta_Air, na.rm=TRUE), Ts_Air = mean(Ts_Air, na.rm=TRUE), Ta_Air= mean(Ta_Air, na.rm=TRUE), forest=mean(forest), MAT=mean(MAT))
   
   y$sitename <- x$sitename[1]
   return(y)
 }
 
+Format_plot_temps(sitelist[[1]])
 Format_plot_drought <- function(x){
   #want only worst drought month and leadup
   #want daily values now I think (?)
@@ -567,7 +564,11 @@ Format_plot_drought <- function(x){
   return(y)
 }
 
-To_Plot <- read.csv("/Users/mallory/Documents/Temp_Project/090719_Forplottingmoneyfig.csv")
+To_Plot<- read.csv("/Users/mallory/Documents/Temp_Project/090719_Forplottingmoneyfig.csv")
+#For when it isn't already saved (but it is)
+#To_Plot <- do.call("rbind", lapply(sitelist, Format_plot_temps))
+#write.csv(To_Plot, "/Users/mallory/Documents/Temp_Project/090719_Forplottingmoneyfig.csv")
+
 levels(To_Plot$sitename)
 head(To_Plot)
 #Create blank for landcover (text) and landcover_no (for numeric)
@@ -587,9 +588,6 @@ To_Plot$landcover_no[To_Plot$sitename == "Bo1" | To_Plot$sitename== "Dsny" | To_
 
 To_Plot$landcover_no[To_Plot$sitename == "Blue" | To_Plot$sitename== "Cav" | To_Plot$sitename== "Clbj" | To_Plot$sitename == "Dk1" | To_Plot$sitename=="Goo" | To_Plot$sitename=="Oaes" | To_Plot$sitename=="Nc2" | To_Plot$sitename=="Osbs"|To_Plot$sitename=="Sugg" | To_Plot$sitename=="Tall"] <- 2
 
-#For when it isn't already saved (but it is)
-#To_Plot <- do.call("rbind", lapply(sitelist, Format_plot_temps))
-#write.csv(To_Plot, "/Users/mallory/Documents/Temp_Project/090719_Forplottingmoneyfig.csv")
 
 To_Plot_Drought <- do.call("rbind", lapply(sitelist, Format_plot_drought))
 str(To_Plot)
@@ -601,20 +599,27 @@ lildrought_plot <- subset(To_Plot_Drought, drought=="lildrought")
 #Regular: Growing season to plot (June, July, August)
 growing_toplot <- melt(growing_plot, id.vars=c("sitename", "forest"), measure.vars=c("Ts_Air", "Ta_Air"))
 #Minimum cooling instead of average cooling
-coldgrowing_toplot <- melt(growing_plot, id.vars="forest", measure.vars=c("Ts_Air_min", "Ta_Air"))
+coldgrowing_toplot <- melt(growing_plot, id.vars=c("forest", "landcover"), measure.vars=c("Ts_Air_min", "Ta_Air"))
+coldgrowing_toplot$landcover <- factor(coldgrowing_toplot$landcover,
+    levels = c('crop','grass', 'forest'),ordered = TRUE)
 #Growing_to_plat melted by Mean Annual Temperature
 growing_toplotMAT <- melt(growing_plot, id.vars="MAT", measure.vars=c("Ts_Air_min", "Ta_Air"))
 #Dormant season (regular) : December, January, February
 dormant_toplot <- melt(dormant_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
 #Drought: July 2012
-drought_toplot <- melt(drought_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
+drought_toplot <- melt(drought_plot, id.vars=c("forest", "landcover"), measure.vars=c("Ts_Air", "Ta_Air"))
 #Lil Drought: May and June 2012 
 lildrought_toplot <- melt(lildrought_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
 #By category - forest = 3, grassland =2, and crop=1
-growing_toplotcat <- melt(growing_plot, id.vars=c("sitename", "landcover_no"), measure.vars=c("Ts_Air", "Ta_Air"))
-dormant_toplotcat <- melt(dormant_plot, id.vars=c("sitename", "landcover_no"), measure.vars=c("Ts_Air", "Ta_Air"))
+growing_toplotcat <- melt(growing_plot, id.vars=c("sitename", "landcover_no", "landcover"), measure.vars=c("Ts_Air", "Ta_Air"))
+#By landcover
+dormant_toplotcat <- melt(dormant_plot, id.vars=c("sitename", "landcover_no", "landcover"), measure.vars=c("Ts_Air", "Ta_Air"))
+growing_toplotcat$landcover <- factor(growing_toplotcat$landcover,
+    levels = c('crop','grass', 'forest'),ordered = TRUE)
+dormant_toplotcat$landcover <- factor(dormant_toplotcat$landcover,
+    levels = c('crop','grass', 'forest'),ordered = TRUE)
 
-
+#Plot with names of sites
 x1 <- ggplot(growing_toplot, aes(forest, value, label=sitename, colour=variable))+
   geom_point(size=3)+
    geom_text(hjust = 0, nudge_x = 0.02, angle=45, size=3)+
@@ -626,40 +631,42 @@ x1 <- ggplot(growing_toplot, aes(forest, value, label=sitename, colour=variable)
   ylim(-7,16)+
   theme_classic()
 
-x12 <- ggplot(growing_toplotcat, aes(landcover_no, value, colour=variable))+
-  geom_point(size=3)+
+#Categorical 
+
+x12 <- ggplot(subset(growing_toplotcat, !is.na(landcover)), aes(x=landcover, value, colour=variable))+
+  #geom_point(size=3)+
+  geom_jitter(size=3, width=0.25)+
+  #geom_text(hjust = 0, nudge_x = 0.02, angle=45, size=3)+
+  scale_color_manual(values=c("red", "black"))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  geom_hline(yintercept=0, linetype="dashed")+
+  ylim(-7,16)+
+  theme_classic()
+
+x13 <- ggplot(subset(dormant_toplotcat, !is.na(landcover)), aes(landcover, value, colour=variable))+
+  geom_jitter(size=3, width=0.25)+
    #geom_text(hjust = 0, nudge_x = 0.02, angle=45, size=3)+
   scale_color_manual(values=c("red", "black"))+
   ylab("Delta T")+
   xlab("Forest Cover (%)")+
   geom_hline(yintercept=0, linetype="dashed")+
-  xlim(0,4)+
   ylim(-7,16)+
   theme_classic()
 
-x13 <- ggplot(dormant_toplotcat, aes(landcover_no, value, colour=variable))+
-  geom_point(size=3)+
-   #geom_text(hjust = 0, nudge_x = 0.02, angle=45, size=3)+
+
+#Not particularly instructive at the moment
+x8 <- ggplot(subset(coldgrowing_toplot, !is.na(landcover)), aes(landcover, value, colour=variable))+
+  geom_jitter(size=3, width=0.25)+
   scale_color_manual(values=c("red", "black"))+
   ylab("Delta T")+
   xlab("Forest Cover (%)")+
   geom_hline(yintercept=0, linetype="dashed")+
-  xlim(0,4)+
-  ylim(-7,16)+
+  #xlim(0,1)+
+  #ylim(-5,15)+
   theme_classic()
 
-grid.arrange(x12, x13, ncol=2)
-
-x8 <- ggplot(coldgrowing_toplot, aes(forest, value, colour=variable))+
-  geom_point(size=3)+
-  scale_color_manual(values=c("red", "black"))+
-  ylab("Delta T")+
-  xlab("Forest Cover (%)")+
-  geom_hline(yintercept=0, linetype="dashed")+
-  xlim(0,1)+
-  ylim(-5,15)+
-  theme_classic()
-
+#Ask Kim abuot this one after my talk!
 x10 <- ggplot(growing_toplotMAT, aes(MAT, value, colour=variable))+
   geom_point(size=3)+
   scale_color_manual(values=c("red", "black"))+
@@ -677,12 +684,12 @@ xd <- ggplot(drought_toplot, aes(forest, value, colour=variable))+
   ylab("Delta T")+
   xlab("Forest Cover (%)")+
   geom_hline(yintercept=0, linetype="dashed")+
-  xlim(0,1)+
-  ylim(-5,5)+
+  #xlim(0,1)+
+  #ylim(-5,5)+
   theme_classic()
 
 
-
+#Regular ol plot
 x3 <- ggplot(dormant_toplot, aes(forest, value, colour=variable))+
   geom_point(size=3)+
   scale_color_manual(values=c("red", "black"))+
@@ -695,14 +702,6 @@ x3 <- ggplot(dormant_toplot, aes(forest, value, colour=variable))+
   theme_classic()
 
 dormant_toplot
-
-
-
-grid.arrange(x1,x2, ncol=1)
-grid.arrange(x3,x4, ncol=1)
-grid.arrange(x2,x4, ncol=2)
-
-grid.arrange(xd3, xd2, ncol=1)
 
 
 hh <- ggplot(df, aes(x=Month, group=1)) + 
@@ -733,6 +732,8 @@ hh <- ggplot(df, aes(x=Month, group=1)) +
 #library(dplyr)
 #delta2 <- filter(delta2, delta2[,1:21] <= `25%` & delta2[,1:21] >= delta2$`75%`)
 ```
+
+
 ```{r MoneyFig_clouds, echo=FALSE}
 Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NCLD_Mask.tif")
 Diffs  <- brick("/Users/mallory/Documents/Temp_Project/Ta_AquaTs_All.tif")
@@ -783,7 +784,7 @@ plot(Dormant_Diffs)
 #Have to multiply everything by 1000 because it does by integers 
 pairOne = ((-88.775*1000):(-74.85*1000))
 pairTwo = ((29.25*1000):(41.41667*1000))
-nSamples = 100
+nSamples = 10000
 
 dt = data.table(expand.grid(pairOne, pairTwo))
 dt2 = dt[sample(1:dim(dt)[1], size = nSamples), ]
@@ -826,7 +827,7 @@ Cplot <- ggscatter(dormantcloudplot, x = "forest", y ="MODIS",
   ylim(-5, 5)+
   xlim(0,1)
 
-grid.arrange(Nplot, Cplot, ncol=2)
+
 
 x2 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
   geom_hex(binwidth = c(.06, 0.3)) +
@@ -846,7 +847,7 @@ x4 <- ggplot(dormantcloudplot, aes(x=forest, y=MODIS) ) +
   ylim(-5,5)+
   theme_classic()
 
-grid.arrange(x2, x4, ncol=2)
+
 
 
 xd2 <- ggplot(droughtcloudplot, aes(x=forest, y=MODIS) ) +
@@ -867,8 +868,13 @@ xd3 <- ggplot(lildroughtcloudplot, aes(x=forest, y=MODIS) ) +
   ylim(-10,10)+
   theme_classic()
 
-grid.arrange(xd3, xd2, ncol=2)
-
+grid.arrange(Nplot, Cplot, ncol=2)
+grid.arrange(x2, x4, ncol=2)
+grid.arrange(x12,x2, ncol=1)
+grid.arrange(x13,x4, ncol=1)
+grid.arrange(x2,x4, ncol=2)
+grid.arrange(xd3, xd2, ncol=1)
+grid.arrange(x12, x13, ncol=2)
 #Weird density plot, kinda cool I guess 
 #o4 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
   #stat_density_2d(aes(fill = stat(density)), geom = 'raster', contour = FALSE) +       
