@@ -5,7 +5,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "greenbrown", "RColorBrewer","rasterVis", "gridExtra", "plyr", "gridBase", "devtools","dplyr", "lubridate", "maps", "maptools", "data.table", "geoelectrics")
+Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "greenbrown", "RColorBrewer","rasterVis", "gridExtra", "plyr", "gridBase", "devtools","dplyr", "lubridate", "maps", "maptools", "data.table", "geoelectrics", "ggpubr")
 
 lapply(Packages, library, character.only = TRUE)
 rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
@@ -505,7 +505,6 @@ sitelist <- list(Bo1_Temps, Cav_Temps, Chr_Temps, Dk1_Temps,Dk2_Temps, Goo_Temps
 
 Writeout <- bind_rows(sitelist)
 #write.csv(Writeout, "/Users/mallory/Documents/Temp_Project/09072019_all_files_daily.csv")
-#write.csv(To_Plot, "/Users/mallory/Documents/Temp_Project/090719_Forplottingmoneyfig.csv")
 
 #Barc: Shrub or Forest - aquatic
 #Blue: Grassland (too far west? In Oaklahoma)
@@ -568,28 +567,30 @@ Format_plot_drought <- function(x){
   return(y)
 }
 
-To_plot <- read.csv("/Users/mallory/Documents/Temp_Project/090719_Forplottingmoneyfig.csv")
-levels(To_plot$sitename)
-head(To_plot)
+To_Plot <- read.csv("/Users/mallory/Documents/Temp_Project/090719_Forplottingmoneyfig.csv")
+levels(To_Plot$sitename)
+head(To_Plot)
 #Create blank for landcover (text) and landcover_no (for numeric)
-To_plot$landcover <- NA
-To_plot$landcover_no <- NA
+To_Plot$landcover <- NA
+To_Plot$landcover_no <- NA
 #Set sites to appropriate landcover
-To_plot$landcover[To_plot$sitename == "Chr" | To_plot$sitename== "Dela" | To_plot$sitename== "Dk2" | To_plot$sitename == "Leno" | To_plot$sitename=="Mayf" | To_plot$sitename=="Mms" | To_plot$sitename=="Nc2" | To_plot$sitename=="Osbs"|To_plot$sitename=="Sugg" | To_plot$sitename=="Tall"] <- "forest"
+To_Plot$landcover[To_Plot$sitename == "Chr" | To_Plot$sitename== "Dela" | To_Plot$sitename== "Dk2" | To_Plot$sitename == "Leno" | To_Plot$sitename=="Mayf" | To_Plot$sitename=="Mms" | To_Plot$sitename=="Nc2" | To_Plot$sitename=="Osbs"|To_Plot$sitename=="Sugg" | To_Plot$sitename=="Tall"] <- "forest"
 
-To_plot$landcover[To_plot$sitename == "Bo1" | To_plot$sitename== "Dsny" | To_plot$sitename== "Jerc"] <- "crop"
+To_Plot$landcover[To_Plot$sitename == "Bo1" | To_Plot$sitename== "Dsny" | To_Plot$sitename== "Jerc"] <- "crop"
 
-To_plot$landcover[To_plot$sitename == "Blue" | To_plot$sitename== "Cav" | To_plot$sitename== "Clbj" | To_plot$sitename == "Dk1" | To_plot$sitename=="Goo" | To_plot$sitename=="Oaes" | To_plot$sitename=="Nc2" | To_plot$sitename=="Osbs"|To_plot$sitename=="Sugg" | To_plot$sitename=="Tall"] <- "grass"
+To_Plot$landcover[To_Plot$sitename == "Blue" | To_Plot$sitename== "Cav" | To_Plot$sitename== "Clbj" | To_Plot$sitename == "Dk1" | To_Plot$sitename=="Goo" | To_Plot$sitename=="Oaes" | To_Plot$sitename=="Nc2" | To_Plot$sitename=="Osbs"|To_Plot$sitename=="Sugg" | To_Plot$sitename=="Tall"] <- "grass"
 
 #Set sites to appropriate landcover number
-To_plot$landcover_no[To_plot$sitename == "Chr" | To_plot$sitename== "Dela" | To_plot$sitename== "Dk2" | To_plot$sitename == "Leno" | To_plot$sitename=="Mayf" | To_plot$sitename=="Mms" | To_plot$sitename=="Nc2" | To_plot$sitename=="Osbs"|To_plot$sitename=="Sugg" | To_plot$sitename=="Tall"] <- 3
+To_Plot$landcover_no[To_Plot$sitename == "Chr" | To_Plot$sitename== "Dela" | To_Plot$sitename== "Dk2" | To_Plot$sitename == "Leno" | To_Plot$sitename=="Mayf" | To_Plot$sitename=="Mms" | To_Plot$sitename=="Nc2" | To_Plot$sitename=="Osbs"|To_Plot$sitename=="Sugg" | To_Plot$sitename=="Tall"] <- 3
 
-To_plot$landcover_no[To_plot$sitename == "Bo1" | To_plot$sitename== "Dsny" | To_plot$sitename== "Jerc"] <- 1
+To_Plot$landcover_no[To_Plot$sitename == "Bo1" | To_Plot$sitename== "Dsny" | To_Plot$sitename== "Jerc"] <- 1
 
-To_plot$landcover_no[To_plot$sitename == "Blue" | To_plot$sitename== "Cav" | To_plot$sitename== "Clbj" | To_plot$sitename == "Dk1" | To_plot$sitename=="Goo" | To_plot$sitename=="Oaes" | To_plot$sitename=="Nc2" | To_plot$sitename=="Osbs"|To_plot$sitename=="Sugg" | To_plot$sitename=="Tall"] <- 2
+To_Plot$landcover_no[To_Plot$sitename == "Blue" | To_Plot$sitename== "Cav" | To_Plot$sitename== "Clbj" | To_Plot$sitename == "Dk1" | To_Plot$sitename=="Goo" | To_Plot$sitename=="Oaes" | To_Plot$sitename=="Nc2" | To_Plot$sitename=="Osbs"|To_Plot$sitename=="Sugg" | To_Plot$sitename=="Tall"] <- 2
 
+#For when it isn't already saved (but it is)
+#To_Plot <- do.call("rbind", lapply(sitelist, Format_plot_temps))
+#write.csv(To_Plot, "/Users/mallory/Documents/Temp_Project/090719_Forplottingmoneyfig.csv")
 
-To_Plot <- do.call("rbind", lapply(sitelist, Format_plot_temps))
 To_Plot_Drought <- do.call("rbind", lapply(sitelist, Format_plot_drought))
 str(To_Plot)
 growing_plot <- subset(To_Plot, season=="growing")
@@ -597,16 +598,22 @@ dormant_plot <- subset(To_Plot, season=="dormant")
 drought_plot <- subset(To_Plot_Drought, drought=="drought")
 lildrought_plot <- subset(To_Plot_Drought, drought=="lildrought")
 
+#Regular: Growing season to plot (June, July, August)
 growing_toplot <- melt(growing_plot, id.vars=c("sitename", "forest"), measure.vars=c("Ts_Air", "Ta_Air"))
+#Minimum cooling instead of average cooling
+coldgrowing_toplot <- melt(growing_plot, id.vars="forest", measure.vars=c("Ts_Air_min", "Ta_Air"))
+#Growing_to_plat melted by Mean Annual Temperature
+growing_toplotMAT <- melt(growing_plot, id.vars="MAT", measure.vars=c("Ts_Air_min", "Ta_Air"))
+#Dormant season (regular) : December, January, February
+dormant_toplot <- melt(dormant_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
+#Drought: July 2012
+drought_toplot <- melt(drought_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
+#Lil Drought: May and June 2012 
+lildrought_toplot <- melt(lildrought_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
+#By category - forest = 3, grassland =2, and crop=1
 growing_toplotcat <- melt(growing_plot, id.vars=c("sitename", "landcover_no"), measure.vars=c("Ts_Air", "Ta_Air"))
 dormant_toplotcat <- melt(dormant_plot, id.vars=c("sitename", "landcover_no"), measure.vars=c("Ts_Air", "Ta_Air"))
 
-coldgrowing_toplot <- melt(growing_plot, id.vars="forest", measure.vars=c("Ts_Air_min", "Ta_Air"))
-growing_toplotMAT <- melt(growing_plot, id.vars="MAT", measure.vars=c("Ts_Air_min", "Ta_Air"))
-dormant_toplot <- melt(dormant_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
-
-drought_toplot <- melt(drought_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
-lildrought_toplot <- melt(lildrought_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
 
 x1 <- ggplot(growing_toplot, aes(forest, value, label=sitename, colour=variable))+
   geom_point(size=3)+
@@ -674,34 +681,6 @@ xd <- ggplot(drought_toplot, aes(forest, value, colour=variable))+
   ylim(-5,5)+
   theme_classic()
 
-xd2 <- ggplot(droughtcloudplot, aes(x=forest, y=MODIS) ) +
-  geom_hex(binwidth = c(.05, 0.2)) +
-  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
-  ylab("Delta T")+
-  xlab("Forest Cover (%)")+
-  theme_classic()
-
-xd3 <- ggplot(lildroughtcloudplot, aes(x=forest, y=MODIS) ) +
-  geom_hex(binwidth = c(.05, 0.2)) +
-  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
-  ylab("Delta T")+
-  xlab("Forest Cover (%)")+
-  theme_classic()
-
-x2 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
-  geom_hex(binwidth = c(.06, 0.3)) +
-  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
-  ylab("Delta T")+
-  xlab("Forest Cover (%)")+
-  xlim(0,1)+
-  ylim(-5,5)+
-  theme_classic()
-
-o4 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
-  stat_density_2d(aes(fill = stat(density)), geom = 'raster', contour = FALSE) +       
-  scale_fill_viridis_c() +
-  coord_cartesian(expand = FALSE) +
-  geom_point(shape = '.', col = 'white')
 
 
 x3 <- ggplot(dormant_toplot, aes(forest, value, colour=variable))+
@@ -716,37 +695,8 @@ x3 <- ggplot(dormant_toplot, aes(forest, value, colour=variable))+
   theme_classic()
 
 dormant_toplot
-x4 <- ggplot(dormantcloudplot, aes(x=forest, y=MODIS) ) +
-  geom_hex(binwidth = c(.06, 0.3)) +
-  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
-  ylab("Delta T")+
-  xlab("Forest Cover (%)")+
-  xlim(0,1)+
-  ylim(-5,5)+
-  theme_classic()
 
-o3 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
-  stat_density_2d(aes(fill = stat(level)), geom = 'polygon') +
-  scale_fill_viridis_c(name = "density") +
-  geom_point(shape = '.')
 
-library("ggpubr")
-cor(growingcloudplot$forest, growingcloudplot$MODIS, use="complete.obs")
-cor(dormantcloudplot$forest, dormantcloudplot$MODIS, use="complete.obs")
-
-Nplot <- ggscatter(growingcloudplot, x=growingcloudplot$forest, y=growingcloudplot$MODIS, 
-          add = "reg.line", conf.int = TRUE, 
-          cor.coef = TRUE, cor.method = "pearson",
-          xlab = "", ylab = "ΔT (Ts-Ta)", size=0.7)+
-          ylim(-5, 5)+
-          xlim(0,1)
-
-Cplot <- ggscatter(dormantcloudplot, x = forest, y = MODIS, 
-          add = "reg.line", conf.int = TRUE, 
-          cor.coef = TRUE, cor.method = "pearson",
-          xlab = "", ylab="ΔT (Ts-Ta)", size=0.7)+
-  ylim(-5, 5)+
-  xlim(0,1)
 
 grid.arrange(x1,x2, ncol=1)
 grid.arrange(x3,x4, ncol=1)
@@ -874,5 +824,66 @@ x2 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
   scale_y_reverse(lim=c(10,-6))+
   theme_bw()
   
+cor(growingcloudplot$forest, growingcloudplot$MODIS, use="complete.obs")
+cor(dormantcloudplot$forest, dormantcloudplot$MODIS, use="complete.obs")
+
+Nplot <- ggscatter(growingcloudplot, x=growingcloudplot$forest, y=growingcloudplot$MODIS, 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "", ylab = "ΔT (Ts-Ta)", size=0.7)+
+          ylim(-5, 5)+
+          xlim(0,1)
+
+Cplot <- ggscatter(dormantcloudplot, x = forest, y = MODIS, 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "", ylab="ΔT (Ts-Ta)", size=0.7)+
+  ylim(-5, 5)+
+  xlim(0,1)
+
+
+x4 <- ggplot(dormantcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(binwidth = c(.06, 0.3)) +
+  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  xlim(0,1)+
+  ylim(-5,5)+
+  theme_classic()
+
+o3 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
+  stat_density_2d(aes(fill = stat(level)), geom = 'polygon') +
+  scale_fill_viridis_c(name = "density") +
+  geom_point(shape = '.')
+
+
+xd2 <- ggplot(droughtcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(binwidth = c(.05, 0.2)) +
+  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  theme_classic()
+
+xd3 <- ggplot(lildroughtcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(binwidth = c(.05, 0.2)) +
+  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  theme_classic()
+
+x2 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
+  geom_hex(binwidth = c(.06, 0.3)) +
+  scale_fill_gradientn(colours = rev(terrain.colors(10)))+
+  ylab("Delta T")+
+  xlab("Forest Cover (%)")+
+  xlim(0,1)+
+  ylim(-5,5)+
+  theme_classic()
+
+o4 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
+  stat_density_2d(aes(fill = stat(density)), geom = 'raster', contour = FALSE) +       
+  scale_fill_viridis_c() +
+  coord_cartesian(expand = FALSE) +
+  geom_point(shape = '.', col = 'white')
 
 ```
