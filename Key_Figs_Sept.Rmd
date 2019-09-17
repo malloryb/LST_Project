@@ -783,7 +783,7 @@ plot(Dormant_Diffs)
 #Have to multiply everything by 1000 because it does by integers 
 pairOne = ((-88.775*1000):(-74.85*1000))
 pairTwo = ((29.25*1000):(41.41667*1000))
-nSamples = 2000
+nSamples = 100
 
 dt = data.table(expand.grid(pairOne, pairTwo))
 dt2 = dt[sample(1:dim(dt)[1], size = nSamples), ]
@@ -792,12 +792,11 @@ str(dt2)
 
 #plot(Landcover_Rast)
 #Ok got that figured out - extraction of the landcover raster data takes FOREVER
-cloud1 <- raster::extract(Landcover_Rast, SpatialPoints(dt2), buffer=1000, fun=mean_na, sp=T)  
+cloud1 <- raster::extract(Landcover_Rast, SpatialPoints(dt2), buffer=500, fun=mean_na, sp=T)  
 cloud2 <- raster::extract(Growing_Diffs, SpatialPoints(dt2), sp=T)
 cloud3 <- raster::extract(Dormant_Diffs, SpatialPoints(dt2), sp=T)
 cloud4 <- raster::extract(Diffs3, SpatialPoints(dt2), sp=T)
 cloud5 <- raster::extract(Diffs4, SpatialPoints(dt2), sp=T)
-
 
 growingcloudplot <- cbind(as.data.frame(cloud1$NCLD_Mask), as.data.frame(cloud2$layer))
 names(growingcloudplot) <- c("forest", "MODIS")  
@@ -828,20 +827,21 @@ x2 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
 cor(growingcloudplot$forest, growingcloudplot$MODIS, use="complete.obs")
 cor(dormantcloudplot$forest, dormantcloudplot$MODIS, use="complete.obs")
 
-Nplot <- ggscatter(growingcloudplot, x=growingcloudplot$forest, y=growingcloudplot$MODIS, 
+Nplot <- ggscatter(growingcloudplot, x="forest", y="MODIS", 
           add = "reg.line", conf.int = TRUE, 
           cor.coef = TRUE, cor.method = "pearson",
           xlab = "", ylab = "ΔT (Ts-Ta)", size=0.7)+
           ylim(-5, 5)+
           xlim(0,1)
 
-Cplot <- ggscatter(dormantcloudplot, x = forest, y = MODIS, 
+Cplot <- ggscatter(dormantcloudplot, x = "forest", y ="MODIS", 
           add = "reg.line", conf.int = TRUE, 
           cor.coef = TRUE, cor.method = "pearson",
           xlab = "", ylab="ΔT (Ts-Ta)", size=0.7)+
   ylim(-5, 5)+
   xlim(0,1)
 
+grid.arrange(Nplot, Cplot, ncol=2)
 
 x4 <- ggplot(dormantcloudplot, aes(x=forest, y=MODIS) ) +
   geom_hex(binwidth = c(.06, 0.3)) +
