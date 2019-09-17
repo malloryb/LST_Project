@@ -809,12 +809,6 @@ names(lildroughtcloudplot) <- c("forest", "MODIS")
 
 growingcloudtoplot <- as.data.frame(growingcloudplot)
 
-ggplot(growingcloudtoplot, aes(x=forest, y=MODIS))+
-  geom_density2d()+
-  ylab("Delta T")+
-  xlab("Forest Cover (%)")+
-  scale_y_reverse(lim=c(4,-4))+
-  theme_bw()
 
 x2 <- ggplot(growingcloudplot, aes(x=forest, y=MODIS) ) +
   geom_hex(binwidth = c(.08, 0.6)) +
