@@ -1,7 +1,7 @@
 ---
 title: "Temperature Comparisons"
 author: "Mallory Barnes"
-date: "October 10, 2018"
+date: "Aug 27, 2019"
 output:
   html_document: default
   pdf_document: default
@@ -41,16 +41,26 @@ I've compared the diurnal temperature cycle for estimated Surface Temperature vs
 Diurnal temperature signal for winter (January 2008) and summer (July 2008)
 ```{r, echo=FALSE, warning=FALSE}
 x <- read.csv("/Users/mallory/Documents/Datasets/Mms_hourly_flux.csv")
+y <- read.csv("/Users/mallory/Documents/Datasets/mms_temp_comp_10_8.csv")
 x$date <- as.Date(x$date)
 winter <- subset(x, year==2008 & month==01)
 win <- ddply(winter, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
 summer <- subset(x, year==2008 & month==07)
 sum <- ddply(summer, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
-splot <- ggplot(sum, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily summertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()
-  
-wplot <- ggplot(win, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily wintertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()+
-  annotate("text", x = 500, y = 5, label="Air Temp", colour="blue", fontface="bold")+
-  annotate("text", x=500, y=3, label="Surface Temp", colour="red", fontface="bold")
+y$date <- as.Date(y$date)
+y$year <-as.numeric(substr(y$date, 1,4))
+y$month <- as.numeric(substr(y$date, 6,7))
+winter2 <- subset(y, year==2008 & month==01)
+win2 <- ddply(winter2, .(), summarize, ModisTS = mean(Modis_Temp, na.rm=TRUE), Modis8dayTS=mean(Modis_8day_Temp, na.rm=TRUE), time=as.integer(1030))
+win <- merge(win, win2, by="time", all.x = TRUE)
+summer2 <- subset(y, year==2008 & month==07)
+sum2 <- ddply(summer2, .(), summarize, ModisTS = mean(Modis_Temp, na.rm=TRUE),Modis8dayTS=mean(Modis_8day_Temp, na.rm=TRUE),  time=as.integer(1030))
+sum <- merge(sum, sum2, by="time", all.x = TRUE)
+splot <- ggplot(sum, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily summertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()+ geom_point(aes(y=ModisTS), color="green") + geom_point(aes(y=Modis8dayTS), color="purple")
+
+wplot <- ggplot(win, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily wintertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()+ geom_point(aes(y=ModisTS), color="green") + geom_point(aes(y=Modis8dayTS), color="purple")+
+  annotate("text", x = 500, y =8, label="Air Temp", colour="blue", fontface="bold")+
+  annotate("text", x=500, y=5, label="Surface Temp", colour="red", fontface="bold")
 
 grid.arrange(wplot, splot, top = "Diurnal Temperature Signal - US-Mms")
 
@@ -61,16 +71,26 @@ grid.arrange(wplot, splot, top = "Diurnal Temperature Signal - US-Mms")
 Diurnal temperature signal for winter (January 2008) and summer (July 2008)
 ```{r, echo=FALSE, warning=FALSE}
 x <- read.csv("/Users/mallory/Documents/Datasets/Dk230min_flux.csv")
+y <- read.csv("/Users/mallory/Documents/Datasets/dk2_temp_comp_10_8.csv")
 x$date <- as.Date(x$date)
 winter <- subset(x, year==2008 & month==01)
 win <- ddply(winter, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
 summer <- subset(x, year==2008 & month==07)
 sum <- ddply(summer, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
-splot <- ggplot(sum, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily summertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()
-  
-wplot <- ggplot(win, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily wintertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()+
+y$date <- as.Date(y$date)
+y$year <-as.numeric(substr(y$date, 1,4))
+y$month <- as.numeric(substr(y$date, 6,7))
+winter2 <- subset(y, year==2008 & month==01)
+win2 <- ddply(winter2, .(), summarize, ModisTS = mean(Modis_Temp, na.rm=TRUE), Modis8dayTS=mean(Modis_8day_Temp, na.rm=TRUE), time=as.integer(1030))
+win <- merge(win, win2, by="time", all.x = TRUE)
+summer2 <- subset(y, year==2008 & month==07)
+sum2 <- ddply(summer2, .(), summarize, ModisTS = mean(Modis_Temp, na.rm=TRUE),Modis8dayTS=mean(Modis_8day_Temp, na.rm=TRUE),  time=as.integer(1030))
+sum <- merge(sum, sum2, by="time", all.x = TRUE)
+splot <- ggplot(sum, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily summertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()+ geom_point(aes(y=ModisTS), color="green") + geom_point(aes(y=Modis8dayTS), color="purple")
+
+wplot <- ggplot(win, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily wintertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()+ geom_point(aes(y=ModisTS), color="green") + geom_point(aes(y=Modis8dayTS), color="purple")+
   annotate("text", x = 500, y =8, label="Air Temp", colour="blue", fontface="bold")+
-  annotate("text", x=500, y=6, label="Surface Temp", colour="red", fontface="bold")
+  annotate("text", x=500, y=5, label="Surface Temp", colour="red", fontface="bold")
 
 grid.arrange(wplot, splot, top = "Diurnal Temperature Signal - US-Dk2")
 ```
@@ -79,14 +99,24 @@ grid.arrange(wplot, splot, top = "Diurnal Temperature Signal - US-Dk2")
 Diurnal temperature signal for winter (January 2008) and summer (July 2008)
 ```{r, echo=FALSE, warning=FALSE}
 x <- read.csv("/Users/mallory/Documents/Datasets/Dk130min_flux.csv")
+y <- read.csv("/Users/mallory/Documents/Datasets/dk1_temp_comp_10_8.csv")
 x$date <- as.Date(x$date)
 winter <- subset(x, year==2008 & month==01)
 win <- ddply(winter, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
 summer <- subset(x, year==2008 & month==07)
 sum <- ddply(summer, .(time), summarize, TA = mean(TA, na.rm=TRUE),TS= mean(TS, na.rm=TRUE))
-splot <- ggplot(sum, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily summertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()
+y$date <- as.Date(y$date)
+y$year <-as.numeric(substr(y$date, 1,4))
+y$month <- as.numeric(substr(y$date, 6,7))
+winter2 <- subset(y, year==2008 & month==01)
+win2 <- ddply(winter2, .(), summarize, ModisTS = mean(Modis_Temp, na.rm=TRUE), Modis8dayTS=mean(Modis_8day_Temp, na.rm=TRUE), time=as.integer(1030))
+win <- merge(win, win2, by="time", all.x = TRUE)
+summer2 <- subset(y, year==2008 & month==07)
+sum2 <- ddply(summer2, .(), summarize, ModisTS = mean(Modis_Temp, na.rm=TRUE),Modis8dayTS=mean(Modis_8day_Temp, na.rm=TRUE),  time=as.integer(1030))
+sum <- merge(sum, sum2, by="time", all.x = TRUE)
+splot <- ggplot(sum, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily summertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()+ geom_point(aes(y=ModisTS), color="green") + geom_point(aes(y=Modis8dayTS), color="purple")
 
-wplot <- ggplot(win, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily wintertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()+
+wplot <- ggplot(win, aes(x=time, group=1))+geom_line(aes(y=TA), colour="blue", size=1) + geom_line(aes(y=TS-273.15), colour="red", size=1)+labs(title="Daily wintertime temp", y="Temperature (c)",x="Time of Day") +theme_minimal()+ geom_point(aes(y=ModisTS), color="green") + geom_point(aes(y=Modis8dayTS), color="purple")+
   annotate("text", x = 500, y =8, label="Air Temp", colour="blue", fontface="bold")+
   annotate("text", x=500, y=5, label="Surface Temp", colour="red", fontface="bold")
 
@@ -110,8 +140,9 @@ TaTsplot<-ggplotRegression(lm(Tower_TScor~Tower_TAavg, data = x))
 DaymetPlot<-ggplotRegression(lm(Gridmet_Tavg ~Tower_TAavg, data = x))
 GridmetPlot <-ggplotRegression(lm(Daymet_Tavg ~Tower_TAavg, data = x))
 ModisPlot<-ggplotRegression(lm(Modis_Temp ~TOB_S, data = x))
+ModisPlotMax<-ggplotRegression(lm(Modis_Temp ~Tower_TSmax, data = x))
 Modis8dayPlot<-ggplotRegression(lm(Modis_8day_Temp ~TOB_S, data = x))
-grid.arrange(TaTsplot, DaymetPlot, GridmetPlot, ModisPlot, Modis8dayPlot, top="Comparisons with Ts and Gridded Products - US-Mms")
+grid.arrange(TaTsplot, DaymetPlot, GridmetPlot, ModisPlot, Modis8dayPlot,ModisPlotMax, top="Comparisons with Ts and Gridded Products - US-Mms")
 ```
 
 Duke Forest: 
