@@ -734,7 +734,7 @@ hh <- ggplot(df, aes(x=Month, group=1)) +
 #delta2 <- filter(delta2, delta2[,1:21] <= `25%` & delta2[,1:21] >= delta2$`75%`)
 ```
 ```{r MoneyFig_clouds, echo=FALSE}
-
+Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NCLD_Mask.tif")
 Diffs  <- brick("/Users/mallory/Documents/Temp_Project/Ta_AquaTs_All.tif")
 names(Diffs) <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 #Changing the sign so that negative means cooling, positive means warming
@@ -783,15 +783,16 @@ plot(Dormant_Diffs)
 #Have to multiply everything by 1000 because it does by integers 
 pairOne = ((-88.775*1000):(-74.85*1000))
 pairTwo = ((29.25*1000):(41.41667*1000))
-nSamples = 20000
+nSamples = 2000
 
 dt = data.table(expand.grid(pairOne, pairTwo))
 dt2 = dt[sample(1:dim(dt)[1], size = nSamples), ]
 dt2 = dt2/1000
 str(dt2)
 
-plot(Landcover_Rast)
-cloud1 <- raster::extract(SpatialPoints(dt2),buffer=1000, fun=mean_na, sp=T)  
+#plot(Landcover_Rast)
+#Ok got that figured out - extraction of the landcover raster data takes FOREVER
+cloud1 <- raster::extract(Landcover_Rast, SpatialPoints(dt2), buffer=1000, fun=mean_na, sp=T)  
 cloud2 <- raster::extract(Growing_Diffs, SpatialPoints(dt2), sp=T)
 cloud3 <- raster::extract(Dormant_Diffs, SpatialPoints(dt2), sp=T)
 cloud4 <- raster::extract(Diffs3, SpatialPoints(dt2), sp=T)
