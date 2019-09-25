@@ -65,7 +65,7 @@ temp_raster <- greenbrown_test[[2]]
 temp_raster <- raster("/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif")
 temp_raster[temp_raster < -0.029] <-NA
 devtools::source_gist('306e4b7e69c87b1826db')
-pal <- colorRampPalette(rev(brewer.pal(11, 'RdBu')))
+pal <- colorRampPalette(rev(brewer.pal(6, 'RdBu')))
 #Gotta fix this from the -360 again (with Mar package)
 # Switching from a raster to a matrix of class 'bathy'
 library(marmap)
@@ -80,7 +80,7 @@ names[names > 180] <- names[names > 180] - 360
 rownames(temp) <- names
 temp_raster.modified <- as.raster(temp)
 while (!is.null(dev.list()))  dev.off()
-png("/Users/mallory/Documents/Temp_Project/Fig1a.png", width=4, height=4, units="in", res=300)
+png("/Users/mallory/Documents/Temp_Project/Fig1atest.png", width=4, height=4, units="in", res=300)
 p <- levelplot(temp_raster.modified*50, margin=F, col.regions=(rev(brewer.pal(11,"RdBu"))), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
 diverge0(p, ramp=pal)
 dev.off()
@@ -413,7 +413,8 @@ LandsatPlot <- ggplot(Landsat_pts, aes(distance, LT05CU02301, group=id, color=id
   geom_point(color=Landsat_pts$LandCover)+
   #xlab("Forest to Cropland along transect in km (~900 m apart)")+
   ylab("Landsat LST")+
-  theme(axis.title.x = element_blank()) 
+  theme(axis.title.x = element_blank())+
+  theme_minimal()
 
 #Create data frame for plotting comparisons ----------
 #df <- data.frame(Month=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
