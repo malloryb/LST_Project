@@ -1,6 +1,8 @@
 ---
 title: "Key_Figs_Sept"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -629,30 +631,57 @@ x1 <- ggplot(growing_toplot, aes(forest, value, label=sitename, colour=variable)
   geom_hline(yintercept=0, linetype="dashed")+
   xlim(-0.1,1.2)+
   ylim(-7,16)+
-  theme_classic()
+  theme_classic(v)
 
 #Categorical 
 
 x12 <- ggplot(subset(growing_toplotcat, !is.na(landcover)), aes(x=landcover, value, colour=variable))+
   #geom_point(size=3)+
   geom_jitter(size=3, width=0.25)+
+  #geom_smooth(aes(group=variable))+
   #geom_text(hjust = 0, nudge_x = 0.02, angle=45, size=3)+
   scale_color_manual(values=c("red", "black"))+
   ylab("Delta T")+
-  xlab("Forest Cover (%)")+
+  xlab("Landcover Type")+
   geom_hline(yintercept=0, linetype="dashed")+
   ylim(-7,16)+
-  theme_classic()
+  theme_classic(base_size=16)
+
+
+x14 <- ggplot(subset(growing_toplotcat, !is.na(landcover) & variable=="Ta_Air"), aes(x=landcover, value, colour=variable))+
+  #geom_point(size=3)+
+  geom_jitter(size=3, width=0.25)+
+  #geom_smooth(aes(group=variable))+
+  #geom_text(hjust = 0, nudge_x = 0.02, angle=45, size=3)+
+  scale_color_manual(values=c("black"))+
+  ylab("Delta T")+
+  xlab("Landcover Type")+
+  geom_hline(yintercept=0, linetype="dashed")+
+  ylim(-7,16)+
+  theme_classic(base_size=16)
+
+
+x14 <- ggplot(subset(growing_toplotcat, !is.na(landcover) & variable=="Ts_Air"), aes(x=landcover, value, colour=variable))+
+  #geom_point(size=3)+
+  geom_jitter(size=3, width=0.25)+
+  #geom_smooth(aes(group=variable))+
+  #geom_text(hjust = 0, nudge_x = 0.02, angle=45, size=3)+
+  scale_color_manual(values=c("red"))+
+  ylab("Delta T")+
+  xlab("Landcover Type")+
+  geom_hline(yintercept=0, linetype="dashed")+
+  ylim(-7,16)+
+  theme_classic(base_size=16)
 
 x13 <- ggplot(subset(dormant_toplotcat, !is.na(landcover)), aes(landcover, value, colour=variable))+
   geom_jitter(size=3, width=0.25)+
    #geom_text(hjust = 0, nudge_x = 0.02, angle=45, size=3)+
   scale_color_manual(values=c("red", "black"))+
   ylab("Delta T")+
-  xlab("Forest Cover (%)")+
+  xlab("Landcover Type")+
   geom_hline(yintercept=0, linetype="dashed")+
   ylim(-7,16)+
-  theme_classic()
+  theme_classic(base_size=16)
 
 
 #Not particularly instructive at the moment
@@ -886,5 +915,9 @@ grid.arrange(x12, x13, ncol=2)
   #stat_density_2d(aes(fill = stat(level)), geom = 'polygon') +
   #scale_fill_viridis_c(name = "density") +
   #geom_point(shape = '.')
+
+```
+
+```{r Lily, echo=FALSE}
 
 ```
