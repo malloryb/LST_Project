@@ -605,7 +605,7 @@ coldgrowing_toplot <- melt(growing_plot, id.vars=c("forest", "landcover"), measu
 coldgrowing_toplot$landcover <- factor(coldgrowing_toplot$landcover,
     levels = c('crop','grass', 'forest'),ordered = TRUE)
 #Growing_to_plat melted by Mean Annual Temperature
-growing_toplotMAT <- melt(growing_plot, id.vars="MAT", measure.vars=c("Ts_Air_min", "Ta_Air"))
+growing_toplotMAT <- melt(growing_plot, id.vars=c("MAT", "sitename"), measure.vars=c("Ts_Air_min", "Ta_Air"))
 #Dormant season (regular) : December, January, February
 dormant_toplot <- melt(dormant_plot, id.vars="forest", measure.vars=c("Ts_Air", "Ta_Air"))
 #Drought: July 2012
@@ -696,8 +696,9 @@ x8 <- ggplot(subset(coldgrowing_toplot, !is.na(landcover)), aes(landcover, value
   theme_classic()
 
 #Ask Kim abuot this one after my talk!
-x10 <- ggplot(growing_toplotMAT, aes(MAT, value, colour=variable))+
+x10 <- ggplot(growing_toplotMAT, aes(MAT, value, label=sitename, colour=variable))+
   geom_point(size=3)+
+     geom_text(hjust = 0, nudge_x = 0.02, angle=45, size=3)+
   scale_color_manual(values=c("red", "black"))+
   ylab("Delta T")+
   xlab("Site MAT")+
