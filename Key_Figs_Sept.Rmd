@@ -54,7 +54,7 @@ TAS_test <- crop(TAS, ext)
 #Do the kendall test
 #If you need to do it again...
 #kendall_raster <- raster.kendall(TAS_test, tau=TRUE, p.value=TRUE)
-#writeRaster(kendall_raster, "Temp_Kendall_US.tif")
+#writeRaster(kendall_raster, "Processed/Temp_Kendall_US.tif")
 kendall_raster <- raster("Processed/Temp_Kendall_US.tif")
 #Trying to center color ramp so white is at zero:
 pal <- colorRampPalette(c("blue","cadetblue1", "white", "indianred1", "red3"))
@@ -1029,22 +1029,32 @@ grid.arrange(x12, x13, ncol=2)
 #Herbaceous: code 0
 
 Historical_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1938.tif")
-Historical_LC[Historical_LC <8 | Historical_LC > 14] <-NA
-Historical_LC[Historical_LC>7 & Historical_LC<11] <-1
-Historical_LC[Historical_LC>10 & Historical_LC < 15] <-0
-plot(Historical_LC)
+Hist_LC_class<-reclassify(Historical_LC, c(-Inf, 7, NA,  8, 10, 1,  11, 14, 0, 15,Inf,NA))
+
 Later_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1992.tif")
-Later_LC[Later_LC <8 &Later_LC>14] <-NA
-Later_LC[Later_LC>7 & Later_LC<11] <-1
-Later_LC[Later_LC>10 & Later_LC<15] <-0
-plot(Later_LC)
-hist(Later_LC)
-Dif_LC <- Later_LC - Historical_LC
+Later_LC_class<-reclassify(Later_LC, c(-Inf, 7, NA,  8, 10, 1,  11, 14, 0, 15,Inf,NA))
+hist(Hist_LC_class)
+plot(Hist_LC_class)
+plot(Later_LC_class)
+
+#Historical_LC[Historical_LC <8 | Historical_LC > 14] <-NA
+#Historical_LC[Historical_LC>7 & Historical_LC<11] <-1
+#Historical_LC[Historical_LC>10 & Historical_LC < 15] <-0
+#Later_LC[Later_LC <8 &Later_LC>14] <-NA
+#Later_LC[Later_LC>7 & Later_LC<11] <-1
+#Later_LC[Later_LC>10 & Later_LC<15] <-0
+
+Dif_LC <- Later_LC_class - Historical_LC_class
 write.raster(Dif_LC, "Processed/Change_LC_FORESCE.tif")
+
 plot(Dif_LC)
 hist(Dif_LC)
 rat <- levels(Dif_LC[[1]])
 rat$landcover <- c('Reforestation', 'Deforestation', 'No Change')
 rat$class <- c()
 levelplot(Dif_LC, col.regions="green2red")
+
+#Changepoint input
+#Changepoint lat-longs
+
 ```
