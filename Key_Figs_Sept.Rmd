@@ -2,16 +2,19 @@
 title: "Key_Figs_Sept"
 output: html_document
 editor_options: 
-  chunk_output_type: console
+chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "greenbrown", "RColorBrewer","rasterVis", "gridExtra", "plyr", "gridBase", "devtools","dplyr", "lubridate", "maps", "maptools", "data.table", "geoelectrics", "ggpubr")
+#Setting working drive to Temp Projects folder, won't need absolute paths for 
+#Any other files. AND if I want to move it to the regular HD For example, I can just change the 'Volumes/G-RAID Thunderbolt 3/' portion. 
+
+knitr::opts_knit$set(root.dir = '/Volumes/G-RAID Thunderbolt 3/Temp_Project')
+Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "greenbrown", "RColorBrewer","rasterVis", "gridExtra", "plyr", "gridBase", "devtools","dplyr", "lubridate", "maps", "maptools", "data.table", "geoelectrics", "sp", "ggpubr", "marmap", "mapdata", "spatialEco")
 
 lapply(Packages, library, character.only = TRUE)
-rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
-sessionInfo()
+rasterOptions(tmpdir="/Volumes/Macintosh HD/tmp/Rtmp/", tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+06,maxmemory=1e+10)
 ```
 
 Key Figures for Septemeber 2019 on LST Mansucript. These figures are for Kim's talks as well as my own. 
@@ -19,12 +22,102 @@ Figure: Differences Between Surface Temperature and Air Temperature.
 Delta T = Ts- Ta such that Delta T is NEGATIVE when the surface is cooler than the air. 
 
 ```{r, warminghole_map, echo=FALSE}
+#Create bounding box out of extent of Diffs
+Diffs  <- brick("Processed/Ta_AquaTs_All.tif")
+e <- as(raster::extent(Diffs), "SpatialPolygons")
+proj4string(e) <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+#Boundary of the US
+ext1 <- extent(-125, -68, 23, 51)
+boundaries <- map('worldHires', fill=TRUE,
+                  xlim=ext1[1:2], ylim1=ext[3:4],
+                  plot=FALSE)
+
+IDs <- sapply(strsplit(boundaries$names, ":"), function(x) x[1])
+bPols <- map2SpatialPolygons(boundaries, IDs=IDs,
+                             proj4string=CRS(projection(greenbrown_test)))
+
+#Using University of Delaware Air Temperature & Precipitation
+# Data product accessed from: https://www.esrl.noaa.gov/psd/data/gridded/data.UDel_AirT_Precip.html
+#Open air temp file (0.5 degree)
+fname <- ("Other/air.mon.mean.v501.nc")
+#fname2 <- ("/Volumes/G-RAID Thunderbolt 3/Temp_Project/Other/air.mon.ltm.v501.nc")
+nc<-nc_open(fname)
+# Get a list of the NetCDF's R attributes:
+attributes(nc)$names
+# Get a list of the nc variable names.
+attributes(nc$var)$names
+### My variable is 2-m air temperature "t2m" ###
+TAS <- brick(fname, varname="air")
+#Crop to US extent
+ext <- extent(233, 290, 23, 51)
+TAS_test <- crop(TAS, ext)
+#Do the kendall test
+#If you need to do it again...
+#kendall_raster <- raster.kendall(TAS_test, tau=TRUE, p.value=TRUE)
+#writeRaster(kendall_raster, "Temp_Kendall_US.tif")
+kendall_raster <- raster("Processed/Temp_Kendall_US.tif")
+#Trying to center color ramp so white is at zero:
+pal <- colorRampPalette(c("blue","cadetblue1", "white", "indianred1", "red3"))
+#kendall_raster[kendall_raster < -0.00245] <- NA
+plot(kendall_raster, col=pal(10))
+
+#Trying with greenbrown
+#Figure 1a: Change over time
+#Can also test w/1 break (or 2)
+#I believe the default method (AAT) is the only method that can set multiple breakpoints 
+greenbrown_test <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=0, method="SeasonalAdjusted", mosum.pval=0.1)
+greenbrown_test1 <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=1, mosum.pval=0.1)
+greenbrown_test2 <- TrendRaster(TAS_test, start=c(1900,1), freq=12, breaks=2, mosum.pval=0.1)
+#Checking the trends when only looking at significant trends (is the length of the segment significant or the slope?)
+
+#Greenbrown test overall trend - max.pval = 0.1
+plot(greenbrown_test1)
+plot(TrendClassification(greenbrown_test, min.length=5, max.pval=0.1), col=pal(3))
+#max.pval = 0.3
+plot(TrendClassification(greenbrown_test, min.length=5, max.pval=0.5), col=pal(3))
+#STM for comparison
+plot(TrendClassification(greenbrown_test_stm, min.length=5, max.pval=0.5), col=pal(3))
+#Onebreakpoint
+plot(TrendClassification(greenbrown_test1, min.length=5, max.pval=0.5), col=pal(3))
+#Twobreakpoint
+plot(TrendClassification(greenbrown_test2, min.length=5, max.pval=0.1), col=pal(3))
+plot(greenbrown_test1[[2]], col=pal(10), main="Slope of Ta trend: 1900-present (Degrees C per year)")
+plot(greenbrown_test[[2]], col=pal(10), main="Slope of Ta trend: 1900-present (Degrees C per year)")
+#Change over time in terms of degrees C per 50 years
+temp_raster <- greenbrown_test[[2]]
+temp_raster_moresig <- temp_raster[[greenbrown_test$PvalSEG1 < 0.5]]
+#writeRaster(temp_raster,"Processed/Temp_Change_Map.tif")
+
+#Getting color ramp to diverge at zero
+temp_raster <- raster("Processed/Temp_Change_Map.tif")
+#Getting rid of that one weird spot in montana
+temp_raster[temp_raster < -0.029] <-NA
+#What's this for?
+devtools::source_gist('306e4b7e69c87b1826db')
+pal <- colorRampPalette(rev(brewer.pal(6, 'RdBu')))
+#Gotta fix this from the -360 again (with Mar package)
+# Switching from a raster to a matrix of class 'bathy'
+temp <- marmap::as.bathy(temp_raster)
+summary(temp)
+
+# Changing the relevant longitude
+names <- as.numeric(row.names(temp))
+names[names > 180] <- names[names > 180] - 360
+
+# Renaming the longitudes and switching back from a 'bathy' object to a raster
+rownames(temp) <- names
+temp_raster.modified <- as.raster(temp)
+while (!is.null(dev.list()))  dev.off()
+#png("/Users/mallory/Documents/Temp_Project/Fig1atest.png", width=4, height=4, units="in", res=300)
+p <- levelplot(temp_raster.modified*50, margin=F, col.regions=(rev(brewer.pal(6,"RdBu"))), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
+diverge0(p, ramp=pal)
+#dev.off()
 
 ```
 
 ```{r Diffs, echo=FALSE}
 #Get differences from Ta from Daymet - Ts from Aqua MODIS, generated by Key_Figures.Intermediate.R file
-Diffs  <- brick("/Users/mallory/Documents/Temp_Project/Ta_AquaTs_All.tif")
+Diffs  <- brick("/Volumes/G-RAID Thunderbolt 3/Temp_Project/Processed/Ta_AquaTs_All.tif")
 names(Diffs) <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 #Changing the sign so that negative means cooling, positive means warming
 Diffs2 <- -Diffs
@@ -33,7 +126,7 @@ cols <- (colorRampPalette(rev(brewer.pal(9,"RdBu"))))
 #Looks the best for plotting 
 my.at <- seq(-6,6,1)
 # create a level plot
-levelplot(Diffs2, at=my.at, main="Difference between Surface Temperature and Air Temperature (Ts-Ta)", col.regions=(cols))
+levelplot(Diffs2, at=my.at, main="ΔT (Ts-Ta)", col.regions=(cols))
 #This adds the legend label, from package "geoelectrics"
 levelplotLegendLabel(legend.lab = "ΔT",
   unit = "°C")
@@ -44,7 +137,7 @@ levelplotLegendLabel(legend.lab = "ΔT",
 
 <!-- ```{r Landcover, echo=FALSE} -->
 <!-- #Opening lndcvi project map -->
-<!-- LC_proj <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif") -->
+<!-- LC_proj <- raster("/Users/malbarn/Documents/LST_DataTemp_Project/landcvi020l_nt00016/landcover_proj.tif") -->
 <!-- ext <- extent(Diffs2) -->
 <!-- LC_crop <- crop(LC_proj, ext) -->
 <!-- #Create 3 masks:  -->
@@ -114,8 +207,8 @@ levelplotLegendLabel(legend.lab = "ΔT",
 #df$meanDec <- as.numeric(cellStats(Dec_Diff, stat='mean', na.rm=TRUE))
 #df$sdDec <- as.numeric(cellStats(Dec_Diff, stat='sd', na.rm=TRUE))
 
-#write.csv(df, "/Users/mallory/Documents/Temp_Project/APPEARS_LST/Aqua_for_plotting.csv")
-df <- read.csv("/Users/mallory/Documents/Temp_Project/APPEARS_LST/Aqua_for_plotting.csv")
+#write.csv(df, "/Users/malbarn/Documents/LST_Data/Aqua_for_plotting.csv")
+df <- read.csv("/Users/malbarn/Documents/LST_Data/Aqua_for_plotting.csv")
 
 dft <- df[,c("Month", "meanUrban", "meanCrop", "meanFo")]
 dfm <- melt(dft, id="Month")
@@ -159,7 +252,7 @@ ff
 ```
 
 ```{r LinegraphsLandsat, echo=FALSE}
-Landcover <- raster("/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NCLD_2008_processed.tif")
+Landcover <- raster("/Users/malbarn/Documents/LST_Data/NCLD_2008_processed.tif")
 ext <- extent(Diffs2)
 Landsat_crop <- crop(Landcover, ext)
 #Create 3 masks: 
@@ -224,8 +317,8 @@ dfland$meanDecland <- as.numeric(cellStats(Decland_Diff, stat='mean', na.rm=TRUE
 dfland$sdDecland <- as.numeric(cellStats(Decland_Diff, stat='sd', na.rm=TRUE))
 dfland$seDecland <- (dfland$sdDecland)/(sqrt(ncell(Decland_Diff)))
 
-#write.csv(dfland, "/Users/mallory/Documents/Temp_Project/APPEARS_LST/Aqua_Landsat_plotting.csv")
-df_landsat <- read.csv("/Users/mallory/Documents/Temp_Project/APPEARS_LST/Aqua_Landsat_plotting.csv")
+#write.csv(dfland, "/Users/malbarn/Documents/LST_DataTemp_Project/APPEARS_LST/Aqua_Landsat_plotting.csv")
+df_landsat <- read.csv("/Users/malbarn/Documents/LST_DataTemp_Project/APPEARS_LST/Aqua_Landsat_plotting.csv")
 #Thisis for the legend
 dft <- df_landsat[,c("Month", "meanHerbland", "meanCropland", "meanFoland")]
 dfm <- melt(dft, id="Month")
@@ -277,7 +370,7 @@ qq
 
 ```{r AirTemps, echo=FALSE}
 #Just TA (how does it vary by land cover type)-----
-Ta <- brick("/Users/mallory/Documents/Temp_Project/Ta_All.tif")
+Ta <- brick("/Users/malbarn/Documents/LST_DataTemp_Project/Ta_All.tif")
 # create a level plot - plot
 #Recreating figure 4 (by land cover type) but for air temperature 
 FomaskTa <- resample(Fomask, Ta, method="bilinear")
@@ -291,8 +384,8 @@ Fo_Ta <- mask(Ta, FomaskTa)
 dfTa <- data.frame(Month=c(1:12))
 dfTa$Month <- as.numeric(dfTa$Month)
 dfTa$meanUrban <- as.numeric(cellStats(Urban_Ta, stat='mean', na.rm=TRUE))
-dfTa$sdUrban <- as.numeric(cellStats(Urban_Ta, stat='sd', na.rm=TRUE))
-dfTa$seUrban <- (df$sdUrban)/(sqrt(ncell(Urban_Ta)))
+#dfTa$sdUrban <- as.numeric(cellStats(Urban_Ta, stat='sd', na.rm=TRUE))
+#dfTa$seUrban <- (df$sdUrban)/(sqrt(ncell(Urban_Ta)))
 dfTa$meanCrop <- as.numeric(cellStats(Crop_Ta, stat='mean', na.rm=TRUE))
 dfTa$sdCrop <- as.numeric(cellStats(Crop_Ta, stat='sd', na.rm=TRUE))
 dfTa$seCrop <- (df$sdCrop)/(sqrt(ncell(Crop_Ta)))
@@ -417,7 +510,7 @@ mean_na <- function(x) {
 }
 
 
-#Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NCLD_2008_processed.tif")
+#Landcover_Rast <- raster("/Users/malbarn/Documents/LST_DataTemp_Project/NLCD_LandCover/NCLD_2008_processed.tif")
 #Need to re-code raster. Herbaceous and cropland= "0" and forest = "1". Everything else zero. I think taking the mean of the buffer this way should result in the proper % mature forest category I want. 
 
 # Recode NCLD raster according to data types here: https://www.mrlc.gov/data/legends/national-land-cover-database-2016-nlcd2016-legend
@@ -425,8 +518,8 @@ mean_na <- function(x) {
 #LC <- reclassify(Landcover_Rast, c(-Inf,41,NA, 40,43,1, 71,74,0, 81,82,0, 43,71,NA, 74,81, NA, 82,Inf,NA))
 #plot(LC)
 #barplot(LC)
-#writeRaster(LC, "/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NCLD_Mask.tif")
-Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NCLD_Mask.tif")
+#writeRaster(LC, "/Users/malbarn/Documents/LST_DataTemp_Project/NLCD_LandCover/NCLD_Mask.tif")
+Landcover_Rast <- raster("/Users/malbarn/Documents/LST_Data/NCLD_Mask.tif")
 
 #All site points
 Bo1 <- cbind(-88.2904, 40.0062)
@@ -506,7 +599,7 @@ Prin_Temps$sitename <- "Prin"
 sitelist <- list(Bo1_Temps, Cav_Temps, Chr_Temps, Dk1_Temps,Dk2_Temps, Goo_Temps, Mms_Temps, Nc2_Temps, Orv_Temps, Barc_Temps, Dsny_Temps, Flnt_Temps, Jerc_Temps, Osbs_Temps, Sugg_Temps, Dela_Temps, Leno_Temps, Mayf_Temps, Tall_Temps, Blue_Temps, Clbj_Temps, Oaes_Temps, Prin_Temps)
 
 Writeout <- bind_rows(sitelist)
-#write.csv(Writeout, "/Users/mallory/Documents/Temp_Project/09072019_all_files_daily.csv")
+#write.csv(Writeout, "/Users/malbarn/Documents/LST_DataTemp_Project/09072019_all_files_daily.csv")
 
 #Barc: Shrub or Forest - aquatic
 #Blue: Grassland (too far west? In Oaklahoma)
@@ -566,10 +659,10 @@ Format_plot_drought <- function(x){
   return(y)
 }
 
-To_Plot<- read.csv("/Users/mallory/Documents/Temp_Project/090719_Forplottingmoneyfig.csv")
+To_Plot<- read.csv("/Users/malbarn/Documents/LST_Data/090719_Forplottingmoneyfig.csv")
 #For when it isn't already saved (but it is)
 #To_Plot <- do.call("rbind", lapply(sitelist, Format_plot_temps))
-#write.csv(To_Plot, "/Users/mallory/Documents/Temp_Project/090719_Forplottingmoneyfig.csv")
+#write.csv(To_Plot, "/Users/malbarn/Documents/LST_DataTemp_Project/090719_Forplottingmoneyfig.csv")
 
 levels(To_Plot$sitename)
 head(To_Plot)
@@ -765,16 +858,16 @@ hh <- ggplot(df, aes(x=Month, group=1)) +
 
 
 ```{r MoneyFig_clouds, echo=FALSE}
-Landcover_Rast <- raster("/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NCLD_Mask.tif")
-Diffs  <- brick("/Users/mallory/Documents/Temp_Project/Ta_AquaTs_All.tif")
+Landcover_Rast <- raster("/Users/malbarn/Documents/LST_Data/NCLD_Mask.tif")
+Diffs  <- brick("/Users/malbarn/Documents/LST_Data/Ta_AquaTs_All.tif")
 names(Diffs) <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 #Changing the sign so that negative means cooling, positive means warming
 Diffs2 <- -Diffs
 
 Monthly_Ta_Ts <- function(year){
-  filenamelst <- paste0("/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_", year, ".tif", sep="")
-  filenamedaymet1 <- paste0("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmax_monavg_", year, "_na.tif")
-  #filenamedaymet2 <- paste0("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmin_monavg_", year, "_na.tif")
+  filenamelst <- paste0("/Users/malbarn/Documents/LST_DataTemp_Project/MODIS_AquaLST_", year, ".tif", sep="")
+  filenamedaymet1 <- paste0("/Users/malbarn/Documents/LST_DataTemp_Project/Daymet/daymet_v3_tmax_monavg_", year, "_na.tif")
+  #filenamedaymet2 <- paste0("/Users/malbarn/Documents/LST_DataTemp_Project/Daymet/daymet_v3_tmin_monavg_", year, "_na.tif")
   LST <- stack(filenamelst)
   daymet <- stack(filenamedaymet1)
   #Tmin <- stack(filenamedaymet2)
