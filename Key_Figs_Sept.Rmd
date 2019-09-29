@@ -1013,5 +1013,30 @@ grid.arrange(x12, x13, ncol=2)
 ```
 
 ```{r Lily, echo=FALSE}
+#Going to try instead to code sites by maps from 1992 vs. 1938. There will be 2 categories, 'reforested', 'deforested', and 'no change'. Then, I will run the change 
+#Point analyses and Lily's key figure for these categories (instead of Urban, Crop, and Forest), and see what the results look like. 
+
+#1 Recode land cover maps
+#Categories (checked all): 
+#0-no values,1-water/coastline, 2- urban (checked), 3-5 no pixels, 6 - mining, 7- barren, 8- Deciduous, 9 - evergreen, 10- Mixed, 11 - grassland, 12 - shrubland, 13-ag, 14-hay, 15 - herb wetland, 16 - woody wetland, 17 - ice/snow
+
+#Coding raster: 
+#16 is woody wetland and #15 is herbaceous wetland. Not sure if I should include.
+# Forest: values = 8, 9, 10, 16 
+# Herbaceous: values = 11, 13, 14, 15
+
+#Forests: code 1
+#Herbaceous: code 0
+
+Historical_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1938.tif")
+Historical_LC[Historical_LC <8 | Historical_LC > 15 | Historical_LC==12] <-NA
+Historical_LC[Historical_LC==8 | Historical_LC==9 | Historical_LC==10 | Historical_LC ==16] <-1
+Historical_LC[Historical_LC==11 | Historical_LC==12 | Historical_LC ==13 | Historical_LC==15] <-0
+plot(Historical_LC)
+Later_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1992.tif")
+Later_LC[Later_LC <8 | Later_LC > 15 | Later_LC==12] <-NA
+Later_LC[Later_LC==8 | Later_LC==9 | Later_LC==10 | Later_LC ==16] <-1
+Later_LC[Later_LC==11 | Later_LC==12 | Later_LC ==13 | Later_LC==15] <-0
+plot(Later_LC)
 
 ```
