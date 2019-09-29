@@ -1029,30 +1029,31 @@ grid.arrange(x12, x13, ncol=2)
 #Herbaceous: code 0
 
 Historical_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1938.tif")
-Hist_LC_class<-reclassify(Historical_LC, c(-Inf, 7, NA,  8, 10, 1,  11, 14, 0, 15,Inf,NA))
+extent(Historical_LC)
+e2 <- extent(300000, 2200000, 177285, 2500000)
+Historical_LC <- crop(Historical_LC, e2)
+Historical_LC[Historical_LC <8 | Historical_LC > 14] <-NA
+Historical_LC[Historical_LC>7 & Historical_LC<11] <-1
+Historical_LC[Historical_LC>10 & Historical_LC < 15] <-0
+hist(Historical_LC)
 
 Later_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1992.tif")
-Later_LC_class<-reclassify(Later_LC, c(-Inf, 7, NA,  8, 10, 1,  11, 14, 0, 15,Inf,NA))
-hist(Hist_LC_class)
-plot(Hist_LC_class)
-plot(Later_LC_class)
+Later_LC <- crop(Later_LC, e2)
+Later_LC[Later_LC <8 | Later_LC>14] <-NA
+Later_LC[Later_LC>7 & Later_LC<11] <-1
+Later_LC[Later_LC>10 & Later_LC<15] <-0
+hist(Later_LC)
 
-#Historical_LC[Historical_LC <8 | Historical_LC > 14] <-NA
-#Historical_LC[Historical_LC>7 & Historical_LC<11] <-1
-#Historical_LC[Historical_LC>10 & Historical_LC < 15] <-0
-#Later_LC[Later_LC <8 &Later_LC>14] <-NA
-#Later_LC[Later_LC>7 & Later_LC<11] <-1
-#Later_LC[Later_LC>10 & Later_LC<15] <-0
+#Couldn't get this to work previously
+#Later_LC_class<-reclassify(Later_LC, c(-Inf, 7, NA,  8, 10, 1,  11, 14, 0, 15,Inf,NA))
 
-Dif_LC <- Later_LC_class - Historical_LC_class
-write.raster(Dif_LC, "Processed/Change_LC_FORESCE.tif")
-
+Dif_LC <- Later_LC - Historical_LC
 plot(Dif_LC)
-hist(Dif_LC)
-rat <- levels(Dif_LC[[1]])
-rat$landcover <- c('Reforestation', 'Deforestation', 'No Change')
-rat$class <- c()
-levelplot(Dif_LC, col.regions="green2red")
+writeRaster(Dif_LC, "Processed/Change_LC_FORESCE.tif")
+Dif_LC <- raster("Processed/Change_LC_FORESCE.tif")
+levels(Dif_LC)=data.frame(ID=-1:1, code=c('Deforest', 'Nochange', 'Reforest'))
+levelplot(Dif_LC, col.regions=c('red', 'white', 'green'))  
+
 
 #Changepoint input
 #Changepoint lat-longs
