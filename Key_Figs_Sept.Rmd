@@ -14,7 +14,7 @@ knitr::opts_knit$set(root.dir = '/Volumes/G-RAID Thunderbolt 3/Temp_Project')
 Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "greenbrown", "RColorBrewer","rasterVis", "gridExtra", "plyr", "gridBase", "devtools","dplyr", "lubridate", "maps", "maptools", "data.table", "geoelectrics", "sp", "ggpubr", "marmap", "mapdata", "spatialEco")
 
 lapply(Packages, library, character.only = TRUE)
-rasterOptions(tmpdir="/Volumes/Macintosh HD/tmp/Rtmp/", tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+06,maxmemory=1e+10)
+rasterOptions(tmpdir="/Volumes/Macintosh HD/tmp/Rtmp/", tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+06,maxmemory=1e+09)
 ```
 
 Key Figures for Septemeber 2019 on LST Mansucript. These figures are for Kim's talks as well as my own. 
@@ -1022,21 +1022,29 @@ grid.arrange(x12, x13, ncol=2)
 
 #Coding raster: 
 #16 is woody wetland and #15 is herbaceous wetland. Not sure if I should include.
-# Forest: values = 8, 9, 10, 16 
-# Herbaceous: values = 11, 13, 14, 15
+# Forest: values = 8, 9, 10 
+# Herbaceous: values = 11, 12, 13, 14
 
 #Forests: code 1
 #Herbaceous: code 0
 
 Historical_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1938.tif")
-Historical_LC[Historical_LC <8 | Historical_LC > 15 | Historical_LC==12] <-NA
-Historical_LC[Historical_LC==8 | Historical_LC==9 | Historical_LC==10 | Historical_LC ==16] <-1
-Historical_LC[Historical_LC==11 | Historical_LC==12 | Historical_LC ==13 | Historical_LC==15] <-0
+Historical_LC[Historical_LC <8 | Historical_LC > 14] <-NA
+Historical_LC[Historical_LC>7 & Historical_LC<11] <-1
+Historical_LC[Historical_LC>10 & Historical_LC < 15] <-0
 plot(Historical_LC)
 Later_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1992.tif")
-Later_LC[Later_LC <8 | Later_LC > 15 | Later_LC==12] <-NA
-Later_LC[Later_LC==8 | Later_LC==9 | Later_LC==10 | Later_LC ==16] <-1
-Later_LC[Later_LC==11 | Later_LC==12 | Later_LC ==13 | Later_LC==15] <-0
+Later_LC[Later_LC <8 &Later_LC>14] <-NA
+Later_LC[Later_LC>7 & Later_LC<11] <-1
+Later_LC[Later_LC>10 & Later_LC<15] <-0
 plot(Later_LC)
-
+hist(Later_LC)
+Dif_LC <- Later_LC - Historical_LC
+write.raster(Dif_LC, "Processed/Change_LC_FORESCE.tif")
+plot(Dif_LC)
+hist(Dif_LC)
+rat <- levels(Dif_LC[[1]])
+rat$landcover <- c('Reforestation', 'Deforestation', 'No Change')
+rat$class <- c()
+levelplot(Dif_LC, col.regions="green2red")
 ```
