@@ -7,9 +7,10 @@
 #Datasets in here: 
 #1: MODIS LST - 8-day -> 2000-2017
 #2: Daymet Air Temperature - monthly -> 1980-2017 
+setwd("/Volumes/G-RAID Thunderbolt 3/Temp_Project/")
 
 #1) Creating Monthly LST files for years 2000 - 2017 from MODIS LST Data -------------
-setwd("/Users/mallory/Documents/Temp_Project/APPEARS_LST/Aqua/")
+setwd("/Raw/Remote_Sensing/Aqua_8day_LST/")
 mean_na <- function(x) {
   mean(x,na.rm=T)
 }
@@ -83,68 +84,68 @@ Monthly_LST <- function(year){
 }
 
 LST_2001 <- Monthly_LST(2001)
-writeRaster(LST_2001, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2001.tif")
-#plot(brick("/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2001.tif"))
+writeRaster(LST_2001, "Processed/MODIS_AquaLST_2001.tif")
+#plot(brick("Processed/MODIS_AquaLST_2001.tif"))
 
 LST_2002 <- Monthly_LST(2002)
-writeRaster(LST_2002, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2002.tif")
+writeRaster(LST_2002, "Processed/MODIS_AquaLST_2002.tif")
 
 LST_2003 <- Monthly_LST(2003)
-writeRaster(LST_2003, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2003.tif")
+writeRaster(LST_2003, "Processed/MODIS_AquaLST_2003.tif")
 
 LST_2004 <- Monthly_LST(2004)
-writeRaster(LST_2004, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2004.tif")
+writeRaster(LST_2004, "Processed/MODIS_AquaLST_2004.tif")
 
 LST_2005 <- Monthly_LST(2005)
-writeRaster(LST_2005, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2005.tif")
+writeRaster(LST_2005, "Processed/MODIS_AquaLST_2005.tif")
 
 LST_2006 <- Monthly_LST(2006)
-writeRaster(LST_2006, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2006.tif")
+writeRaster(LST_2006, "Processed/MODIS_AquaLST_2006.tif")
 
 LST_2007 <- Monthly_LST(2007)
-writeRaster(LST_2007, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2007.tif")
+writeRaster(LST_2007, "Processed/MODIS_AquaLST_2007.tif")
 
 LST_2008 <- Monthly_LST(2008)
-writeRaster(LST_2008, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2008.tif")
+writeRaster(LST_2008, "Processed/MODIS_AquaLST_2008.tif")
 
 LST_2009 <- Monthly_LST(2009)
-writeRaster(LST_2009, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2009.tif")
+writeRaster(LST_2009, "Processed/MODIS_AquaLST_2009.tif")
 
 LST_2010 <- Monthly_LST(2010)
-writeRaster(LST_2010, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2010.tif")
+writeRaster(LST_2010, "Processed/MODIS_AquaLST_2010.tif")
 
 LST_2011 <- Monthly_LST(2011)
-writeRaster(LST_2011, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2011.tif")
+writeRaster(LST_2011, "Processed/MODIS_AquaLST_2011.tif")
 
 LST_2012 <- Monthly_LST(2012)
-writeRaster(LST_2012, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2012.tif")
+writeRaster(LST_2012, "Processed/MODIS_AquaLST_2012.tif")
 
 LST_2013 <- Monthly_LST(2013)
-writeRaster(LST_2013, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2013.tif")
+writeRaster(LST_2013, "Processed/MODIS_AquaLST_2013.tif")
 
 LST_2014 <- Monthly_LST(2014)
-writeRaster(LST_2014, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2014.tif")
+writeRaster(LST_2014, "Processed/MODIS_AquaLST_2014.tif")
 
 LST_2015 <- Monthly_LST(2015)
-writeRaster(LST_2015, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2015.tif")
+writeRaster(LST_2015, "Processed/MODIS_AquaLST_2015.tif")
 
 LST_2016 <- Monthly_LST(2016)
-writeRaster(LST_2016, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2016.tif")
+writeRaster(LST_2016, "Processed/MODIS_AquaLST_2016.tif")
 
 LST_2017 <- Monthly_LST(2017)
-writeRaster(LST_2017, "/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2017.tif")
+writeRaster(LST_2017, "Processed/MODIS_AquaLST_2017.tif")
 
 #2) Creating Ta-Ts maps from MODIS and Daymet Data --------------------------
-
+setwd("/Volumes/G-RAID Thunderbolt 3/Temp_Project/")
 #Increase raster chunk size for this 
 rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
 
 #Function per year that returns: Ta-Ts (for all 12 months)
 #Join up LST and daymet: crop daymet and reproject to proper extent
 Monthly_Ta_Ts <- function(year){
-  filenamelst <- paste0("/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_", year, ".tif", sep="")
-  filenamedaymet1 <- paste0("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmax_monavg_", year, "_na.tif")
-  #filenamedaymet2 <- paste0("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmin_monavg_", year, "_na.tif")
+  filenamelst <- paste0("Processed/MODIS_AquaLST_", year, ".tif", sep="")
+  filenamedaymet1 <- paste0("Raw/Daymet/daymet_v3_tmax_monavg_", year, "_na.tif")
+  #filenamedaymet2 <- paste0("Raw/Daymet/daymet_v3_tmin_monavg_", year, "_na.tif")
   LST <- stack(filenamelst)
   daymet <- stack(filenamedaymet1)
   #Tmin <- stack(filenamedaymet2)
@@ -341,13 +342,13 @@ Diffs<- stack(Jan_Diffs_Mean, Feb_Diffs_Mean, Mar_Diffs_Mean, Apr_Diffs_Mean, Ma
               Nov_Diffs_Mean, Dec_Diffs_Mean)
 
 names(Diffs) <- c("Jan", "Feb", "Mar","Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct","Nov", "Dec")
-writeRaster(Diffs, "/Users/mallory/Documents/Temp_Project/Ta_AquaTs_All.tif")
+writeRaster(Diffs, "Processed/Ta_AquaTs_All.tif")
 
 
 #3) Creating mean monthly Ta rasters --------------
 
 Monthly_Ta <- function(year){
-  filenamedaymet1 <- paste0("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmax_monavg_", year, "_na.tif")
+  filenamedaymet1 <- paste0("/Raw/Daymet/daymet_v3_tmax_monavg_", year, "_na.tif")
   daymet <- stack(filenamedaymet1)
   #Crop
   e2 <- extent(-40000, 2300000, -1600000, 400000)
@@ -460,11 +461,11 @@ Ta<- stack(Jan_Ta_Mean, Feb_Ta_Mean, Mar_Ta_Mean, Apr_Ta_Mean, May_Ta_Mean,
            Nov_Ta_Mean, Dec_Ta_Mean)
 names(Ta) <- c("Jan", "Feb", "Mar","Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct","Nov", "Dec")
 plot(Ta)
-writeRaster(Ta, "/Users/mallory/Documents/Temp_Project/Ta_All.tif")
+writeRaster(Ta, "/ProcessedTa_All.tif")
 
 #4) Blob and buffer analyses 
 
-daymet <- brick("/Users/mallory/Documents/Temp_Project/Daymet/daymet_v3_tmax_monavg_2014_na.tif")
+daymet <- brick("/Raw/Daymet/daymet_v3_tmax_monavg_2014_na.tif")
 e2 <- extent(-40000, 2300000, -1600000, 400000)
 print("initial crop")
 cropped <- crop(daymet, e2)
@@ -472,7 +473,7 @@ cropped <- crop(daymet, e2)
 print("projecting raster")
 #Project raster to lat/long coordinates
 Ta_2014 <- projectRaster(cropped, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
-LST_2014 <- brick("/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2014.tif")
+LST_2014 <- brick("/Processed/MODIS_AquaLST_2014.tif")
 plot(Fomask) + spplot(sites_sub_utm, # add a layer of points
                       zcol = "period", 
                       cex = .6,
