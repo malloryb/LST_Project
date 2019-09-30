@@ -720,12 +720,137 @@ levelplot(Dif_LC, col.regions=c('red', 'white', 'green'))
 #Need to reproject next
 
 #Changepoint input
-#Need to use nearest neighbor for reprojection sine categorical variables - see here: https://stackoverflow.com/questions/15634882/why-the-values-of-my-raster-map-change-when-i-project-it-to-a-new-crs-projectra
+#Need to use nearest neighbor for reprojection since categorical variables - see here: https://stackoverflow.com/questions/15634882/why-the-values-of-my-raster-map-change-when-i-project-it-to-a-new-crs-projectra
 Diffs_reproj <- projectRaster(Dif_LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
 writeRaster(Diffs_reproj, "Processed/Change_LC_proj.tif")
+
 hist(Diffs_reproj)
 levels(Diffs_reproj)=data.frame(ID=-1:1, code=c('Deforest', 'Nochange', 'Reforest'))
 levelplot(Diffs_reproj, col.regions=c('red', 'white', 'green'))
+
+#Starting here...-------------------
 #Instead of forest, crop and urban, each site will be one of three categories. 'Reforest', 'Deforest', and 'Nochange'
+Diffs_reproj <- raster("Processed/Change_LC_proj.tif")
 merged <- read.csv("Processed/MergedWeather.csv")
-str(merged)
+
+xy <- cbind(merged$LONG, merged$LAT)
+#Absmax, from here: https://stackoverflow.com/questions/24652771/finding-the-maximum-absolute-value-whilst-preserving-or-symbol
+absmax <- function(x) { x[which.max( abs(x) )][1]}
+LC_Change <- raster::extract(Diffs_reproj, xy, fun=absmax, buffer=600, df=T)
+colnames(merged)[colnames(merged)=="X"] <- "ID"
+all_reforest <- merge(merged, LC_Change, by="ID")
+reforesting <- subset(all_reforest, Change_LC_proj==1)
+nochange <- subset(all_reforest, Change_LC_proj==0)
+deforesting <- subset(all_reforest, Change_LC_proj==-1)
+
+#Plot TMax by group
+reforesting_sites <- as.data.frame(t(subset(Tmax_t, names %in% reforesting$names)))
+reforesting_sites$year <- c(1901:2018)
+reforesting_sites$type <- "reforest"
+
+nochange_sites <- as.data.frame(t(subset(Tmax_t, names %in% nochange$names)))
+nochange_sites$year <- c(1901:2018)
+nochange_sites$type <- "nochange"
+
+
+deforesting_sites <- as.data.frame(t(subset(Tmax_t, names %in% deforesting$names)))
+deforesting_sites$year <- c(1901:2018)
+deforesting_sites$type <- "deforest"
+
+historic_toplotreforest <- melt(reforesting_sites, id.vars=c("year", "type"))
+historic_toplotdeforest <- melt(deforesting_sites, id.vars=c("year", "type"))
+historic_toplotnochange <- melt(nochange_sites, id.vars=c("year", "type"))
+
+historic_toplot <- rbind(historic_toplotreforest, historic_toplotdeforest, historic_toplotnochange)
+#historic_toplot <- rbind(historic_toplotreforest, historic_toplotnochange)
+historic_toplot$year <- as.numeric(historic_toplot$year)
+historic_toplot$value <- as.numeric(historic_toplot$value)
+historic_toplot$type <- as.factor(historic_toplot$type)
+historic_toplot
+str(historic_toplot)
+
+historic_toplot_post1960 <- subset(historic_toplot, year > 1945)
+
+#OK not great, but what about when we subset by latitude (above) 
+ggplot(historic_toplot, aes(x=year, y=value, colour=type, group=type)) +
+  geom_smooth(method="loess")+
+  labs(title="Air temperature trend by land cover type", 
+       y="Temperature Anomaly (Z score)", 
+       x="Year")+
+  theme_classic()+
+  ylim(-2,2)
+
+ggplot(historic_toplot_post1960, aes(x=year, y=value, colour=type, group=type)) +
+  geom_smooth(method="loess")+
+  labs(title="Air temperature trend by land cover type", 
+       y="Temperature Anomaly (Z score)", 
+       x="Year")+
+  theme_classic()+
+  ylim(-2,2)
+
+
+#Try with forest height map ---------------
+mean_na <- function(x) {
+  mean(x,na.rm=T)
+}
+
+Forest_age_2019 <- raster("Raw/Other/Forest_Age_Conus.tif")
+Fo_crop <- crop(Forest_age_2019, Diffs_reproj)
+Fo_crop[Fo_crop < 18] <- NA
+
+#Let's try: <40, 40-75, 80+ (?), and then NOforest
+Fo_age <- raster::extract(Fo_crop, xy, fun=mean_na, buffer=1000, df=T)
+colnames(merged)[colnames(merged)=="X"] <- "ID"
+all_foage <- merge(merged, Fo_age, by="ID")
+
+noforest <- subset(all_foage, is.na(Forest_Age_Conus))
+youngforest <- subset(all_foage, Change_LC_proj==0)
+midforest <- subset(all_foage, Change_LC_proj==-1)
+oldforest <- subset(all_foage, Change_LC_proj==-1)
+
+#Plot TMax by group
+reforesting_sites <- as.data.frame(t(subset(Tmax_t, names %in% reforesting$names)))
+reforesting_sites$year <- c(1901:2018)
+reforesting_sites$type <- "reforest"
+
+nochange_sites <- as.data.frame(t(subset(Tmax_t, names %in% nochange$names)))
+nochange_sites$year <- c(1901:2018)
+nochange_sites$type <- "nochange"
+
+
+deforesting_sites <- as.data.frame(t(subset(Tmax_t, names %in% deforesting$names)))
+deforesting_sites$year <- c(1901:2018)
+deforesting_sites$type <- "deforest"
+
+historic_toplotreforest <- melt(reforesting_sites, id.vars=c("year", "type"))
+historic_toplotdeforest <- melt(deforesting_sites, id.vars=c("year", "type"))
+historic_toplotnochange <- melt(nochange_sites, id.vars=c("year", "type"))
+
+historic_toplot <- rbind(historic_toplotreforest, historic_toplotdeforest, historic_toplotnochange)
+#historic_toplot <- rbind(historic_toplotreforest, historic_toplotnochange)
+historic_toplot$year <- as.numeric(historic_toplot$year)
+historic_toplot$value <- as.numeric(historic_toplot$value)
+historic_toplot$type <- as.factor(historic_toplot$type)
+historic_toplot
+str(historic_toplot)
+
+historic_toplot_post1960 <- subset(historic_toplot, year > 1945)
+
+#OK not great, but what about when we subset by latitude (above) 
+ggplot(historic_toplot, aes(x=year, y=value, colour=type, group=type)) +
+  geom_smooth(method="loess")+
+  labs(title="Air temperature trend by land cover type", 
+       y="Temperature Anomaly (Z score)", 
+       x="Year")+
+  theme_classic()+
+  ylim(-2,2)
+
+ggplot(historic_toplot_post1960, aes(x=year, y=value, colour=type, group=type)) +
+  geom_smooth(method="loess")+
+  labs(title="Air temperature trend by land cover type", 
+       y="Temperature Anomaly (Z score)", 
+       x="Year")+
+  theme_classic()+
+  ylim(-2,2)
+
+
