@@ -9,8 +9,9 @@ library(plyr)
 library(dplyr)
 library(reshape2)
 library(stringr)
+setwd("/Volumes/G-RAID Thunderbolt 3/Temp_Project")
 #Load file for plotting
-df <- read.csv("/Users/mallory/Documents/Temp_Project/APPEARS_LST/for_plotting.csv")
+df <- read.csv("/Processed/for_plotting.csv")
 str(df)
 #Melt mean values
 dft <- df[,c("Month", "meanUrban", "meanCrop2", "meanFo")]
@@ -79,9 +80,9 @@ ggsave("Land_Cover_Change.pdf")
 
 
 #--------- Lily Data
-allmeans <- read.csv("/Users/mallory/Documents/Temp_Project/Lily_Data/allmeans200mupdateddata.csv")
-fomeans <- read.csv("/Users/mallory/Documents/Temp_Project/Lily_Data/allmeans200mupdateddata.csv")
-agmeans <- read.csv("/Users/mallory/Documents/Temp_Project/Lily_Data/allmeans200mupdateddata.csv")
+allmeans <- read.csv("/Lily_Data/allmeans200mupdateddata.csv")
+fomeans <- read.csv("/Lily_Data/allmeans200mupdateddata.csv")
+agmeans <- read.csv("/Lily_Data/allmeans200mupdateddata.csv")
 
 allmeans$category <- "all"
 agmeans$category <- "ag"
@@ -95,7 +96,7 @@ alltoplot
 
 #---------------Remaking Lily's figs
 #Lookup table first (T_site_lookup will work for Tmax,Tmax, and Tmin)
-Tavg_site <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", nrows=3, header=T)
+Tavg_site <- read.csv("/Raw/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", nrows=3, header=T)
 colnames(Tavg_site)[1] <- "Type"
 Tavg_site <- as.data.frame(t(Tavg_site))
 #If rowmax is <0.5, then LC will be "NA"
@@ -113,10 +114,10 @@ head(Tavg_site)
 T_site_lookup <- cbind(names = rownames(Tavg_site), Tavg_site)
 rownames(T_site_lookup) <- c()
 T_site_lookup <- as.data.frame(T_site_lookup[c(1,5)])
-write.csv(T_site_lookup, "/Users/mallory/Documents/Temp_Project/Lily_Data/Lookup.csv")
+write.csv(T_site_lookup, "/Lily_Data/Lookup.csv")
 #Tavg---
-headers <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", header = F, nrows=1, as.is=T)
-Tavg <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
+headers <- read.csv("/Raw/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", header = F, nrows=1, as.is=T)
+Tavg <- read.csv("/Raw/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
 names(Tavg) <- headers
 Year <- Tavg$Year
 
@@ -147,9 +148,9 @@ names(For_all) <- c("year", "y")
 Ag_all<- Tavg[c(1,189)]
 
 names(Ag_all) <- c("year", "y")
-write.csv(All, "/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tavg_Allsite.csv")
-write.csv(For_all, "/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tavg_Forsite.csv")
-write.csv(Ag_all, "/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tavg_Agsite.csv")
+write.csv(All, "/Raw/Weather Station/CPModel/data/Tavg_Allsite.csv")
+write.csv(For_all, "/Raw/Weather Station/CPModel/data/Tavg_Forsite.csv")
+write.csv(Ag_all, "/Raw/Weather Station/CPModel/data/Tavg_Agsite.csv")
 
 For_all$x <- Ag_all$Agmean
 names(For_all) <- c("year", "forest", "ag")
@@ -158,7 +159,7 @@ toplot5 <- melt(For_all, id.vars = "year", measure.vars = c("forest", "ag"))
 ggplot(toplot5, aes(x=year, y=value, colour=variable))+
   geom_line()
 #Tmax---
-Tmax<- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/TMAX_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
+Tmax<- read.csv("/Raw/Weather Station/TMAX_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
 names(Tmax) <- headers
 Year <- Tmax$Year
 
@@ -184,12 +185,12 @@ For_allmax <- Tmax[c(1,188)]
 names(For_allmax) <- c("year", "y")
 Ag_allmax<- Tmax[c(1,189)]
 names(Ag_allmax) <- c("year", "y")
-write.csv(Allmax, "/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tmax_Allsite.csv")
-write.csv(For_allmax, "/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tmax_Forsite.csv")
-write.csv(Ag_allmax, "/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tmax_Agsite.csv")
+write.csv(Allmax, "/Raw/Weather Station/CPModel/data/Tmax_Allsite.csv")
+write.csv(For_allmax, "/Raw/Weather Station/CPModel/data/Tmax_Forsite.csv")
+write.csv(Ag_allmax, "/Raw/Weather Station/CPModel/data/Tmax_Agsite.csv")
 
 #Tmin--- 
-Tmin <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/TMIN_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
+Tmin <- read.csv("/Raw/Weather Station/TMIN_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
 names(Tmin) <- headers
 Year <- Tmin$Year
 
@@ -212,9 +213,9 @@ For_allmin <- Tmin[c(1,188)]
 names(For_allmin) <- c("year", "y")
 Ag_allmin<- Tmin[c(1,189)]
 names(Ag_allmin) <- c("year", "y")
-write.csv(Allmin, "/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tmin_Allsite.csv")
-write.csv(For_allmin, "/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tmin_Forsite.csv")
-write.csv(Ag_allmin, "/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tmin_Agsite.csv")
+write.csv(Allmin, "/Raw/Weather Station/CPModel/data/Tmin_Allsite.csv")
+write.csv(For_allmin, "/Raw/Weather Station/CPModel/data/Tmin_Forsite.csv")
+write.csv(Ag_allmin, "/Raw/Weather Station/CPModel/data/Tmin_Agsite.csv")
 
 #To-do's
 #1: Remake star figure
@@ -222,11 +223,11 @@ write.csv(Ag_allmin, "/Users/mallory/Documents/Temp_Project/Weather Station/CPMo
 library(reshape2)
 library(ggplot2)
 #For Average Lines
-All_line <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/Novick_Analyses/Avg_all_output_line.csv")
+All_line <- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Avg_all_output_line.csv")
 names(All_line) <-c("x", "All", "Year")
-Fo_line <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/Novick_Analyses/Avg_for_output_line.csv")
+Fo_line <- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Avg_for_output_line.csv")
 names(Fo_line) <-c("x", "Fo", "Year")
-Ag_line<- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/Novick_Analyses/Avg_ag_output_line.csv")
+Ag_line<- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Avg_ag_output_line.csv")
 names(Ag_line) <-c("x", "Ag", "Year")
 
 All_line$x <- NULL
@@ -254,11 +255,11 @@ ggplot(data=toplot2, aes(y=value, colour=variable, x=Year))+
   theme(legend.text = element_text(colour="black", size = 12, face = "bold"))
 
 #For maxline
-All_line <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/Novick_Analyses/Max_all_output_line.csv")
+All_line <- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Max_all_output_line.csv")
 names(All_line) <-c("x", "All", "Year")
-Fo_line <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/Novick_Analyses/Max_for_output_line.csv")
+Fo_line <- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Max_for_output_line.csv")
 names(Fo_line) <-c("x", "Fo", "Year")
-Ag_line<- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/Novick_Analyses/Max_ag_output_line.csv")
+Ag_line<- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Max_ag_output_line.csv")
 names(Ag_line) <-c("x", "Ag", "Year")
 
 All_line$x <- NULL
@@ -285,11 +286,11 @@ ggplot(data=toplot2, aes(y=value, colour=variable, x=Year))+
   theme(legend.text = element_text(colour="black", size = 12, face = "bold"))
 
 #For minline
-All_line <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/Novick_Analyses/Min_all_output_line.csv")
+All_line <- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Min_all_output_line.csv")
 names(All_line) <-c("x", "All", "Year")
-Fo_line <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/Novick_Analyses/Min_for_output_line.csv")
+Fo_line <- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Min_for_output_line.csv")
 names(Fo_line) <-c("x", "Fo", "Year")
-Ag_line<- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/Novick_Analyses/Min_ag_output_line.csv")
+Ag_line<- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Min_ag_output_line.csv")
 names(Ag_line) <-c("x", "Ag", "Year")
 
 All_line$x <- NULL
@@ -317,11 +318,11 @@ ggplot(data=toplot, aes(y=value, colour=variable, x=Year))+
 
 #Change in temp
 #Forest vs. Ag 
-All_avg <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tavg_Allsite.csv")
+All_avg <- read.csv("/Raw/Weather Station/CPModel/data/Tavg_Allsite.csv")
 names(All_avg) <-c("x", "Year", "All")
-Fo_avg <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tavg_Forsite.csv")
+Fo_avg <- read.csv("/Raw/Weather Station/CPModel/data/Tavg_Forsite.csv")
 names(Fo_avg) <-c("x", "Year", "Fo")
-Ag_avg <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tavg_Agsite.csv")
+Ag_avg <- read.csv("/Raw/Weather Station/CPModel/data/Tavg_Agsite.csv")
 names(Ag_avg) <-c("x", "Year", "Ag")
 
 All_avg$x <- NULL
@@ -382,11 +383,11 @@ str(label.df)
 p2 + geom_text(data=label.df, aes(x=Year, y=value, variable=NULL), label = "*")
 
 #For max now -------
-All_max <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tmax_Allsite.csv")
+All_max <- read.csv("/Raw/Weather Station/CPModel/data/Tmax_Allsite.csv")
 names(All_max) <-c("x", "Year", "All")
-Fo_max <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tmax_Forsite.csv")
+Fo_max <- read.csv("/Raw/Weather Station/CPModel/data/Tmax_Forsite.csv")
 names(Fo_max) <-c("x", "Year", "Fo")
-Ag_max <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/CPModel/data/Tmax_Agsite.csv")
+Ag_max <- read.csv("/Raw/Weather Station/CPModel/data/Tmax_Agsite.csv")
 names(Ag_max) <-c("x", "Year", "Ag")
 
 All_max$x <- NULL
@@ -451,14 +452,14 @@ p2 + geom_text(data=label.df, aes(x=Year, y=value, variable=NULL), label = "*")
 #---------------------
 #Breaking up by latitude. Max by latitude 
 #Latlongs
-latlongs <- read.csv("/Users/mallory/Documents/Temp_Project/Lily_Da ta/USHCNstationinformation_percentforest.csv")
+latlongs <- read.csv("/Lily_Data/USHCNstationinformation_percentforest.csv")
 str(latlongs)
 latlongs$STA_NAME <- tolower(latlongs$STA_NAME)
 latlongs$STA_NAME <- str_replace_all(latlongs$STA_NAME, " ", "")
 latlongs$names <- substr(latlongs$STA_NAME, 1,10)
 
 #Site lookup
-T_site_lookup <- read.csv("/Users/mallory/Documents/Temp_Project/Lily_Data/Lookup.csv")
+T_site_lookup <- read.csv("/Lily_Data/Lookup.csv")
 str(T_site_lookup)
 T_site_lookup$names <- tolower(T_site_lookup$names)
 T_site_lookup$names
@@ -476,9 +477,9 @@ mergedhighlat <- subset(merged, LAT <43 & LAT > 37)
 mergedmidlat <- subset(merged, LAT <37 & LAT >33 )
 mergedlowlat <- subset(merged, LAT < 33)
 #Headers
-headers <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", header = F, nrows=1, as.is=T)
+headers <- read.csv("/Raw/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", header = F, nrows=1, as.is=T)
 #Tmax data
-Tmax <- read.csv("/Users/mallory/Documents/Temp_Project/Weather Station/TMAX_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
+Tmax <- read.csv("/Raw/Weather Station/TMAX_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
 names(Tmax) <- headers
 Year <- Tmax$Year
 #Going to just look at trends since 1960 now...
@@ -630,4 +631,50 @@ ggplot(lowlat_toplot_post1960, aes(x=year, y=value, colour=type, group=type)) +
   ylim(-2,2)+
   theme_classic()
 
+#Going to try instead to code sites by maps from 1992 vs. 1938. There will be 2 categories, 'reforested', 'deforested', and 'no change'. Then, I will run the change 
+#Point analyses and Lily's key figure for these categories (instead of Urban, Crop, and Forest), and see what the results look like. 
+
+#1 Recode land cover maps
+#Categories (checked all): 
+#0-no values,1-water/coastline, 2- urban (checked), 3-5 no pixels, 6 - mining, 7- barren, 8- Deciduous, 9 - evergreen, 10- Mixed, 11 - grassland, 12 - shrubland, 13-ag, 14-hay, 15 - herb wetland, 16 - woody wetland, 17 - ice/snow
+
+#Coding raster: 
+#16 is woody wetland and #15 is herbaceous wetland. Not sure if I should include.
+# Forest: values = 8, 9, 10 
+# Herbaceous: values = 11, 12, 13, 14
+
+#Forests: code 1
+#Herbaceous: code 0
+
+Historical_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1938.tif")
+extent(Historical_LC)
+e2 <- extent(300000, 2200000, 177285, 2500000)
+Historical_LC <- crop(Historical_LC, e2)
+Historical_LC[Historical_LC <8 | Historical_LC > 14] <-NA
+Historical_LC[Historical_LC>7 & Historical_LC<11] <-1
+Historical_LC[Historical_LC>10 & Historical_LC < 15] <-0
+hist(Historical_LC)
+
+Later_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1992.tif")
+Later_LC <- crop(Later_LC, e2)
+Later_LC[Later_LC <8 | Later_LC>14] <-NA
+Later_LC[Later_LC>7 & Later_LC<11] <-1
+Later_LC[Later_LC>10 & Later_LC<15] <-0
+hist(Later_LC)
+
+#Couldn't get this to work previously
+#Later_LC_class<-reclassify(Later_LC, c(-Inf, 7, NA,  8, 10, 1,  11, 14, 0, 15,Inf,NA))
+
+Dif_LC <- Later_LC - Historical_LC
+plot(Dif_LC)
+#writeRaster(Dif_LC, "Processed/Change_LC_FORESCE.tif")
+Dif_LC <- raster("Processed/Change_LC_FORESCE.tif")
+levels(Dif_LC)=data.frame(ID=-1:1, code=c('Deforest', 'Nochange', 'Reforest'))
+levelplot(Dif_LC, col.regions=c('red', 'white', 'green'))  
+
+#Need to reproject next
+
+#Changepoint input
+Diffs_reproj <- projectRaster(Dif_LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+#Changepoint lat-longs
 
