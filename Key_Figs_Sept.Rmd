@@ -1013,51 +1013,5 @@ grid.arrange(x12, x13, ncol=2)
 ```
 
 ```{r Lily, echo=FALSE}
-#Going to try instead to code sites by maps from 1992 vs. 1938. There will be 2 categories, 'reforested', 'deforested', and 'no change'. Then, I will run the change 
-#Point analyses and Lily's key figure for these categories (instead of Urban, Crop, and Forest), and see what the results look like. 
-
-#1 Recode land cover maps
-#Categories (checked all): 
-#0-no values,1-water/coastline, 2- urban (checked), 3-5 no pixels, 6 - mining, 7- barren, 8- Deciduous, 9 - evergreen, 10- Mixed, 11 - grassland, 12 - shrubland, 13-ag, 14-hay, 15 - herb wetland, 16 - woody wetland, 17 - ice/snow
-
-#Coding raster: 
-#16 is woody wetland and #15 is herbaceous wetland. Not sure if I should include.
-# Forest: values = 8, 9, 10 
-# Herbaceous: values = 11, 12, 13, 14
-
-#Forests: code 1
-#Herbaceous: code 0
-
-Historical_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1938.tif")
-extent(Historical_LC)
-e2 <- extent(300000, 2200000, 177285, 2500000)
-Historical_LC <- crop(Historical_LC, e2)
-Historical_LC[Historical_LC <8 | Historical_LC > 14] <-NA
-Historical_LC[Historical_LC>7 & Historical_LC<11] <-1
-Historical_LC[Historical_LC>10 & Historical_LC < 15] <-0
-hist(Historical_LC)
-
-Later_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1992.tif")
-Later_LC <- crop(Later_LC, e2)
-Later_LC[Later_LC <8 | Later_LC>14] <-NA
-Later_LC[Later_LC>7 & Later_LC<11] <-1
-Later_LC[Later_LC>10 & Later_LC<15] <-0
-hist(Later_LC)
-
-#Couldn't get this to work previously
-#Later_LC_class<-reclassify(Later_LC, c(-Inf, 7, NA,  8, 10, 1,  11, 14, 0, 15,Inf,NA))
-
-Dif_LC <- Later_LC - Historical_LC
-plot(Dif_LC)
-writeRaster(Dif_LC, "Processed/Change_LC_FORESCE.tif")
-Dif_LC <- raster("Processed/Change_LC_FORESCE.tif")
-levels(Dif_LC)=data.frame(ID=-1:1, code=c('Deforest', 'Nochange', 'Reforest'))
-levelplot(Dif_LC, col.regions=c('red', 'white', 'green'))  
-
-#Need to reproject next
-
-#Changepoint input
-
-#Changepoint lat-longs
 
 ```
