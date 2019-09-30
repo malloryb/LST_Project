@@ -96,7 +96,7 @@ alltoplot
 
 #---------------Remaking Lily's figs
 #Lookup table first (T_site_lookup will work for Tmax,Tmax, and Tmin)
-Tavg_site <- read.csv("/Raw/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", nrows=3, header=T)
+Tavg_site <- read.csv("Raw/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", nrows=3, header=T)
 colnames(Tavg_site)[1] <- "Type"
 Tavg_site <- as.data.frame(t(Tavg_site))
 #If rowmax is <0.5, then LC will be "NA"
@@ -116,8 +116,8 @@ rownames(T_site_lookup) <- c()
 T_site_lookup <- as.data.frame(T_site_lookup[c(1,5)])
 write.csv(T_site_lookup, "/Lily_Data/Lookup.csv")
 #Tavg---
-headers <- read.csv("/Raw/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", header = F, nrows=1, as.is=T)
-Tavg <- read.csv("/Raw/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
+headers <- read.csv("Raw/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", header = F, nrows=1, as.is=T)
+Tavg <- read.csv("Raw/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
 names(Tavg) <- headers
 Year <- Tavg$Year
 
@@ -148,9 +148,9 @@ names(For_all) <- c("year", "y")
 Ag_all<- Tavg[c(1,189)]
 
 names(Ag_all) <- c("year", "y")
-write.csv(All, "/Raw/Weather Station/CPModel/data/Tavg_Allsite.csv")
-write.csv(For_all, "/Raw/Weather Station/CPModel/data/Tavg_Forsite.csv")
-write.csv(Ag_all, "/Raw/Weather Station/CPModel/data/Tavg_Agsite.csv")
+write.csv(All, "Raw/Weather Station/CPModel/data/Tavg_Allsite.csv")
+write.csv(For_all, "Raw/Weather Station/CPModel/data/Tavg_Forsite.csv")
+write.csv(Ag_all, "Raw/Weather Station/CPModel/data/Tavg_Agsite.csv")
 
 For_all$x <- Ag_all$Agmean
 names(For_all) <- c("year", "forest", "ag")
@@ -159,7 +159,7 @@ toplot5 <- melt(For_all, id.vars = "year", measure.vars = c("forest", "ag"))
 ggplot(toplot5, aes(x=year, y=value, colour=variable))+
   geom_line()
 #Tmax---
-Tmax<- read.csv("/Raw/Weather Station/TMAX_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
+Tmax<- read.csv("Raw/Weather Station/TMAX_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
 names(Tmax) <- headers
 Year <- Tmax$Year
 
@@ -185,12 +185,12 @@ For_allmax <- Tmax[c(1,188)]
 names(For_allmax) <- c("year", "y")
 Ag_allmax<- Tmax[c(1,189)]
 names(Ag_allmax) <- c("year", "y")
-write.csv(Allmax, "/Raw/Weather Station/CPModel/data/Tmax_Allsite.csv")
-write.csv(For_allmax, "/Raw/Weather Station/CPModel/data/Tmax_Forsite.csv")
-write.csv(Ag_allmax, "/Raw/Weather Station/CPModel/data/Tmax_Agsite.csv")
+write.csv(Allmax, "Raw/Weather Station/CPModel/data/Tmax_Allsite.csv")
+write.csv(For_allmax, "Raw/Weather Station/CPModel/data/Tmax_Forsite.csv")
+write.csv(Ag_allmax, "Raw/Weather Station/CPModel/data/Tmax_Agsite.csv")
 
 #Tmin--- 
-Tmin <- read.csv("/Raw/Weather Station/TMIN_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
+Tmin <- read.csv("Raw/Weather Station/TMIN_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
 names(Tmin) <- headers
 Year <- Tmin$Year
 
@@ -213,9 +213,9 @@ For_allmin <- Tmin[c(1,188)]
 names(For_allmin) <- c("year", "y")
 Ag_allmin<- Tmin[c(1,189)]
 names(Ag_allmin) <- c("year", "y")
-write.csv(Allmin, "/Raw/Weather Station/CPModel/data/Tmin_Allsite.csv")
-write.csv(For_allmin, "/Raw/Weather Station/CPModel/data/Tmin_Forsite.csv")
-write.csv(Ag_allmin, "/Raw/Weather Station/CPModel/data/Tmin_Agsite.csv")
+write.csv(Allmin, "Raw/Weather Station/CPModel/data/Tmin_Allsite.csv")
+write.csv(For_allmin, "Raw/Weather Station/CPModel/data/Tmin_Forsite.csv")
+write.csv(Ag_allmin, "Raw/Weather Station/CPModel/data/Tmin_Agsite.csv")
 
 #To-do's
 #1: Remake star figure
@@ -223,11 +223,11 @@ write.csv(Ag_allmin, "/Raw/Weather Station/CPModel/data/Tmin_Agsite.csv")
 library(reshape2)
 library(ggplot2)
 #For Average Lines
-All_line <- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Avg_all_output_line.csv")
+All_line <- read.csv("Raw/Weather Station/CPModel/Novick_Analyses/Avg_all_output_line.csv")
 names(All_line) <-c("x", "All", "Year")
-Fo_line <- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Avg_for_output_line.csv")
+Fo_line <- read.csv("Raw/Weather Station/CPModel/Novick_Analyses/Avg_for_output_line.csv")
 names(Fo_line) <-c("x", "Fo", "Year")
-Ag_line<- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Avg_ag_output_line.csv")
+Ag_line<- read.csv("Raw/Weather Station/CPModel/Novick_Analyses/Avg_ag_output_line.csv")
 names(Ag_line) <-c("x", "Ag", "Year")
 
 All_line$x <- NULL
@@ -255,11 +255,11 @@ ggplot(data=toplot2, aes(y=value, colour=variable, x=Year))+
   theme(legend.text = element_text(colour="black", size = 12, face = "bold"))
 
 #For maxline
-All_line <- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Max_all_output_line.csv")
+All_line <- read.csv("Raw/Weather Station/CPModel/Novick_Analyses/Max_all_output_line.csv")
 names(All_line) <-c("x", "All", "Year")
-Fo_line <- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Max_for_output_line.csv")
+Fo_line <- read.csv("Raw/Weather Station/CPModel/Novick_Analyses/Max_for_output_line.csv")
 names(Fo_line) <-c("x", "Fo", "Year")
-Ag_line<- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Max_ag_output_line.csv")
+Ag_line<- read.csv("Raw/Weather Station/CPModel/Novick_Analyses/Max_ag_output_line.csv")
 names(Ag_line) <-c("x", "Ag", "Year")
 
 All_line$x <- NULL
@@ -286,11 +286,11 @@ ggplot(data=toplot2, aes(y=value, colour=variable, x=Year))+
   theme(legend.text = element_text(colour="black", size = 12, face = "bold"))
 
 #For minline
-All_line <- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Min_all_output_line.csv")
+All_line <- read.csv("Raw/Weather Station/CPModel/Novick_Analyses/Min_all_output_line.csv")
 names(All_line) <-c("x", "All", "Year")
-Fo_line <- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Min_for_output_line.csv")
+Fo_line <- read.csv("Raw/Weather Station/CPModel/Novick_Analyses/Min_for_output_line.csv")
 names(Fo_line) <-c("x", "Fo", "Year")
-Ag_line<- read.csv("/Raw/Weather Station/CPModel/Novick_Analyses/Min_ag_output_line.csv")
+Ag_line<- read.csv("Raw/Weather Station/CPModel/Novick_Analyses/Min_ag_output_line.csv")
 names(Ag_line) <-c("x", "Ag", "Year")
 
 All_line$x <- NULL
@@ -318,11 +318,11 @@ ggplot(data=toplot, aes(y=value, colour=variable, x=Year))+
 
 #Change in temp
 #Forest vs. Ag 
-All_avg <- read.csv("/Raw/Weather Station/CPModel/data/Tavg_Allsite.csv")
+All_avg <- read.csv("Raw/Weather Station/CPModel/data/Tavg_Allsite.csv")
 names(All_avg) <-c("x", "Year", "All")
-Fo_avg <- read.csv("/Raw/Weather Station/CPModel/data/Tavg_Forsite.csv")
+Fo_avg <- read.csv("Raw/Weather Station/CPModel/data/Tavg_Forsite.csv")
 names(Fo_avg) <-c("x", "Year", "Fo")
-Ag_avg <- read.csv("/Raw/Weather Station/CPModel/data/Tavg_Agsite.csv")
+Ag_avg <- read.csv("Raw/Weather Station/CPModel/data/Tavg_Agsite.csv")
 names(Ag_avg) <-c("x", "Year", "Ag")
 
 All_avg$x <- NULL
@@ -383,11 +383,11 @@ str(label.df)
 p2 + geom_text(data=label.df, aes(x=Year, y=value, variable=NULL), label = "*")
 
 #For max now -------
-All_max <- read.csv("/Raw/Weather Station/CPModel/data/Tmax_Allsite.csv")
+All_max <- read.csv("Raw/Weather Station/CPModel/data/Tmax_Allsite.csv")
 names(All_max) <-c("x", "Year", "All")
-Fo_max <- read.csv("/Raw/Weather Station/CPModel/data/Tmax_Forsite.csv")
+Fo_max <- read.csv("Raw/Weather Station/CPModel/data/Tmax_Forsite.csv")
 names(Fo_max) <-c("x", "Year", "Fo")
-Ag_max <- read.csv("/Raw/Weather Station/CPModel/data/Tmax_Agsite.csv")
+Ag_max <- read.csv("Raw/Weather Station/CPModel/data/Tmax_Agsite.csv")
 names(Ag_max) <-c("x", "Year", "Ag")
 
 All_max$x <- NULL
@@ -452,14 +452,14 @@ p2 + geom_text(data=label.df, aes(x=Year, y=value, variable=NULL), label = "*")
 #---------------------
 #Breaking up by latitude. Max by latitude 
 #Latlongs
-latlongs <- read.csv("/Lily_Data/USHCNstationinformation_percentforest.csv")
+latlongs <- read.csv("Lily_Data/USHCNstationinformation_percentforest.csv")
 str(latlongs)
 latlongs$STA_NAME <- tolower(latlongs$STA_NAME)
 latlongs$STA_NAME <- str_replace_all(latlongs$STA_NAME, " ", "")
 latlongs$names <- substr(latlongs$STA_NAME, 1,10)
 
 #Site lookup
-T_site_lookup <- read.csv("/Lily_Data/Lookup.csv")
+T_site_lookup <- read.csv("Lily_Data/Lookup.csv")
 str(T_site_lookup)
 T_site_lookup$names <- tolower(T_site_lookup$names)
 T_site_lookup$names
@@ -467,19 +467,34 @@ T_site_lookup$names <- substr(T_site_lookup$names, 1,10)
 
 T_site_lookup$names
 latlongs$names
+#Check for diffs
+check = setdiff(T_site_lookup$names, latlongs$names)
+#beracolle spelled differently in latlongs vs. lookup
+#There are two greenvilles, spelled the same. (?)
+T_site_lookup[6,2] <- "beracolle"
+T_site_lookup[119,2] <- "tuscaloosa"
+T_site_lookup[43,2] <- "glenville"
+T_site_lookup[115,2] <- "thomasvill"
+T_site_lookup[60,2] <- "hillsboro"
+T_site_lookup[51,2] <- "greenvilleoh"
+latlongs[66,7] <- "greenvilleoh"
+latlongs[13,7] <- "bowlinggre"
+latlongs[117,7] <- "newman"
 #Looks like I lost a few but don't have time to figure it out at the moment. 
 merged <- merge(T_site_lookup, latlongs, by="names")
+str(merged)
+write.csv(merged, "Processed/MergedWeather.csv")
 #Get rid of FL sites!
-merged <- subset(merged, !STATE=="FL")
+#merged <- subset(merged, !STATE=="FL")
 mergedfo <- subset(merged, LC=="For")
 mergedag <- subset(merged, LC=="Ag")
 mergedhighlat <- subset(merged, LAT <43 & LAT > 37)
 mergedmidlat <- subset(merged, LAT <37 & LAT >33 )
 mergedlowlat <- subset(merged, LAT < 33)
 #Headers
-headers <- read.csv("/Raw/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", header = F, nrows=1, as.is=T)
+headers <- read.csv("Raw/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", header = F, nrows=1, as.is=T)
 #Tmax data
-Tmax <- read.csv("/Raw/Weather Station/TMAX_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
+Tmax <- read.csv("Raw/Weather Station/TMAX_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
 names(Tmax) <- headers
 Year <- Tmax$Year
 #Going to just look at trends since 1960 now...
@@ -488,10 +503,39 @@ Tmax <- cbind(Year, as.data.frame(scale(Tmax[2:186], center = TRUE, scale = TRUE
 str(Tmax)
 Tmax_t <- as.data.frame(t(Tmax))
 Tmax_t$names <- rownames(Tmax_t)
-str(Tmax_t$names)
+str(Tmax_t)
 Tmax_t$names <- tolower(Tmax_t$names)
-
-
+check = setdiff(merged$names, Tmax_t$names)
+check
+Tmax_t$names
+Tmax_t[10,118] <- "beracolle"
+Tmax_t[12,118] <- "bloomingto"
+Tmax_t[14,118] <- "bowlinggre"
+Tmax_t[18,118] <- "burkesgard"
+Tmax_t[21,118] <- "cambridgem"
+Tmax_t[25,118] <-"charlottes"
+Tmax_t[36,118] <- "crystalspg"
+Tmax_t[50,118] <- "fayettevil"
+Tmax_t[51,118] <- "federalpoi"
+Tmax_t[53,118] <-"fredericks"
+Tmax_t[54,118] <- "ftlauderda"
+Tmax_t[62,118] <- "greencastl"
+Tmax_t[69,118] <- "hattiesbur"
+Tmax_t[72,118] <- "hendersonn"
+Tmax_t[73,118] <- "hendersonv"
+Tmax_t[77,118] <- "hillsboro"
+Tmax_t[80,118] <- "hopkinsvil"
+Tmax_t[94,118] <- "lewisburgw"
+Tmax_t[107,118] <- "mcminnvill"
+Tmax_t[108,118] <- "milledgevi"
+Tmax_t[133,118] <- "poplarvill"
+Tmax_t[135,118] <- "princessan"
+Tmax_t[139,118] <- "rogersvill"
+Tmax_t[148,118] <- "shelbyvill"
+Tmax_t[160,118] <- "thomasvill"
+Tmax_t[166,118] <- "tuscaloosa"
+Tmax_t[174,118] <- "watervalle"
+Tmax_t[182,118] <- "williamsto"
 #Select from lookup table by site name and transpose back 
 forests_all <- as.data.frame(t(subset(Tmax_t, names %in% mergedfo$names)))
 forests_all$year <- c(1901:2018)
@@ -662,19 +706,26 @@ Later_LC[Later_LC>7 & Later_LC<11] <-1
 Later_LC[Later_LC>10 & Later_LC<15] <-0
 hist(Later_LC)
 
-#Couldn't get this to work previously
+#Couldn't get this to work, thought it might be faster. 
 #Later_LC_class<-reclassify(Later_LC, c(-Inf, 7, NA,  8, 10, 1,  11, 14, 0, 15,Inf,NA))
 
 Dif_LC <- Later_LC - Historical_LC
 plot(Dif_LC)
 #writeRaster(Dif_LC, "Processed/Change_LC_FORESCE.tif")
 Dif_LC <- raster("Processed/Change_LC_FORESCE.tif")
+hist(Dif_LC)
 levels(Dif_LC)=data.frame(ID=-1:1, code=c('Deforest', 'Nochange', 'Reforest'))
 levelplot(Dif_LC, col.regions=c('red', 'white', 'green'))  
 
 #Need to reproject next
 
 #Changepoint input
-Diffs_reproj <- projectRaster(Dif_LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
-#Changepoint lat-longs
-
+#Need to use nearest neighbor for reprojection sine categorical variables - see here: https://stackoverflow.com/questions/15634882/why-the-values-of-my-raster-map-change-when-i-project-it-to-a-new-crs-projectra
+Diffs_reproj <- projectRaster(Dif_LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
+writeRaster(Diffs_reproj, "Processed/Change_LC_proj.tif")
+hist(Diffs_reproj)
+levels(Diffs_reproj)=data.frame(ID=-1:1, code=c('Deforest', 'Nochange', 'Reforest'))
+levelplot(Diffs_reproj, col.regions=c('red', 'white', 'green'))
+#Instead of forest, crop and urban, each site will be one of three categories. 'Reforest', 'Deforest', and 'Nochange'
+merged <- read.csv("Processed/MergedWeather.csv")
+str(merged)
