@@ -1054,8 +1054,10 @@ Dif_LC <- raster("Processed/Change_LC_FORESCE.tif")
 levels(Dif_LC)=data.frame(ID=-1:1, code=c('Deforest', 'Nochange', 'Reforest'))
 levelplot(Dif_LC, col.regions=c('red', 'white', 'green'))  
 
+#Need to reproject next
 
 #Changepoint input
+
 #Changepoint lat-longs
 
 ```
