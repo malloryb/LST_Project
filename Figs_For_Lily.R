@@ -881,6 +881,7 @@ writeraster("Processed/landfireheight.tif")
 
 #Going back to Lily's RAW data------------
 library(readxl)
+library(Amelia)
 getwd()
 Format_Weather <- function(x){
   filename <- paste(x)
@@ -890,12 +891,12 @@ Format_Weather <- function(x){
   print(station)
   toread <- paste("Raw/Weather_Station_Raw", x, sep="/")
   y <- as.data.frame(read_excel(toread, na="-9999", skip=1))
-  colnames(y)[6] <- "Tavg"
+  colnames(y)[colnames(y)=="TAVE (F)"] <- "Tavg"
   y$monthyear <- paste(y$Month, y$Year, sep="-")
   #FOR GROWING SEASON ONLY
   gs <- subset(y, Month == 6 | Month == 7 | Month == 8 | Month == 9)
-  z <- ddply(gs, .(monthyear), summarise, year=median(Year), Tavg_gs=mean(Tavg, na.rm=TRUE),
-             T25_gs=quantile(Tavg, probs=(0.75), na.rm=TRUE))
+  gs$Tavg <- as.numeric(gs$Tavg)
+  z <- ddply(gs, .(monthyear), summarise, year=median(Year), Tavg_gs=mean_na(Tavg),T75_gs=quantile(Tavg, probs=(0.75), na.rm=TRUE),T90_gs=quantile(Tavg, probs=(0.90), na.rm=TRUE))
   z$ID <- station
   return(z)
 }
@@ -903,9 +904,71 @@ Format_Weather <- function(x){
 lxls <- list.files("Raw/Weather_Station_Raw", pattern= "\\.xlsx$")
 test <- (lapply(lxls, Format_Weather))
 All_Sites_Temps <- do.call(rbind, test)
+write.csv(All_Sites_Temps, "Processed/All_Growingseason_Temps.csv")
 
+#Now to merge to get lat longs
+All_Sites_Temps <- read.csv("Processed/All_Growingseason_Temps.csv")
+latlongs <- read.csv("Lily_Data/USHCNstationinformation_percentforest.csv")
+str(latlongs)
+latlongs$STA_NAME <- tolower(latlongs$STA_NAME)
+latlongs$STA_NAME <- str_replace_all(latlongs$STA_NAME, " ", "")
+latlongs$ID <- substr(latlongs$STA_NAME, 1,10)
 
-
-
-
+head(All_Sites_Temps)
+latlongs[180:195,]
+#Check for diffs
+check = setdiff(All_Sites_Temps$ID, latlongs$ID)
+latlongs[3,7] <-"albany"
+latlongs[x,7] <- "anderson"
+latlongs[9,7] <-"bareacolle"
+latlongs[x,7] <- "batesville"
+latlongs[x,7] <- "blackville"
+latlongs[12,7] <-"boonville"
+latlongs[13,7] <-"bowlinggre"
+latlongs[x,7] <- "brunswick"
+latlongs[19,7] <- "cambrige"  
+latlongs[x,7] <- "charleston" 
+latlongs[x,7] <- "cheraw"     
+latlongs[x,7] <- "circlevill" 
+latlongs[33,7] <- "cornith"    
+latlongs[35,7] <-"crystalspr" 
+latlongs[36,7] <- "dalonega"   
+latlongs[41,7] <- "denton"    
+latlongs[x,7] <- "downtownfr" 
+latlongs[44,7] <- "eastman"   
+latlongs[48,7] <- "farmville" 
+latlongs[x,7] <- "fernandina" 
+latlongs[x,7] <- "georgetown" 
+latlongs[58,7] <- "glennville"
+latlongs[x,7] <- "haitesvill" 
+latlongs[81,7] <- "inverness"  
+latlongs[x,7] <- "kershaw"    
+latlongs[x,7] <- "kinston"   
+latlongs[x,7] <- "littlemtn" 
+latlongs[104,7] <- "mcconelsvi"
+latlongs[105,7] <- "mcminville"
+latlongs[114,7] <- "mufreesbur"
+latlongs[118,7] <- "newport"  
+latlongs[120,7] <- "oakland"    
+latlongs[124,7] <- "owens"    
+latlongs[x,7] <- "quitman" 
+latlongs[x,7] <- "rome."    
+latlongs[x,7] <- "salem"     
+latlongs[x,7] <- "saluda"   
+latlongs[x,7] <- "sandusky"  
+latlongs[x,7] <- "slatesvill"
+latlongs[x,7] <- "stleo"     
+latlongs[x,7] <- "stuanton" 
+latlongs[x,7] <- "summervill"
+latlongs[156,7] <- "tarboro"   
+latlongs[x,7] <- "tarponspri" 
+latlongs[157,7] <- "thomasvile"
+latlongs[161,7] <- "troy."     
+latlongs[163,7] <- "tulcaloosa"
+latlongs[164,7] <- "union city"
+latlongs[x,7] <- "walhalla" 
+latlongs[x,7] <- "whitestown"
+latlongs[x,7] <- "winnsburg"  
+latlongs[x,7] <- "winthropun" 
+latlongs[184,7] <- "yemasse"   
 
