@@ -881,13 +881,31 @@ writeraster("Processed/landfireheight.tif")
 
 #Going back to Lily's RAW data------------
 library(readxl)
+getwd()
 Format_Weather <- function(x){
   filename <- paste(x)
-  print(filename)
-  station <- substr(filename, 1,10)
-  read_excel(x)
-  
-  
+  station <- tolower(substr(filename, 1,10))
+  station <- gsub('[0-9]+', '', station)
+  station <- gsub('_', '', station)
+  print(station)
+  toread <- paste("Raw/Weather_Station_Raw", x, sep="/")
+  y <- as.data.frame(read_excel(toread, na="-9999", skip=1))
+  colnames(y)[6] <- "Tavg"
+  y$monthyear <- paste(y$Month, y$Year, sep="-")
+  #FOR GROWING SEASON ONLY
+  gs <- subset(y, Month == 6 | Month == 7 | Month == 8 | Month == 9)
+  z <- ddply(gs, .(monthyear), summarise, year=median(Year), Tavg_gs=mean(Tavg, na.rm=TRUE),
+             T25_gs=quantile(Tavg, probs=(0.75), na.rm=TRUE))
+  z$ID <- station
+  return(z)
 }
 
-read_excel("Raw/Weather_Station_Raw/Aberdeen_1900.xlsx")
+lxls <- list.files("Raw/Weather_Station_Raw", pattern= "\\.xlsx$")
+test <- (lapply(lxls, Format_Weather))
+All_Sites_Temps <- do.call(rbind, test)
+
+
+
+
+
+
