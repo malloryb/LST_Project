@@ -721,8 +721,8 @@ levelplot(Dif_LC, col.regions=c('red', 'white', 'green'))
 
 #Changepoint input
 #Need to use nearest neighbor for reprojection since categorical variables - see here: https://stackoverflow.com/questions/15634882/why-the-values-of-my-raster-map-change-when-i-project-it-to-a-new-crs-projectra
-Diffs_reproj <- projectRaster(Dif_LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
-writeRaster(Diffs_reproj, "Processed/Change_LC_proj.tif")
+#Diffs_reproj <- projectRaster(Dif_LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
+#writeRaster(Diffs_reproj, "Processed/Change_LC_proj.tif")
 
 hist(Diffs_reproj)
 levels(Diffs_reproj)=data.frame(ID=-1:1, code=c('Deforest', 'Nochange', 'Reforest'))
@@ -774,7 +774,7 @@ historic_toplot_post1960 <- subset(historic_toplot, year > 1945)
 #OK not great, but what about when we subset by latitude (above) 
 ggplot(historic_toplot, aes(x=year, y=value, colour=type, group=type)) +
   geom_smooth(method="loess")+
-  labs(title="Air temperature trend by land cover type", 
+  labs(title="Air temperature trend by land cover change", 
        y="Temperature Anomaly (Z score)", 
        x="Year")+
   theme_classic()+
@@ -782,7 +782,7 @@ ggplot(historic_toplot, aes(x=year, y=value, colour=type, group=type)) +
 
 ggplot(historic_toplot_post1960, aes(x=year, y=value, colour=type, group=type)) +
   geom_smooth(method="loess")+
-  labs(title="Air temperature trend by land cover type", 
+  labs(title="Air temperature trend by land cover change", 
        y="Temperature Anomaly (Z score)", 
        x="Year")+
   theme_classic()+
@@ -804,29 +804,35 @@ colnames(merged)[colnames(merged)=="X"] <- "ID"
 all_foage <- merge(merged, Fo_age, by="ID")
 
 noforest <- subset(all_foage, is.na(Forest_Age_Conus))
-youngforest <- subset(all_foage, Change_LC_proj==0)
-midforest <- subset(all_foage, Change_LC_proj==-1)
-oldforest <- subset(all_foage, Change_LC_proj==-1)
+youngforest <- subset(all_foage, Forest_Age_Conus <65)
+#midforest <- subset(all_foage, Forest_Age_Conus >30 & Forest_Age_Conus < 65 )
+oldforest <- subset(all_foage, Forest_Age_Conus >65)
 
 #Plot TMax by group
-reforesting_sites <- as.data.frame(t(subset(Tmax_t, names %in% reforesting$names)))
-reforesting_sites$year <- c(1901:2018)
-reforesting_sites$type <- "reforest"
+noforest_sites <- as.data.frame(t(subset(Tmax_t, names %in% noforest$names)))
+noforest_sites$year <- c(1901:2018)
+noforest_sites$type <- "noforest"
 
-nochange_sites <- as.data.frame(t(subset(Tmax_t, names %in% nochange$names)))
-nochange_sites$year <- c(1901:2018)
-nochange_sites$type <- "nochange"
+youngforest_sites <- as.data.frame(t(subset(Tmax_t, names %in% youngforest$names)))
+youngforest_sites$year <- c(1901:2018)
+youngforest_sites$type <- "youngforest"
 
 
-deforesting_sites <- as.data.frame(t(subset(Tmax_t, names %in% deforesting$names)))
-deforesting_sites$year <- c(1901:2018)
-deforesting_sites$type <- "deforest"
+#midforest_sites <- as.data.frame(t(subset(Tmax_t, names %in% midforest$names)))
+#midforest_sites$year <- c(1901:2018)
+#midforest_sites$type <- "midforest"
 
-historic_toplotreforest <- melt(reforesting_sites, id.vars=c("year", "type"))
-historic_toplotdeforest <- melt(deforesting_sites, id.vars=c("year", "type"))
-historic_toplotnochange <- melt(nochange_sites, id.vars=c("year", "type"))
+oldforest_sites <- as.data.frame(t(subset(Tmax_t, names %in% oldforest$names)))
+oldforest_sites$year <- c(1901:2018)
+oldforest_sites$type <- "oldforest"
 
-historic_toplot <- rbind(historic_toplotreforest, historic_toplotdeforest, historic_toplotnochange)
+historic_toplotnoforest <- melt(noforest_sites, id.vars=c("year", "type"))
+historic_toplotyoungforest <- melt(youngforest_sites, id.vars=c("year", "type"))
+#historic_toplotmidforest <- melt(midforest_sites, id.vars=c("year", "type"))
+historic_toplotoldforest <- melt(oldforest_sites, id.vars=c("year", "type"))
+
+#historic_toplot <- rbind(historic_toplotnoforest, historic_toplotyoungforest, historic_toplotmidforest, historic_toplotoldforest)
+historic_toplot <- rbind(historic_toplotnoforest, historic_toplotyoungforest,historic_toplotoldforest)
 #historic_toplot <- rbind(historic_toplotreforest, historic_toplotnochange)
 historic_toplot$year <- as.numeric(historic_toplot$year)
 historic_toplot$value <- as.numeric(historic_toplot$value)
@@ -839,7 +845,7 @@ historic_toplot_post1960 <- subset(historic_toplot, year > 1945)
 #OK not great, but what about when we subset by latitude (above) 
 ggplot(historic_toplot, aes(x=year, y=value, colour=type, group=type)) +
   geom_smooth(method="loess")+
-  labs(title="Air temperature trend by land cover type", 
+  labs(title="Air temperature trend by Forest Age", 
        y="Temperature Anomaly (Z score)", 
        x="Year")+
   theme_classic()+
@@ -847,10 +853,41 @@ ggplot(historic_toplot, aes(x=year, y=value, colour=type, group=type)) +
 
 ggplot(historic_toplot_post1960, aes(x=year, y=value, colour=type, group=type)) +
   geom_smooth(method="loess")+
-  labs(title="Air temperature trend by land cover type", 
+  labs(title="Air temperature trend by Forest age", 
        y="Temperature Anomaly (Z score)", 
        x="Year")+
   theme_classic()+
   ylim(-2,2)
 
+#One more try: Vegetation height map --------
+x <- raster("Raw/Other/LandFire/US_105evh/grid1/us_105evh/z001001.adf")
+e2 <- extent(300000, 2200000, 177285, 2500000)
+x <- crop(x, e2)
+plot(x)
+y <- reclassify(x, cbind(-Inf,0,NA), right=FALSE)
+plot(y)
+#Using nearest neighbor because it's a discrete (class) variable
+#Taking FOREVER - run overnight. 
+Heigh_reproj <- projectRaster(y, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
+writeraster("Processed/landfireheight.tif")
 
+#Reproject y 
+
+#Categories: of interest: 
+#Forest height: 109 (5 to 10 meters), 110 (10 to 25 meters), 111 (25 to 50 meters), 112 (> 50 meters)
+#Agriculture - General (80), Pasture/Hay (81), etc. etc. 
+
+
+
+#Going back to Lily's RAW data------------
+library(readxl)
+Format_Weather <- function(x){
+  filename <- paste(x)
+  print(filename)
+  station <- substr(filename, 1,10)
+  read_excel(x)
+  
+  
+}
+
+read_excel("Raw/Weather_Station_Raw/Aberdeen_1900.xlsx")
