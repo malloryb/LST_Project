@@ -896,7 +896,7 @@ Format_Weather <- function(x){
   #FOR GROWING SEASON ONLY
   gs <- subset(y, Month == 6 | Month == 7 | Month == 8 | Month == 9)
   gs$Tavg <- as.numeric(gs$Tavg)
-  z <- ddply(gs, .(monthyear), summarise, year=median(Year), Tavg_gs=mean_na(Tavg),T75_gs=quantile(Tavg, probs=(0.75), na.rm=TRUE),T90_gs=quantile(Tavg, probs=(0.90), na.rm=TRUE))
+  z <- ddply(gs, .(Year), summarise, Tavg_gs=mean_na(Tavg),T75_gs=quantile(Tavg, probs=(0.75), na.rm=TRUE),T90_gs=quantile(Tavg, probs=(0.90), na.rm=TRUE))
   z$ID <- station
   return(z)
 }
@@ -904,10 +904,10 @@ Format_Weather <- function(x){
 lxls <- list.files("Raw/Weather_Station_Raw", pattern= "\\.xlsx$")
 test <- (lapply(lxls, Format_Weather))
 All_Sites_Temps <- do.call(rbind, test)
-write.csv(All_Sites_Temps, "Processed/All_Growingseason_Temps.csv")
+write.csv(All_Sites_Temps, "Processed/All_Growingseason_Temps_gs.csv")
 
 #Now to merge to get lat longs
-All_Sites_Temps <- read.csv("Processed/All_Growingseason_Temps.csv")
+All_Sites_Temps <- read.csv("Processed/All_Growingseason_Temps_gs.csv")
 latlongs <- read.csv("Lily_Data/USHCNstationinformation_percentforest.csv")
 str(latlongs)
 latlongs$STA_NAME <- tolower(latlongs$STA_NAME)
@@ -919,56 +919,117 @@ latlongs[180:195,]
 #Check for diffs
 check = setdiff(All_Sites_Temps$ID, latlongs$ID)
 latlongs[3,7] <-"albany"
-latlongs[x,7] <- "anderson"
+#latlongs[x,7] <- "anderson"
 latlongs[9,7] <-"bareacolle"
-latlongs[x,7] <- "batesville"
-latlongs[x,7] <- "blackville"
+#latlongs[x,7] <- "batesville"
+#latlongs[x,7] <- "blackville"
 latlongs[12,7] <-"boonville"
 latlongs[13,7] <-"bowlinggre"
-latlongs[x,7] <- "brunswick"
+#latlongs[x,7] <- "brunswick"
 latlongs[19,7] <- "cambrige"  
-latlongs[x,7] <- "charleston" 
-latlongs[x,7] <- "cheraw"     
-latlongs[x,7] <- "circlevill" 
+#latlongs[x,7] <- "charleston" 
+#latlongs[x,7] <- "cheraw"     
+#latlongs[x,7] <- "circlevill" 
 latlongs[33,7] <- "cornith"    
 latlongs[35,7] <-"crystalspr" 
 latlongs[36,7] <- "dalonega"   
 latlongs[41,7] <- "denton"    
-latlongs[x,7] <- "downtownfr" 
+#latlongs[x,7] <- "downtownfr" 
 latlongs[44,7] <- "eastman"   
 latlongs[48,7] <- "farmville" 
-latlongs[x,7] <- "fernandina" 
-latlongs[x,7] <- "georgetown" 
+#latlongs[x,7] <- "fernandina" 
+#latlongs[x,7] <- "georgetown" 
 latlongs[58,7] <- "glennville"
-latlongs[x,7] <- "haitesvill" 
+#latlongs[x,7] <- "haitesvill" 
 latlongs[81,7] <- "inverness"  
-latlongs[x,7] <- "kershaw"    
-latlongs[x,7] <- "kinston"   
-latlongs[x,7] <- "littlemtn" 
+#latlongs[x,7] <- "kershaw"    
+#latlongs[x,7] <- "kinston"   
+#latlongs[x,7] <- "littlemtn" 
 latlongs[104,7] <- "mcconelsvi"
 latlongs[105,7] <- "mcminville"
 latlongs[114,7] <- "mufreesbur"
 latlongs[118,7] <- "newport"  
 latlongs[120,7] <- "oakland"    
 latlongs[124,7] <- "owens"    
-latlongs[x,7] <- "quitman" 
-latlongs[x,7] <- "rome."    
-latlongs[x,7] <- "salem"     
-latlongs[x,7] <- "saluda"   
-latlongs[x,7] <- "sandusky"  
-latlongs[x,7] <- "slatesvill"
-latlongs[x,7] <- "stleo"     
-latlongs[x,7] <- "stuanton" 
-latlongs[x,7] <- "summervill"
+#latlongs[x,7] <- "quitman" 
+#latlongs[x,7] <- "rome."    
+#latlongs[x,7] <- "salem"     
+#latlongs[x,7] <- "saluda"   
+#latlongs[x,7] <- "sandusky"  
+#latlongs[x,7] <- "slatesvill"
+#latlongs[x,7] <- "stleo"     
+#latlongs[x,7] <- "stuanton" 
+#latlongs[x,7] <- "summervill"
 latlongs[156,7] <- "tarboro"   
-latlongs[x,7] <- "tarponspri" 
+#latlongs[x,7] <- "tarponspri" 
 latlongs[157,7] <- "thomasvile"
 latlongs[161,7] <- "troy."     
 latlongs[163,7] <- "tulcaloosa"
 latlongs[164,7] <- "union city"
-latlongs[x,7] <- "walhalla" 
-latlongs[x,7] <- "whitestown"
-latlongs[x,7] <- "winnsburg"  
-latlongs[x,7] <- "winthropun" 
+#latlongs[x,7] <- "walhalla" 
+#latlongs[x,7] <- "whitestown"
+#latlongs[x,7] <- "winnsburg"  
+#latlongs[x,7] <- "winthropun" 
 latlongs[184,7] <- "yemasse"   
+
+merged_gs <- merge(All_Sites_Temps, latlongs, by="ID")
+
+Diffs_reproj <- raster("Processed/Change_LC_proj.tif")
+
+xy <- cbind(merged_gs$LONG, merged_gs$LAT)
+#Absmax, from here: https://stackoverflow.com/questions/24652771/finding-the-maximum-absolute-value-whilst-preserving-or-symbol
+absmax <- function(x) { x[which.max( abs(x) )][1]}
+LC_Change <- raster::extract(Diffs_reproj, xy, fun=absmax, buffer=600, df=T)
+colnames(merged)[colnames(merged)=="X"] <- "ID"
+all_reforest <- merge(merged, LC_Change, by="ID")
+reforesting <- subset(all_reforest, Change_LC_proj==1)
+nochange <- subset(all_reforest, Change_LC_proj==0)
+deforesting <- subset(all_reforest, Change_LC_proj==-1)
+
+#Plot TMax by group
+reforesting_sites <- as.data.frame(t(subset(All_Sites_Temps, names %in% reforesting$names)))
+reforesting_sites$year <- c(1901:2018)
+reforesting_sites$type <- "reforest"
+
+nochange_sites <- as.data.frame(t(subset(All_Sites_Temps, names %in% nochange$names)))
+nochange_sites$year <- c(1901:2018)
+nochange_sites$type <- "nochange"
+
+
+deforesting_sites <- as.data.frame(t(subset(All_Sites_Temps, names %in% deforesting$names)))
+deforesting_sites$year <- c(1901:2018)
+deforesting_sites$type <- "deforest"
+
+historic_toplotreforest <- melt(reforesting_sites, id.vars=c("year", "type"))
+historic_toplotdeforest <- melt(deforesting_sites, id.vars=c("year", "type"))
+historic_toplotnochange <- melt(nochange_sites, id.vars=c("year", "type"))
+
+historic_toplot <- rbind(historic_toplotreforest, historic_toplotdeforest, historic_toplotnochange)
+#historic_toplot <- rbind(historic_toplotreforest, historic_toplotnochange)
+historic_toplot$year <- as.numeric(historic_toplot$year)
+historic_toplot$value <- as.numeric(historic_toplot$value)
+historic_toplot$type <- as.factor(historic_toplot$type)
+historic_toplot
+str(historic_toplot)
+
+historic_toplot_post1960 <- subset(historic_toplot, year > 1945)
+
+#OK not great, but what about when we subset by latitude (above) 
+ggplot(historic_toplot, aes(x=year, y=value, colour=type, group=type)) +
+  geom_smooth(method="loess")+
+  labs(title="Air temperature trend by land cover change", 
+       y="Temperature Anomaly (Z score)", 
+       x="Year")+
+  theme_classic()+
+  ylim(-2,2)
+
+ggplot(historic_toplot_post1960, aes(x=year, y=value, colour=type, group=type)) +
+  geom_smooth(method="loess")+
+  labs(title="Air temperature trend by land cover change", 
+       y="Temperature Anomaly (Z score)", 
+       x="Year")+
+  theme_classic()+
+  ylim(-2,2)
+
+
 
