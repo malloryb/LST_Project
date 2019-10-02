@@ -1078,31 +1078,22 @@ all_forest_gs$type <- ifelse((all_forest_gs$Change_LC_proj == 1),
                              "reforest",
                      ifelse((all_forest_gs$Change_LC_proj ==-1),"deforest","nochange"))
 
-
-historic_toplotreforest <- melt(reforesting_gs, id.vars=c("Year", "type"), measure.vars = c("LAT", "Tavg_gs", "T75_gs", "T90_gs"))
-historic_toplotdeforest <- melt(deforesting_gs, id.vars=c("Year", "type"))
-historic_toplotnochange <- melt(nochange_gs, id.vars=c("Year", "type"))
-
-historic_toplot <- rbind(historic_toplotreforest, historic_toplotdeforest, historic_toplotnochange)
-#historic_toplot <- rbind(historic_toplotreforest, historic_toplotnochange)
-historic_toplot$year <- as.numeric(historic_toplot$year)
-historic_toplot$value <- as.numeric(historic_toplot$value)
-historic_toplot$type <- as.factor(historic_toplot$type)
-historic_toplot
-str(historic_toplot)
-
-historic_toplot_post1960 <- subset(historic_toplot, year > 1945)
-
+all_forest_gs$Year <- as.numeric(all_forest_gs$Year)
+all_forest_gs$type <- as.factor(all_forest_gs$type)
+str(all_forest_gs)
+all_forest_gs$type <- droplevels(all_forest_gs$type)
+levels(all_forest_gs$type)
+all_forest_gs1960 <- subset(all_forest_gs, Year > 1945)
 #OK not great, but what about when we subset by latitude (above) 
-ggplot(historic_toplot, aes(x=year, y=value, colour=type, group=type)) +
+ggplot(data=subset(all_forest_gs, !is.na(type)), aes(x=Year, y=T90_gs, colour=type, group=type)) +
   geom_smooth(method="loess")+
   labs(title="Air temperature trend by land cover change", 
        y="Temperature Anomaly (Z score)", 
        x="Year")+
-  theme_classic()+
-  ylim(-2,2)
+  theme_classic()
+  #ylim(-2,2)
 
-ggplot(historic_toplot_post1960, aes(x=year, y=value, colour=type, group=type)) +
+ggplot(historic_toplot_post1960_gs, aes(x=year, y=value, colour=type, group=type)) +
   geom_smooth(method="loess")+
   labs(title="Air temperature trend by land cover change", 
        y="Temperature Anomaly (Z score)", 
