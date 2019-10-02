@@ -9,6 +9,9 @@ library(plyr)
 library(dplyr)
 library(reshape2)
 library(stringr)
+library(tidyr)
+rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = T,chunksize=2e+08,maxmemory=1e+8)
+
 setwd("/Volumes/G-RAID Thunderbolt 3/Temp_Project")
 #Load file for plotting
 df <- read.csv("/Processed/for_plotting.csv")
@@ -907,8 +910,39 @@ All_Sites_Temps <- do.call(rbind, test)
 write.csv(All_Sites_Temps, "Processed/All_Growingseason_Temps_gs.csv")
 
 #Now to merge to get lat longs
-All_Sites_Temps <- read.csv("Processed/All_Growingseason_Temps_gs.csv")
-latlongs <- read.csv("Lily_Data/USHCNstationinformation_percentforest.csv")
+#just for home computer
+setwd("/Users/mallory/Documents/LST_Data")
+#All_Sites_Temps <- read.csv("Processed/All_Growingseason_Temps_gs.csv")
+#latlongs <- read.csv("Lily_Data/USHCNstationinformation_percentforest.csv")
+
+All_Sites_Temps <- read.csv("All_Growingseason_Temps_gs.csv")
+All_Sites_Temps$ID <- as.character(All_Sites_Temps$ID)
+All_Sites_Temps[7738:7851,6] <- "greenville_oh"
+All_Sites_Temps[7852:7960,6] <- "greenville_ms"
+All_Sites_Temps[8304:8424,6] <- "henderson_nc"
+All_Sites_Temps[8425:8517,6] <- "henderson_ky"
+All_Sites_Temps[10455:10561,6] <- "laurel_ms"
+All_Sites_Temps[10344:10454,6] <- "laurel_md"
+All_Sites_Temps[10889:10998,6] <- "lewisburg_wv"
+All_Sites_Temps[10999:11112,6] <- "lewisburg_tn"
+All_Sites_Temps[11795:11904,6] <- "madison_fl"
+All_Sites_Temps[11905:12018,6] <- "madison_in"
+All_Sites_Temps[12019:12137,6] <- "marion_nc"
+All_Sites_Temps[12138:12253,6] <- "marion_in"
+All_Sites_Temps[16592:16694,6] <- "salisbury_md"
+All_Sites_Temps[16471:16591,6] <- "salisbury_nc"
+All_Sites_Temps[20603:20715,6] <- "washington_in"
+All_Sites_Temps[20716:20824,6] <- "washington_ga"
+All_Sites_Temps[22044:22143,6] <- "woodstock_md"
+All_Sites_Temps[22144:22157,6] <- "woodstock_va"
+All_Sites_Temps[21164:21275,6] <- "waynesboro_tn"
+
+All_Sites_Temps$ID <- as.factor(All_Sites_Temps$ID)
+All_Sites_Temps <- subset(All_Sites_Temps, Year >1900)
+summary(All_Sites_Temps$ID)
+
+latlongs <- read.csv("USHCNstationinformation_percentforest.csv")
+
 str(latlongs)
 latlongs$STA_NAME <- tolower(latlongs$STA_NAME)
 latlongs$STA_NAME <- str_replace_all(latlongs$STA_NAME, " ", "")
@@ -940,11 +974,22 @@ latlongs[48,7] <- "farmville"
 #latlongs[x,7] <- "fernandina" 
 #latlongs[x,7] <- "georgetown" 
 latlongs[58,7] <- "glennville"
+latlongs[65,7] <- "greenville_ms"
+latlongs[66,7] <- "greenville_oh"
 #latlongs[x,7] <- "haitesvill" 
+latlongs[70,7] <- "henderson_nc"
+latlongs[71,7] <- "henderson_ky"
 latlongs[81,7] <- "inverness"  
 #latlongs[x,7] <- "kershaw"    
 #latlongs[x,7] <- "kinston"   
 #latlongs[x,7] <- "littlemtn" 
+latlongs[87,7] <- "laurel_ms"
+latlongs[88,7] <- "laurel_md"
+latlongs[92,7] <- "lewisburg_wv"
+latlongs[93,7] <- "lewisburg_tn"
+latlongs[99,7] <- "madison_fl"
+latlongs[100,7] <- "madison_in"
+latlongs[101,7] <- "marion_in"
 latlongs[104,7] <- "mcconelsvi"
 latlongs[105,7] <- "mcminville"
 latlongs[114,7] <- "mufreesbur"
@@ -956,6 +1001,8 @@ latlongs[124,7] <- "owens"
 #latlongs[x,7] <- "salem"     
 #latlongs[x,7] <- "saluda"   
 #latlongs[x,7] <- "sandusky"  
+latlongs[142,7] <- "salisbury_nc"
+latlongs[141,7] <- "salisbury_md"
 #latlongs[x,7] <- "slatesvill"
 #latlongs[x,7] <- "stleo"     
 #latlongs[x,7] <- "stuanton" 
@@ -967,63 +1014,86 @@ latlongs[161,7] <- "troy."
 latlongs[163,7] <- "tulcaloosa"
 latlongs[164,7] <- "union city"
 #latlongs[x,7] <- "walhalla" 
+latlongs[170,7] <- "washington_in"
+latlongs[174,7] <- "waynesboro_tn"
+latlongs[175,7] <- "waynesboro_ms"
 #latlongs[x,7] <- "whitestown"
 #latlongs[x,7] <- "winnsburg"  
 #latlongs[x,7] <- "winthropun" 
+latlongs[181,7] <- "woodstock_md"
+latlongs[182,7] <- "woodstock_va"
 latlongs[184,7] <- "yemasse"   
 
+check2= setdiff(latlongs$ID, All_Sites_Temps$ID)
+
 merged_gs <- merge(All_Sites_Temps, latlongs, by="ID")
+colnames(merged_gs)[2] <- "ID_no"
+merged_gs <- merged_gs[order(merged_gs$ID_no),]
+summary(merged_gs$ID)
+write.csv(merged_gs, "to_fill_years.csv")
+merged_gs<- read.csv("to_fill_years.csv")
+#Need to gap fill
+#Create dataframe with all site names, and then year values of 1900:2013 for all
+#Then merge, keeping all.y, and then we'll be good! :D
+#Split, then rbind the 1901-2013 to each element, then combine
+merged_gs <- as.data.frame(droplevels(merged_gs))
+X <- split(merged_gs, merged_gs$ID)
+addyears <- function(x){
+Year <-   as.data.frame(c(1901:2013))
+colnames(Year) <- "Year"
+y <- merge(Year, x, by="Year", all.x=TRUE)
+y$ID <- as.character(y$ID)
+print(x$ID[2])
+y$ID <- x$ID[2]
+y$ID <- as.factor(y$ID)
+y$LAT <- x$LAT[2]
+y$LONG <- x$LONG[2]
+y$STA_NAME <- x$STA_NAME[2]
+y$ID_no <- as.numeric(x$ID[2])
+print(y$ID_no)
+return(y)
+}
 
-Diffs_reproj <- raster("Processed/Change_LC_proj.tif")
-
-xy <- cbind(merged_gs$LONG, merged_gs$LAT)
+test2 <- lapply(X, addyears)
+All_Sites_Temps_clean <- do.call(rbind, test2)
+summary(All_Sites_Temps_clean$ID)
+write.csv(All_Sites_Temps_clean, "Allsites_gs_cleaned.csv")
+#Diffs_reproj <- raster("Processed/Change_LC_proj.tif")
+Diffs_LC <- raster("Change_LC_FORESCE.tif")
+#Diffs_reproj <- projectRaster(Diffs_LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
+#writeRaster(Diffs_reproj, "Change_LC_proj.tif")
+Diffs_reproj <- raster("Change_LC_proj.tif")
+plot(Diffs_reproj)
+xy <- cbind(All_Sites_Temps_clean$LONG, All_Sites_Temps_clean$LAT)
+xy2 <- unique(xy)
 #Absmax, from here: https://stackoverflow.com/questions/24652771/finding-the-maximum-absolute-value-whilst-preserving-or-symbol
 absmax <- function(x) { x[which.max( abs(x) )][1]}
-LC_Change <- raster::extract(Diffs_reproj, xy, fun=absmax, buffer=600, df=T)
-colnames(merged)[colnames(merged)=="X"] <- "ID"
-all_reforest <- merge(merged, LC_Change, by="ID")
-reforesting <- subset(all_reforest, Change_LC_proj==1)
-nochange <- subset(all_reforest, Change_LC_proj==0)
-deforesting <- subset(all_reforest, Change_LC_proj==-1)
+LC_Change <- raster::extract(Diffs_reproj, xy2, fun=absmax, buffer=600, df=T)
+str(All_Sites_Temps_clean)
+str(LC_Change)
+LC_Change <- plyr::rename(LC_Change, c("ID" = "ID_no"))
+all_forest_gs <- merge(All_Sites_Temps_clean, LC_Change, by="ID_no")
+#Hoping it worked 
+all_forest_gs$type <- ifelse((all_forest_gs$Change_LC_proj == 1),
+                             "reforest",
+                     ifelse((all_forest_gs$Change_LC_proj ==-1),"deforest","nochange"))
 
-#Plot TMax by group
-reforesting_sites <- as.data.frame(t(subset(All_Sites_Temps, names %in% reforesting$names)))
-reforesting_sites$year <- c(1901:2018)
-reforesting_sites$type <- "reforest"
-
-nochange_sites <- as.data.frame(t(subset(All_Sites_Temps, names %in% nochange$names)))
-nochange_sites$year <- c(1901:2018)
-nochange_sites$type <- "nochange"
-
-
-deforesting_sites <- as.data.frame(t(subset(All_Sites_Temps, names %in% deforesting$names)))
-deforesting_sites$year <- c(1901:2018)
-deforesting_sites$type <- "deforest"
-
-historic_toplotreforest <- melt(reforesting_sites, id.vars=c("year", "type"))
-historic_toplotdeforest <- melt(deforesting_sites, id.vars=c("year", "type"))
-historic_toplotnochange <- melt(nochange_sites, id.vars=c("year", "type"))
-
-historic_toplot <- rbind(historic_toplotreforest, historic_toplotdeforest, historic_toplotnochange)
-#historic_toplot <- rbind(historic_toplotreforest, historic_toplotnochange)
-historic_toplot$year <- as.numeric(historic_toplot$year)
-historic_toplot$value <- as.numeric(historic_toplot$value)
-historic_toplot$type <- as.factor(historic_toplot$type)
-historic_toplot
-str(historic_toplot)
-
-historic_toplot_post1960 <- subset(historic_toplot, year > 1945)
-
+all_forest_gs$Year <- as.numeric(all_forest_gs$Year)
+all_forest_gs$type <- as.factor(all_forest_gs$type)
+str(all_forest_gs)
+all_forest_gs$type <- droplevels(all_forest_gs$type)
+levels(all_forest_gs$type)
+all_forest_gs1960 <- subset(all_forest_gs, Year > 1945)
 #OK not great, but what about when we subset by latitude (above) 
-ggplot(historic_toplot, aes(x=year, y=value, colour=type, group=type)) +
+ggplot(data=subset(all_forest_gs, !is.na(type)), aes(x=Year, y=T90_gs, colour=type, group=type)) +
   geom_smooth(method="loess")+
   labs(title="Air temperature trend by land cover change", 
        y="Temperature Anomaly (Z score)", 
        x="Year")+
-  theme_classic()+
-  ylim(-2,2)
+  theme_classic()
+  #ylim(-2,2)
 
-ggplot(historic_toplot_post1960, aes(x=year, y=value, colour=type, group=type)) +
+ggplot(historic_toplot_post1960_gs, aes(x=year, y=value, colour=type, group=type)) +
   geom_smooth(method="loess")+
   labs(title="Air temperature trend by land cover change", 
        y="Temperature Anomaly (Z score)", 
