@@ -885,7 +885,6 @@ writeraster(y, "Processed/landfireheight.tif")
 #Going back to Lily's RAW data------------
 library(readxl)
 library(Amelia)
-getwd()
 Format_Weather <- function(x){
   filename <- paste(x)
   station <- tolower(substr(filename, 1,10))
@@ -896,12 +895,16 @@ Format_Weather <- function(x){
   y <- as.data.frame(read_excel(toread, na="-9999", skip=1))
   colnames(y)[colnames(y)=="TAVE (F)"] <- "Tavg"
   y$monthyear <- paste(y$Month, y$Year, sep="-")
+  #annual
+  ann <- ddply(y, .(Year), summarise, Tavg_ann = mean_na(Tavg))
   #FOR GROWING SEASON ONLY
   gs <- subset(y, Month == 6 | Month == 7 | Month == 8 | Month == 9)
   gs$Tavg <- as.numeric(gs$Tavg)
   z <- ddply(gs, .(Year), summarise, Tavg_gs=mean_na(Tavg),T75_gs=quantile(Tavg, probs=(0.75), na.rm=TRUE),T90_gs=quantile(Tavg, probs=(0.90), na.rm=TRUE))
   z$ID <- station
-  return(z)
+  ab <- merge(z, ann, by="Year")
+   #center and scale?
+  return(ab)
 }
 
 lxls <- list.files("Raw/Weather_Station_Raw", pattern= "\\.xlsx$")
@@ -911,11 +914,10 @@ write.csv(All_Sites_Temps, "Processed/All_Growingseason_Temps_gs.csv")
 
 #Now to merge to get lat longs
 #just for home computer
-setwd("/Users/mallory/Documents/LST_Data")
-#All_Sites_Temps <- read.csv("Processed/All_Growingseason_Temps_gs.csv")
-#latlongs <- read.csv("Lily_Data/USHCNstationinformation_percentforest.csv")
+All_Sites_Temps <- read.csv("Processed/All_Growingseason_Temps_gs.csv")
+latlongs <- read.csv("Lily_Data/USHCNstationinformation_percentforest.csv")
 
-All_Sites_Temps <- read.csv("All_Growingseason_Temps_gs.csv")
+#Clarifying doubles here 
 All_Sites_Temps$ID <- as.character(All_Sites_Temps$ID)
 All_Sites_Temps[7738:7851,6] <- "greenville_oh"
 All_Sites_Temps[7852:7960,6] <- "greenville_ms"
@@ -939,9 +941,10 @@ All_Sites_Temps[21164:21275,6] <- "waynesboro_tn"
 
 All_Sites_Temps$ID <- as.factor(All_Sites_Temps$ID)
 All_Sites_Temps <- subset(All_Sites_Temps, Year >1900)
+#Many do not have all 113 values, must fix
 summary(All_Sites_Temps$ID)
 
-latlongs <- read.csv("USHCNstationinformation_percentforest.csv")
+latlongs <- read.csv("Lily_Data/USHCNstationinformation_percentforest.csv")
 
 str(latlongs)
 latlongs$STA_NAME <- tolower(latlongs$STA_NAME)
@@ -1028,16 +1031,18 @@ check2= setdiff(latlongs$ID, All_Sites_Temps$ID)
 
 merged_gs <- merge(All_Sites_Temps, latlongs, by="ID")
 colnames(merged_gs)[2] <- "ID_no"
+
 merged_gs <- merged_gs[order(merged_gs$ID_no),]
 summary(merged_gs$ID)
-write.csv(merged_gs, "to_fill_years.csv")
-merged_gs<- read.csv("to_fill_years.csv")
+write.csv(merged_gs, "Processed/to_fill_years.csv")
+merged_gs<- read.csv("Processed/to_fill_years.csv")
 #Need to gap fill
 #Create dataframe with all site names, and then year values of 1900:2013 for all
 #Then merge, keeping all.y, and then we'll be good! :D
 #Split, then rbind the 1901-2013 to each element, then combine
 merged_gs <- as.data.frame(droplevels(merged_gs))
 X <- split(merged_gs, merged_gs$ID)
+
 addyears <- function(x){
 Year <-   as.data.frame(c(1901:2013))
 colnames(Year) <- "Year"
@@ -1057,26 +1062,30 @@ return(y)
 test2 <- lapply(X, addyears)
 All_Sites_Temps_clean <- do.call(rbind, test2)
 summary(All_Sites_Temps_clean$ID)
-write.csv(All_Sites_Temps_clean, "Allsites_gs_cleaned.csv")
-#Diffs_reproj <- raster("Processed/Change_LC_proj.tif")
-Diffs_LC <- raster("Change_LC_FORESCE.tif")
+write.csv(All_Sites_Temps_clean, "Processed/Allsites_gs_cleaned.csv")
+
+#RasterFiles
+Diffs_LC <- raster("Processed/Change_LC_FORESCE.tif")
+FoAge <- raster("Raw/Other/Forest_Age_Conus.tif")
+LC_2008 <- raster("Processed/NCLD_2008_processed.tif")
+
 #Diffs_reproj <- projectRaster(Diffs_LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
 #writeRaster(Diffs_reproj, "Change_LC_proj.tif")
-Diffs_reproj <- raster("Change_LC_proj.tif")
+Diffs_reproj <- raster("Processed/Change_LC_proj.tif")
 plot(Diffs_reproj)
 xy <- cbind(All_Sites_Temps_clean$LONG, All_Sites_Temps_clean$LAT)
 xy2 <- unique(xy)
 #Absmax, from here: https://stackoverflow.com/questions/24652771/finding-the-maximum-absolute-value-whilst-preserving-or-symbol
 absmax <- function(x) { x[which.max( abs(x) )][1]}
 LC_Change <- raster::extract(Diffs_reproj, xy2, fun=absmax, buffer=600, df=T)
-str(All_Sites_Temps_clean)
-str(LC_Change)
 LC_Change <- plyr::rename(LC_Change, c("ID" = "ID_no"))
 all_forest_gs <- merge(All_Sites_Temps_clean, LC_Change, by="ID_no")
 #Hoping it worked 
 all_forest_gs$type <- ifelse((all_forest_gs$Change_LC_proj == 1),
                              "reforest",
                      ifelse((all_forest_gs$Change_LC_proj ==-1),"deforest","nochange"))
+
+
 
 all_forest_gs$Year <- as.numeric(all_forest_gs$Year)
 all_forest_gs$type <- as.factor(all_forest_gs$type)
