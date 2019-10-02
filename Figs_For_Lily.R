@@ -1072,20 +1072,16 @@ LC_Change <- raster::extract(Diffs_reproj, xy2, fun=absmax, buffer=600, df=T)
 str(All_Sites_Temps_clean)
 str(LC_Change)
 LC_Change <- plyr::rename(LC_Change, c("ID" = "ID_no"))
-all_reforest_gs <- merge(All_Sites_Temps_clean, LC_Change, by="ID_no")
+all_forest_gs <- merge(All_Sites_Temps_clean, LC_Change, by="ID_no")
 #Hoping it worked 
-reforesting_gs <- subset(all_reforest_gs, Change_LC_proj==1)
-nochange_gs <- subset(all_reforest_gs,Change_LC_proj==0)
-deforesting_gs <- subset(all_reforest_gs, Change_LC_proj==-1)
+all_forest_gs$type <- ifelse((all_forest_gs$Change_LC_proj == 1),
+                             "reforest",
+                     ifelse((all_forest_gs$Change_LC_proj ==-1),"deforest","nochange"))
 
-#Plot T by group
-reforesting_sites_gs$type <- "reforest"
-nochange_sites_gs$type <- "nochange"
-deforesting_sites_gs$type <- "deforest"
 
-historic_toplotreforest <- melt(reforesting_sites, id.vars=c("year", "type"))
-historic_toplotdeforest <- melt(deforesting_sites, id.vars=c("year", "type"))
-historic_toplotnochange <- melt(nochange_sites, id.vars=c("year", "type"))
+historic_toplotreforest <- melt(reforesting_gs, id.vars=c("Year", "type"), measure.vars = c("LAT", "Tavg_gs", "T75_gs", "T90_gs"))
+historic_toplotdeforest <- melt(deforesting_gs, id.vars=c("Year", "type"))
+historic_toplotnochange <- melt(nochange_gs, id.vars=c("Year", "type"))
 
 historic_toplot <- rbind(historic_toplotreforest, historic_toplotdeforest, historic_toplotnochange)
 #historic_toplot <- rbind(historic_toplotreforest, historic_toplotnochange)
