@@ -868,8 +868,8 @@ y <- reclassify(x, cbind(-Inf,0,NA), right=FALSE)
 plot(y)
 #Using nearest neighbor because it's a discrete (class) variable
 #Taking FOREVER - run overnight. 
-Heigh_reproj <- projectRaster(y, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
-writeraster("Processed/landfireheight.tif")
+Height_reproj <- projectRaster(y, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
+writeraster(y, "Processed/landfireheight.tif")
 
 #Reproject y 
 
