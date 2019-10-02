@@ -1082,9 +1082,9 @@ xy2 <- unique(xy)
 #Absmax, from here: https://stackoverflow.com/questions/24652771/finding-the-maximum-absolute-value-whilst-preserving-or-symbol
 absmax <- function(x) { x[which.max( abs(x) )][1]}
 LC_Change <- raster::extract(Diffs_reproj, xy2, fun=median, na.rm=TRUE, buffer=200, df=T)
-For_age <- raster::extract(FoAge, xy2, fun=mean_na, buffer=600, df=T)
-Land_Cov <- raster::extract(Just_LC, xy2, fun=mean_na, buffer=600, df=T)
-Forest_Cov <- raster::extract(LC_2008, xy2, fun=median, na.rm=TRUE, buffer=600, df=T)
+For_age <- raster::extract(FoAge, xy2, fun=mean_na, buffer=200, df=T)
+Land_Cov <- raster::extract(Just_LC, xy2, fun=mean_na, buffer=200, df=T)
+Forest_Cov <- raster::extract(LC_2008, xy2, fun=median, na.rm=TRUE, buffer=200, df=T)
 #Rename
 LC_Change <- plyr::rename(LC_Change, c("ID" = "ID_no"))
 For_age <- plyr::rename(For_age, c("ID" = "ID_no"))
@@ -1122,12 +1122,16 @@ all_forest_gs$latcat <- droplevels(all_forest_gs$latcat)
 all_forest_gs$agecat <- droplevels(all_forest_gs$agecat)
 head(all_forest_gs)
 all_forest_gs1945 <- subset(all_forest_gs, Year > 1945)
-write.csv(all_forest_gs, "Processed/Plotting_Cleaned_Weatherdata.csv")
+write.csv(all_forest_gs, "Processed/10_02_2019_Plotting_Cleaned_Weatherdata.csv")
 
 #Now there will be many many plots 
 #Try Facet First
 p <- ggplot(all_forest_gs, aes(x=Year, y=Tavg_gs)) + geom_smooth(method="loess")
 p+facet_grid(rows=vars(latcat), cols=vars(changetype))
+p+facet_grid(rows=vars(latcat), cols=vars(lctype))
+p+facet_grid(rows=vars(latcat), cols=vars(agecat))
+p+facet_grid(rows=vars(agecat), cols=vars(changetype))
+
 plyr::count(all_forest_gs, 'latcat')
 plyr::count(all_forest_gs, 'changetype')
 head(all_forest_gs)
