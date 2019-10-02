@@ -1064,6 +1064,7 @@ All_Sites_Temps_clean <- do.call(rbind, test2)
 summary(All_Sites_Temps_clean$ID)
 write.csv(All_Sites_Temps_clean, "Processed/Allsites_gs_cleaned.csv")
 
+All_Sites_Temps_clean <- read.csv("Processed/Allsites_gs_cleaned.csv")
 #RasterFiles
 Diffs_LC <- raster("Processed/Change_LC_FORESCE.tif")
 FoAge <- raster("Raw/Other/Forest_Age_Conus.tif")
@@ -1071,7 +1072,7 @@ LC_2008 <- raster("Processed/NCLD_2008_processed.tif")
 LC_2008[LC_2008>0 & LC_2008 <41] <- 0
 LC_2008[LC_2008>40 & LC_2008 <44] <- 1
 LC_2008[LC_2008>43 & LC_2008 <Inf] <- 0
-
+Just_LC <- raster("Processed/NCLD_2008_processed.tif")
 #Diffs_reproj <- projectRaster(Diffs_LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
 #writeRaster(Diffs_reproj, "Change_LC_proj.tif")
 Diffs_reproj <- raster("Processed/Change_LC_proj.tif")
@@ -1080,30 +1081,38 @@ xy <- cbind(All_Sites_Temps_clean$LONG, All_Sites_Temps_clean$LAT)
 xy2 <- unique(xy)
 #Absmax, from here: https://stackoverflow.com/questions/24652771/finding-the-maximum-absolute-value-whilst-preserving-or-symbol
 absmax <- function(x) { x[which.max( abs(x) )][1]}
-LC_Change <- raster::extract(Diffs_reproj, xy2, fun=absmax, buffer=600, df=T)
+LC_Change <- raster::extract(Diffs_reproj, xy2, fun=median, na.rm=TRUE, buffer=200, df=T)
 For_age <- raster::extract(FoAge, xy2, fun=mean_na, buffer=600, df=T)
-Land_Cov <- raster::extract(LC_2008, xy2, fun=mean_na, buffer=600, df=T)
+Land_Cov <- raster::extract(Just_LC, xy2, fun=mean_na, buffer=600, df=T)
+Forest_Cov <- raster::extract(LC_2008, xy2, fun=median, na.rm=TRUE, buffer=600, df=T)
 #Rename
 LC_Change <- plyr::rename(LC_Change, c("ID" = "ID_no"))
 For_age <- plyr::rename(For_age, c("ID" = "ID_no"))
-Land_Cov <- plyr::rename(Land_Cov, c("ID" = "ID_no", "layer"="percent_forest"))
+Land_Cov <- plyr::rename(Land_Cov, c("ID" = "ID_no", "NCLD_2008_processed"="LC"))
+Forest_Cov <- plyr::rename(Forest_Cov, c("ID" = "ID_no", "layer"="percent_forest"))
 #Merge
 all_forest_gs <- merge(All_Sites_Temps_clean, LC_Change, by="ID_no")
 all_forest_gs <- merge(all_forest_gs, For_age, by="ID_no")
+all_forest_gs <- merge(all_forest_gs, Forest_Cov, by="ID_no")
 all_forest_gs <- merge(all_forest_gs, Land_Cov, by="ID_no")
 #Hoping it worked 
-all_forest_gs$changetype <- ifelse((all_forest_gs$Change_LC_proj == 1),
+all_forest_gs$changetype <- ifelse((all_forest_gs$Change_LC_proj >0 ),
                              "reforest",
-                     ifelse((all_forest_gs$Change_LC_proj ==-1),"deforest","nochange"))
+                     ifelse((all_forest_gs$Change_LC_proj <0),"deforest","nochange"))
+all_forest_gs$changetype[is.na(all_forest_gs$Change_LC_proj)] = "nochange"
 
 all_forest_gs$latcat <- ifelse((all_forest_gs$LAT >38),
                                    "highlat",
                                    ifelse((all_forest_gs$LAT<33),"lowlat","midlat"))
 
+all_forest_gs$lctype <- ifelse((all_forest_gs$LC <44 & all_forest_gs$LC > 40), "forest",
+                               ifelse((all_forest_gs$LC<74 &all_forest_gs$LC >70),"grassland",
+                                      ifelse(all_forest_gs$LC>80 & all_forest_gs$LC < 83, "agriculture", "other")))
+
 all_forest_gs$agecat <- ifelse((all_forest_gs$Forest_Age_Conus >70),
                                "oldforest", "youngforest")
-all_forest_gs$agecat[is.na(all_forest_gs$Forest_Age_Conus)] = "noforest"
 
+all_forest_gs$agecat[is.na(all_forest_gs$Forest_Age_Conus)] = "noforest"
 all_forest_gs$Year <- as.numeric(all_forest_gs$Year)
 all_forest_gs$changetype <- as.factor(all_forest_gs$changetype)
 all_forest_gs$latcat <- as.factor(all_forest_gs$latcat)
@@ -1114,12 +1123,18 @@ all_forest_gs$agecat <- droplevels(all_forest_gs$agecat)
 head(all_forest_gs)
 all_forest_gs1945 <- subset(all_forest_gs, Year > 1945)
 write.csv(all_forest_gs, "Processed/Plotting_Cleaned_Weatherdata.csv")
-#OK not great, but what about when we subset by latitude (above) 
+
+#Now there will be many many plots 
+#Try Facet First
+p <- ggplot(all_forest_gs, aes(x=Year, y=Tavg_gs)) + geom_smooth(method="loess")
+p+facet_grid(rows=vars(latcat), cols=vars(changetype))
+plyr::count(all_forest_gs, 'latcat')
 plyr::count(all_forest_gs, 'changetype')
+head(all_forest_gs)
 ggplot(data=subset(all_forest_gs, !is.na(changetype)), aes(x=Year, y=T90_gs, colour=changetype, group=changetype)) +
   geom_smooth(method="loess")+
   labs(title="Air temperature trend by land cover change", 
-       y="Temperature Anomaly (Z score)", 
+       y="Temperature", 
        x="Year")+
   theme_classic()
   
