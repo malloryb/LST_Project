@@ -869,6 +869,8 @@ x <- crop(x, e2)
 plot(x)
 y <- reclassify(x, cbind(-Inf,0,NA), right=FALSE)
 plot(y)
+aggregate(y, fact=3, fun=mean)
+
 #Using nearest neighbor because it's a discrete (class) variable
 #Taking FOREVER - run overnight. 
 Height_reproj <- projectRaster(y, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
