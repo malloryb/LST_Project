@@ -863,19 +863,20 @@ ggplot(historic_toplot_post1960, aes(x=year, y=value, colour=type, group=type)) 
   ylim(-2,2)
 
 #One more try: Vegetation height map --------
-x <- raster("Raw/Other/LandFire/US_105evh/grid1/us_105evh/z001001.adf")
-e2 <- extent(300000, 2200000, 177285, 2500000)
-x <- crop(x, e2)
-plot(x)
+#x <- raster("Raw/Other/LandFire/US_105evh/grid1/us_105evh/z001001.adf")
+#e2 <- extent(300000, 2200000, 177285, 2500000)
+#x <- crop(x, e2)
+#plot(x)
+#writeRaster(x, "Processed/Landfire_Height.tif")
+x <- raster("Processed/Landfire_Height.tif")
 y <- reclassify(x, cbind(-Inf,0,NA), right=FALSE)
 plot(y)
-aggregate(y, fact=3, fun=mean)
+Height_reproj <- aggregate(y, fact=3)
 
 #Using nearest neighbor because it's a discrete (class) variable
 #Taking FOREVER - run overnight. 
-Height_reproj <- projectRaster(y, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
-writeraster(y, "Processed/landfireheight.tif")
-
+Height_reproj <- projectRaster(Height_reproj, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method="ngb")
+writeRaster(Height_reproj, "Processed/landfireheight.tif")
 #Reproject y 
 
 #Categories: of interest: 
@@ -886,7 +887,6 @@ writeraster(y, "Processed/landfireheight.tif")
 
 #Going back to Lily's RAW data------------
 library(readxl)
-library(Amelia)
 Format_Weather <- function(x){
   filename <- paste(x)
   station <- tolower(substr(filename, 1,10))
@@ -899,12 +899,16 @@ Format_Weather <- function(x){
   y$monthyear <- paste(y$Month, y$Year, sep="-")
   #annual
   ann <- ddply(y, .(Year), summarise, Tavg_ann = mean_na(Tavg))
+  ann$Tavg_ann_z <- scale(ann$Tavg_ann, center=TRUE, scale=TRUE)
   #FOR GROWING SEASON ONLY
   gs <- subset(y, Month == 6 | Month == 7 | Month == 8 | Month == 9)
   gs$Tavg <- as.numeric(gs$Tavg)
   z <- ddply(gs, .(Year), summarise, Tavg_gs=mean_na(Tavg),T75_gs=quantile(Tavg, probs=(0.75), na.rm=TRUE),T90_gs=quantile(Tavg, probs=(0.90), na.rm=TRUE))
   z$ID <- station
-  ab <- merge(z, ann, by="Year")
+  z$Tavg_gs_z <- scale(z$Tavg_gs, center=TRUE, scale=TRUE)
+  z$T75_z <- scale(z$T75_gs, center=TRUE, scale=TRUE)
+  z$T90_z <- scale(z$T90_gs, center=TRUE, scale=TRUE)
+    ab <- merge(z, ann, by="Year")
    #center and scale?
   return(ab)
 }
@@ -1071,10 +1075,13 @@ All_Sites_Temps_clean <- read.csv("Processed/Allsites_gs_cleaned.csv")
 Diffs_LC <- raster("Processed/Change_LC_FORESCE.tif")
 FoAge <- raster("Raw/Other/Forest_Age_Conus.tif")
 LC_2008 <- raster("Processed/NCLD_2008_processed.tif")
-LC_2008[LC_2008>0 & LC_2008 <41] <- 0
-LC_2008[LC_2008>40 & LC_2008 <44] <- 1
+Height_reproj <- raster("Processed/landfireheight.tif")
+Height_reproj <- reclassify(Height_reproj, cbind(-Inf,0,NA), right=FALSE)
+LC_2008[LC_2008>0 & LC_2008 <32] <- 0
+LC_2008[LC_2008>40 & LC_2008 <56] <- 1
 LC_2008[LC_2008>43 & LC_2008 <Inf] <- 0
 Just_LC <- raster("Processed/NCLD_2008_processed.tif")
+
 #Diffs_reproj <- projectRaster(Diffs_LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
 #writeRaster(Diffs_reproj, "Change_LC_proj.tif")
 Diffs_reproj <- raster("Processed/Change_LC_proj.tif")
@@ -1083,20 +1090,28 @@ xy <- cbind(All_Sites_Temps_clean$LONG, All_Sites_Temps_clean$LAT)
 xy2 <- unique(xy)
 #Absmax, from here: https://stackoverflow.com/questions/24652771/finding-the-maximum-absolute-value-whilst-preserving-or-symbol
 absmax <- function(x) { x[which.max( abs(x) )][1]}
-LC_Change <- raster::extract(Diffs_reproj, xy2, fun=median, na.rm=TRUE, buffer=200, df=T)
-For_age <- raster::extract(FoAge, xy2, fun=mean_na, buffer=200, df=T)
-Land_Cov <- raster::extract(Just_LC, xy2, fun=mean_na, buffer=200, df=T)
-Forest_Cov <- raster::extract(LC_2008, xy2, fun=median, na.rm=TRUE, buffer=200, df=T)
+mode <- function(x) {
+  ux <- na.omit(unique(x) )
+  tab <- tabulate(match(x, ux)); ux[tab == max(tab) ]
+}
+LC_Change <- raster::extract(Diffs_reproj, xy2, fun=modal, na.rm=TRUE, buffer=400, df=T)
+For_age <- raster::extract(FoAge, xy2, fun=median, buffer=300, df=T)
+Land_Cov <- raster::extract(Just_LC, xy2, fun=modal, buffer=300, df=T)
+Forest_Cov <- raster::extract(LC_2008, xy2, fun=median, na.rm=TRUE, buffer=300, df=T)
+Veg_Height <- raster::extract(Height_reproj, xy2, fun=modal, na.rm=TRUE, buffer=300, df=T)
 #Rename
 LC_Change <- plyr::rename(LC_Change, c("ID" = "ID_no"))
 For_age <- plyr::rename(For_age, c("ID" = "ID_no"))
 Land_Cov <- plyr::rename(Land_Cov, c("ID" = "ID_no", "NCLD_2008_processed"="LC"))
 Forest_Cov <- plyr::rename(Forest_Cov, c("ID" = "ID_no", "layer"="percent_forest"))
+Veg_height <- plyr::rename(Veg_Height, c("ID" = "ID_no", "landfireheight" = "veg_height"))
 #Merge
 all_forest_gs <- merge(All_Sites_Temps_clean, LC_Change, by="ID_no")
 all_forest_gs <- merge(all_forest_gs, For_age, by="ID_no")
 all_forest_gs <- merge(all_forest_gs, Forest_Cov, by="ID_no")
 all_forest_gs <- merge(all_forest_gs, Land_Cov, by="ID_no")
+all_forest_gs <- merge(all_forest_gs, Veg_height, by="ID_no")
+
 #Hoping it worked 
 all_forest_gs$changetype <- ifelse((all_forest_gs$Change_LC_proj >0 ),
                              "reforest",
@@ -1107,32 +1122,81 @@ all_forest_gs$latcat <- ifelse((all_forest_gs$LAT >38),
                                    "highlat",
                                    ifelse((all_forest_gs$LAT<33),"lowlat","midlat"))
 
-all_forest_gs$lctype <- ifelse((all_forest_gs$LC <44 & all_forest_gs$LC > 40), "forest",
+all_forest_gs$lctype <- ifelse((all_forest_gs$LC > 32 & all_forest_gs$LC < 56), "forest",
                                ifelse((all_forest_gs$LC<74 &all_forest_gs$LC >70),"grassland",
-                                      ifelse(all_forest_gs$LC>80 & all_forest_gs$LC < 83, "agriculture", "other")))
+                                      ifelse(all_forest_gs$LC>80 & all_forest_gs$LC < 85, "agriculture", "other")))
+
+all_forest_gs$heightcat <- ifelse((all_forest_gs$veg_height < 35), "developed",
+                               ifelse((all_forest_gs$veg_height >63 &  all_forest_gs$veg_height < 85),"agriculture",
+                                      ifelse((all_forest_gs$veg_height> 100 & all_forest_gs$veg_height < 108), "shrub/grass", 
+                                             ifelse((all_forest_gs$veg_height == 108 | all_forest_gs$veg_height==109), "forest < 10m", 
+                                                    ifelse((all_forest_gs$veg_height==110), "forest 10 to 25 m",
+                                                           ifelse((all_forest_gs$veg_height==111 | all_forest_gs$veg_height ==112), "forest > 25 m", "other"))))))
 
 all_forest_gs$agecat <- ifelse((all_forest_gs$Forest_Age_Conus >70),
                                "oldforest", "youngforest")
 
 all_forest_gs$agecat[is.na(all_forest_gs$Forest_Age_Conus)] = "noforest"
+all_forest_gs$lctype[is.na(all_forest_gs$LC)] = "other"
 all_forest_gs$Year <- as.numeric(all_forest_gs$Year)
 all_forest_gs$changetype <- as.factor(all_forest_gs$changetype)
+all_forest_gs$lctype <- as.factor(all_forest_gs$lctype)
 all_forest_gs$latcat <- as.factor(all_forest_gs$latcat)
 all_forest_gs$agecat <- as.factor(all_forest_gs$agecat)
+all_forest_gs$heightcat <- as.factor(all_forest_gs$heightcat)
 all_forest_gs$changetype <- droplevels(all_forest_gs$changetype)
 all_forest_gs$latcat <- droplevels(all_forest_gs$latcat)
 all_forest_gs$agecat <- droplevels(all_forest_gs$agecat)
+all_forest_gs$lctype <- droplevels(all_forest_gs$lctype)
 head(all_forest_gs)
 all_forest_gs1945 <- subset(all_forest_gs, Year > 1945)
-write.csv(all_forest_gs, "Processed/10_02_2019_Plotting_Cleaned_Weatherdata.csv")
+write.csv(all_forest_gs, "Processed/10_04_2019_Plotting_Cleaned_Weatherdata.csv")
 
 #Now there will be many many plots 
 #Try Facet First
-p <- ggplot(all_forest_gs, aes(x=Year, y=Tavg_gs)) + geom_smooth(method="loess")
-p+facet_grid(rows=vars(latcat), cols=vars(changetype))
-p+facet_grid(rows=vars(latcat), cols=vars(lctype))
-p+facet_grid(rows=vars(latcat), cols=vars(agecat))
-p+facet_grid(rows=vars(agecat), cols=vars(changetype))
+head(all_forest_gs)
+m <- ggplot(all_forest_gs, aes(x=Year, y=Tavg_gs)) + geom_smooth(method="loess", span=0.4)
+
+j <- ggplot(all_forest_gs, aes(x=Year, y=Tavg_gs, colour=factor(heightcat))) + geom_smooth(method="loess", span=0.4)
+
+p <- ggplot(all_forest_gs, aes(x=Year, y=Tavg_gs, colour=factor(changetype))) + geom_smooth(method="loess", span=0.4)
+q <- ggplot(all_forest_gs, aes(x=Year, y=Tavg_ann, colour=factor(changetype))) + geom_smooth(method="loess", span=0.4)
+r <- ggplot(all_forest_gs, aes(x=Year, y=T75_z, colour=factor(changetype))) + geom_smooth(method="loess", span=0.4)
+s <- ggplot(all_forest_gs, aes(x=Year, y=T90_gs, colour=factor(changetype))) + geom_smooth(method="loess", span=0.4)
+
+
+t <- ggplot(all_forest_gs, aes(x=Year, y=Tavg_gs, colour=factor(agecat))) + geom_smooth(method="loess", span=0.4)
+u <- ggplot(all_forest_gs, aes(x=Year, y=Tavg_ann, colour=factor(agecat))) + geom_smooth(method="loess", span=0.4)
+v <- ggplot(all_forest_gs, aes(x=Year, y=T75_gs, colour=factor(agecat))) + geom_smooth(method="loess", span=0.4)
+w <- ggplot(all_forest_gs, aes(x=Year, y=T90_gs, colour=factor(agecat))) + geom_smooth(method="loess", span=0.4)
+
+subset(all_forest_gs, lctype=="other" & agecat=="oldforest")
+
+m+facet_grid(rows=vars(latcat), cols=vars(changetype))
+m+facet_grid(rows=vars(latcat), cols=vars(lctype))
+m+facet_grid(rows=vars(latcat), cols=vars(agecat))
+#***************** THIS ONE IS GOOD!!!!!!!!!!!!
+m+facet_grid(rows=vars(agecat), cols=vars(changetype))
+m+facet_grid(rows=vars(changetype), cols=vars(lctype))
+m+facet_grid(rows=vars(changetype), cols=vars(heightcat))
+m+facet_grid(rows=vars(heightcat), cols=vars(agecat))
+
+
+m+facet_wrap(~heightcat)
+
+#YES THIS IS GOOD!
+r+facet_grid(rows=vars(changetype), cols=vars(lctype))
+s+facet_grid(rows=vars(changetype), cols=vars(lctype))
+
+p + facet_wrap(~latcat)
+q + facet_wrap(~latcat)
+r + facet_wrap(~latcat)
+s + facet_wrap(~latcat)
+
+t + facet_wrap(~changetype)
+u + facet_wrap(~changetype)
+v + facet_wrap(~latcat)
+w + facet_wrap(~latcat)
 
 plyr::count(all_forest_gs, 'latcat')
 plyr::count(all_forest_gs, 'changetype')
