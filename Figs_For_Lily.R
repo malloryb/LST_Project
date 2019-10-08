@@ -1122,7 +1122,7 @@ Create_plotting <- function(b){
   all_forest_gs$changetype <- ifelse((all_forest_gs$Change_LC_proj >0 ),
                                      "reforest",
                                      ifelse((all_forest_gs$Change_LC_proj <0),"deforest","nochange"))
-  all_forest_gs$changetype[is.na(all_forest_gs$Change_LC_proj)] = "nochange"
+  all_forest_gs$changetype[is.na(all_forest_gs$Change_LC_proj)] = 'deforest'
   
   all_forest_gs$latcat <- ifelse((all_forest_gs$LAT >38),
                                  "highlat",
@@ -1212,8 +1212,15 @@ s <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T9
 #v + facet_wrap(~changetype)
 #w + facet_wrap(~changetype)
 
-plyr::count(all_forest_gs, 'latcat')
-plyr::count(all_forest_gs, 'changetype')
+plyr::count(all_forest_gs, 'latcat')$freq/113
+plyr::count(all_forest_gs, 'changetype')/$freq/113
+plyr::count(all_forest_gs, 'heightcat')$freq/113
+plyr::count(all_forest_gs, 'agecat')$freq/113
+
+str(subset(all_forest_gs, all_forest_gs$changetype=="reforest" & all_forest_gs$latcat=="highlat"))
+str(subset(all_forest_gs, all_forest_gs$changetype=="reforest" & all_forest_gs$latcat=="lowlat"))
+str(subset(all_forest_gs, all_forest_gs$changetype=="reforest" & all_forest_gs$latcat=="midlat"))
+
 #head(all_forest_gs)
 
 #grid.arrange(g1, g2)
