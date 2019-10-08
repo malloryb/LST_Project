@@ -1096,7 +1096,9 @@ mode <- function(x) {
   tab <- tabulate(match(x, ux)); ux[tab == max(tab) ]
 }
 
+#Made things into functions so I can play with buffer size (and span), but need to remember to save everything out! 
 Create_plotting <- function(b){
+  print("extracting points")
   LC_Change <- raster::extract(Diffs_reproj, xy2, fun=modal, na.rm=TRUE, buffer=b, df=T)
   For_age <- raster::extract(FoAge, xy2, fun=median, buffer=b, df=T)
   Land_Cov <- raster::extract(Just_LC, xy2, fun=modal, buffer=b, df=T)
@@ -1109,12 +1111,14 @@ Create_plotting <- function(b){
   Forest_Cov <- plyr::rename(Forest_Cov, c("ID" = "ID_no", "layer"="percent_forest"))
   Veg_height <- plyr::rename(Veg_Height, c("ID" = "ID_no", "landfireheight" = "veg_height"))
   #Merge
+  print("merging files")
   all_forest_gs <- merge(All_Sites_Temps_clean, LC_Change, by="ID_no")
   all_forest_gs <- merge(all_forest_gs, For_age, by="ID_no")
   all_forest_gs <- merge(all_forest_gs, Forest_Cov, by="ID_no")
   all_forest_gs <- merge(all_forest_gs, Land_Cov, by="ID_no")
   all_forest_gs <- merge(all_forest_gs, Veg_height, by="ID_no")
   #Hoping it worked 
+  print("categorizing rasters")
   all_forest_gs$changetype <- ifelse((all_forest_gs$Change_LC_proj >0 ),
                                      "reforest",
                                      ifelse((all_forest_gs$Change_LC_proj <0),"deforest","nochange"))
@@ -1160,58 +1164,79 @@ all_forest_gs1945 <- subset(all_forest_gs, Year > 1945)
 write.csv(all_forest_gs, "Processed/10_04_2019_Plotting_Cleaned_Weatherdata.csv")
 
 
-#Now there will be many many plots 
+
+plotting_forest <- function(s){
 #Try Facet First
 head(all_forest_gs)
-m <- ggplot(subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=Tavg_gs_z)) + geom_smooth(method="loess", span=0.3)
+m <- ggplot(subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=Tavg_gs_z)) + geom_smooth(method="loess", span=s)
 
-j <- ggplot(all_forest_gs, aes(x=Year, y=Tavg_gs_z, colour=factor(heightcat))) + geom_smooth(method="loess", span=0.3)
-
-p <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=Tavg_gs, colour=factor(changetype))) + geom_smooth(method="loess", span=0.3)
-q <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=Tavg_ann, colour=factor(changetype))) + geom_smooth(method="loess", span=0.3)
-r <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T75_gs, colour=factor(changetype))) + geom_smooth(method="loess", span=0.4)
-s <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T90_gs, colour=factor(changetype))) + geom_smooth(method="loess", span=0.3)
+p <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=Tavg_gs, colour=factor(changetype))) + geom_smooth(method="loess", span=s)
+q <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=Tavg_ann, colour=factor(changetype))) + geom_smooth(method="loess", span=s)
+r <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T75_gs, colour=factor(changetype))) + geom_smooth(method="loess", span=s)
+s <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T90_gs, colour=factor(changetype))) + geom_smooth(method="loess", span=s)
 
 
-t <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=Tavg_gs, colour=factor(agecat))) + geom_smooth(method="loess", span=0.3)
-u <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=Tavg_ann, colour=factor(agecat))) + geom_smooth(method="loess", span=0.3)
-v <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T75_gs, colour=factor(agecat))) + geom_smooth(method="loess", span=0.3)
-w <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T90_gs, colour=factor(agecat))) + geom_smooth(method="loess", span=0.3)
+#t <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=Tavg_gs, colour=factor(agecat))) + geom_smooth(method="loess", span=s)
+#u <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=Tavg_ann, colour=factor(agecat))) + geom_smooth(method="loess", span=s)
+#v <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T75_gs, colour=factor(agecat))) + geom_smooth(method="loess", span=s)
+#w <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T90_gs, colour=factor(agecat))) + geom_smooth(method="loess", span=s)
 
-subset(all_forest_gs, lctype=="other" & agecat=="oldforest")
-m+facet_grid(rows=vars(heightcat), cols=vars(changetype))
-m+facet_grid(rows=vars(latcat), cols=vars(changetype))
-m+facet_grid(rows=vars(latcat), cols=vars(lctype))
-m+facet_grid(rows=vars(latcat), cols=vars(agecat))
+#m+facet_grid(rows=vars(heightcat), cols=vars(changetype))
+#m+facet_grid(rows=vars(latcat), cols=vars(changetype))
+#m+facet_grid(rows=vars(latcat), cols=vars(lctype))
+#m+facet_grid(rows=vars(latcat), cols=vars(agecat))
 #***************** THIS ONE IS GOOD!!!!!!!!!!!!
-m+facet_grid(rows=vars(agecat), cols=vars(changetype))
-m+facet_grid(rows=vars(changetype), cols=vars(lctype))
-m+facet_grid(rows=vars(changetype), cols=vars(heightcat))
-m+facet_grid(rows=vars(heightcat), cols=vars(agecat))
+#g1 <- m+facet_grid(rows=vars(agecat), cols=vars(changetype))
+
+#m+facet_grid(rows=vars(changetype), cols=vars(lctype))
+#m+facet_grid(rows=vars(changetype), cols=vars(heightcat))
+#m+facet_grid(rows=vars(heightcat), cols=vars(agecat))
 
 
-m+facet_wrap(~heightcat)
+#m+facet_wrap(~heightcat)
 
 #YES THIS IS GOOD!
-p+facet_grid(rows=vars(changetype), cols=vars(heightcat))
-q+facet_grid(rows=vars(changetype), cols=vars(lctype))
-r+facet_grid(rows=vars(changetype), cols=vars(lctype))
-s+facet_grid(rows=vars(changetype), cols=vars(lctype))
+#g2 <- p+facet_grid(rows=vars(changetype), cols=vars(heightcat))
+#q+facet_grid(rows=vars(changetype), cols=vars(lctype))
+#r+facet_grid(rows=vars(changetype), cols=vars(lctype))
+#s+facet_grid(rows=vars(changetype), cols=vars(lctype))
 
-m+ facet_wrap(~heightcat)
-p + facet_wrap(~heightcat)
-q + facet_wrap(~heightcat)
-r + facet_wrap(~heightcat)
-s + facet_wrap(~heightcat)
+#m+ facet_wrap(~heightcat)
+#p + facet_wrap(~heightcat)
+#q + facet_wrap(~heightcat)
+#r + facet_wrap(~heightcat)
+#s + facet_wrap(~heightcat)
 
-t + facet_wrap(~changetype)
-u + facet_wrap(~changetype)
-v + facet_wrap(~changetype)
-w + facet_wrap(~changetype)
+#t + facet_wrap(~changetype)
+#u + facet_wrap(~changetype)
+#v + facet_wrap(~changetype)
+#w + facet_wrap(~changetype)
 
 plyr::count(all_forest_gs, 'latcat')
 plyr::count(all_forest_gs, 'changetype')
-head(all_forest_gs)
+#head(all_forest_gs)
+
+#grid.arrange(g1, g2)
+
+e_2 <-q+ facet_wrap(~heightcat)
+e_1 <- q + facet_wrap(~latcat)
+e0 <- q+facet_wrap(~agecat)
+
+grid.arrange(e_2, e_1, e0)
+
+
+h_2 <-p+ facet_wrap(~heightcat)
+h_1 <- p + facet_wrap(~latcat)
+h0 <- p+facet_wrap(~agecat)
+
+grid.arrange(h_2, h_1, h0)
+
+d_2 <-s+ facet_wrap(~heightcat)
+d_1 <- s + facet_wrap(~latcat)
+d0 <- s+facet_wrap(~agecat)
+
+grid.arrange(d_2, d_1, d0)
+
 h1 <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T90_gs, colour=changetype, group=changetype)) +
   geom_smooth(method="loess", span=0.2)+
   labs(title="Air temperature trend by land cover change: 90% hottest", 
@@ -1238,22 +1263,25 @@ h3 <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T
 
 grid.arrange(h2, h3, h1, ncol=1)
 
-h4 <- ggplot(subset(all_forest_gs1945, heightcat!="other"), aes(x=Year, y=Tavg_ann, colour=heightcat, group=heightcat)) +
-  geom_smooth(method="loess", span=0.2, se=FALSE)+
-  labs(title="Air temperature trend by veg height - annual", 
-       y="Temperature", 
-       x="Year")+
-  theme_classic()+
+#h4 <- ggplot(subset(all_forest_gs, heightcat!="other"), aes(x=Year, y=Tavg_ann, colour=heightcat, group=heightcat)) +
+  #geom_smooth(method="loess", span=0.2, se=FALSE)+
+  #labs(title="Air temperature trend by veg height - annual", 
+       #y="Temperature", 
+       #x="Year")+
+  #theme_classic()+
   #ylim(-2,2)
 
 
-h5 <- ggplot(subset(all_forest_gs1945, heightcat!="other"), aes(x=Year, y=T90_gs, colour=heightcat, group=heightcat)) +
-  geom_smooth(method="loess", span=0.2, se=FALSE)+
-  labs(title="Air temperature trend by veg height - 90% hottest days", 
-       y="Temperature", 
-       x="Year")+
-  theme_classic()+
+#h5 <- ggplot(subset(all_forest_gs, heightcat!="other"), aes(x=Year, y=T90_gs, colour=heightcat, group=heightcat)) +
+  #geom_smooth(method="loess", span=0.2, se=FALSE)+
+  #labs(title="Air temperature trend by veg height - 90% hottest days", 
+       #y="Temperature", 
+       #x="Year")+
+  #theme_classic()+
   #ylim(-2,2)
 
 
-grid.arrange(h4, h5, ncol=2)
+#grid.arrange(h4, h5, ncol=2)
+}
+
+plotting_forest(0.3)
