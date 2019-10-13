@@ -552,34 +552,161 @@ grid.arrange(x1, x2, nrow=1)
 grid.arrange(x3,x4, nrow=1)
 
 #Transect ----------
-Pt1 <- cbind(-86.77, 38.78237)
-Pt2 <- cbind(-86.83, 38.78237)
-Pt3 <- cbind(-86.89, 38.78237)
-Pt4 <- cbind(-86.94, 38.78237)
-Pt5 <- cbind(-87.00, 38.78237)
-Pt6 <- cbind(-87.06, 38.78237)
+LST_2014 <- stack("Processed/MODIS_AquaLST_2014.tif")
+conflicts(detail=TRUE)
+Blob_analysis <- function(x, y){
+  names(x) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+                "Oct", "Nov", "Dec")
+  Blob <-  as.data.frame(raster::extract(x,y, buffer=300))
+  Blob2 <- as.data.frame(raster::extract(x,y, buffer=500))
+  Blob3 <- colMeans(as.data.frame(raster::extract(x,y, buffer=1000)), na.rm=TRUE)
+  Blob4 <- colMeans(as.data.frame(raster::extract(x,y, buffer=1500)), na.rm=TRUE)
+  Blob5 <- colMeans(as.data.frame(raster::extract(x,y, buffer=2000)), na.rm=TRUE)
+  Blob6 <- colMeans(as.data.frame(raster::extract(x,y, buffer=3000)), na.rm=TRUE)
+  Blob7 <- colMeans(as.data.frame(raster::extract(x,y, buffer=4000)), na.rm=TRUE)
+  Blob8 <- colMeans(as.data.frame(raster::extract(x,y, buffer=5000)), na.rm=TRUE)
+  Blob9 <- colMeans(as.data.frame(raster::extract(x,y, buffer=7500)), na.rm=TRUE)
+  Blob10 <- colMeans(as.data.frame(raster::extract(x,y, buffer=10000)), na.rm=TRUE)
+  
+  
+  melted300 <- as.data.frame(as.numeric(t(Blob)))
+  melted300$month <- c("1", "2", "3", "4", "5", "6", "7", "8", "9",
+                       "10", "11", "12")
+  melted500 <- as.data.frame(as.numeric(t(Blob2)))
+  melted500$month <- c("1", "2", "3", "4", "5", "6", "7", "8", "9",
+                       "10", "11", "12")
+  melted1000 <- melt(Blob3)
+  melted1000$month <- rownames(melted300)
+  melted1500 <- melt(Blob4)
+  melted1500$month <- rownames(melted300)
+  melted2000 <- melt(Blob5)
+  melted2000$month <- rownames(melted300)
+  melted3000 <- melt(Blob6)
+  melted3000$month <- rownames(melted300)
+  melted4000 <- melt(Blob7)
+  melted4000$month <- rownames(melted300)
+  melted5000 <- melt(Blob8)
+  melted5000$month <- rownames(melted300)
+  melted7500 <- melt(Blob9)
+  melted7500$month <- rownames(melted300)
+  melted10000 <- melt(Blob10)
+  melted10000$month <- rownames(melted300)
+  
+  print("done melting")
+  melted300 = plyr::rename(melted300,c("as.numeric(t(Blob))"="res_300"))
+  melted500 = plyr::rename(melted500,c("as.numeric(t(Blob2))"="res_500"))
+  melted1000 = plyr::rename(melted1000,c("value"="res_1000"))
+  melted1500 <- plyr::rename(melted1500, c("value"="res_1500"))
+  melted2000 <- plyr::rename(melted2000, c("value"="res_2000"))
+  melted3000 <- plyr::rename(melted3000, c("value"="res_3000"))
+  melted4000 <- plyr::rename(melted4000, c("value"="res_4000"))
+  melted5000 <- plyr::rename(melted5000, c("value"="res_5000"))
+  melted7500 <- plyr::rename(melted7500, c("value"="res_7500"))
+  melted10000 <- plyr::rename(melted10000, c("value"="res_10000"))
+  print("merging")
+  new <- merge(melted300, melted500, by="month")
+  new2 <- merge(new, melted1000)
+  new3 <- merge(new2, melted1500)
+  new4 <- merge(new3, melted2000)
+  new5 <- merge(new4, melted3000)
+  new6 <- merge(new5, melted4000)
+  new7 <- merge(new6, melted5000)
+  new8 <- merge(new7, melted7500)
+  new9 <- merge(new8, melted10000)
+  return(new9)
+}
+
+
+#Spencer site: reforesting
+Pt1 <- cbind(-81.3619, 38.8008)
+#Talledega - reforesting
+Pt2 <- cbind(-86.135, 33.4164)
+#Cropland (no change) Williamstown, KY
+Pt3 <- cbind(-84.6106, 38.6586)
+#Site Cropland (no change), Waycross, GA
+Pt4 <- cbind(-82.3128, 31.2514)
+#Site: Cropland
+#Pt6 <- cbind(-87.06, 38.78237)
+
+
+
 
 Pt1_blob <- Blob_analysis(LST_2014, Pt1)
-Pt1_blob <- subset(Pt1_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
-Pt1_melt <- melt(Pt1_blob)
+Pt1_blob <- subset(Pt1_blob, month=="6" | month=="7" | month == "8" | month == "9")
+Pt1_melt <- as.data.frame((colMeans(Pt1_blob[2:10])))
+Pt1_melt$res <- rownames(Pt1_melt)
+colnames(Pt1_melt)[1] <- "value"
+Pt1_melt$type <- "reforest"
+
+
+
 Pt2_blob <- Blob_analysis(LST_2014, Pt2)
-Pt2_blob <- subset(Pt2_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt2_blob <- subset(Pt2_blob, month=="6" | month=="7" | month == "8" | month == "9")
+Pt2_melt <- as.data.frame((colMeans(Pt2_blob[2:10])))
+Pt2_melt$res <- rownames(Pt2_melt)
+colnames(Pt2_melt)[1] <- "value"
+Pt2_melt$type <- "reforest"
+
+
+Pt3_blob <- Blob_analysis(LST_2014, Pt3)
+Pt3_blob <- subset(Pt3_blob, month=="6" | month=="7" | month == "8" | month == "9")
+Pt3_melt <- as.data.frame((colMeans(Pt3_blob[2:10])))
+Pt3_melt$res <- rownames(Pt3_melt)
+colnames(Pt3_melt)[1] <- "value"
+Pt3_melt$type <- "ag"
+
+
+Pt4_blob <- Blob_analysis(LST_2014, Pt4)
+Pt4_blob <- subset(Pt4_blob, month=="6" | month=="7" | month == "8" | month == "9")
+Pt4_melt <- as.data.frame((colMeans(Pt4_blob[2:10])))
+Pt4_melt$res <- rownames(Pt4_melt)
+colnames(Pt4_melt)[1] <- "value"
+Pt4_melt$type <- "ag"
+
+Pts <- rbind(Pt1_melt, Pt2_melt, Pt3_melt, Pt4_melt)
+
+Buffer_Labels <- c("300", "500", "1000", "1500", "2000", "3000", "4000", "5000", "7500", "10000")
+
+xy <- ggplot(data=Pts, aes(x=res, y=value, group=type, color=type))+
+  geom_point(aes(size=3))+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Buffer Size", 
+       y="Growing Season beta Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  #ylim(21, 30)+
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 90))
+
+
+
+Pt2_blob <- Blob_analysis(LST_2014, Pt2)
+Pt2_blob <- subset(Pt2_blob, month=="6" | month=="7" | month == "8" | month == "9")
 Pt2_melt <- melt(Pt2_blob)
 Pt3_blob <- Blob_analysis(LST_2014, Pt3)
-Pt3_blob <- subset(Pt3_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt3_blob <- subset(Pt3_blob, month=="6" | month=="7" | month == "8" | month == "9")
 Pt3_melt <- melt(Pt3_blob)
 Pt4_blob <- Blob_analysis(LST_2014, Pt4)
-Pt4_blob <- subset(Pt4_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt4_blob <- subset(Pt4_blob, month=="6" | month=="7" | month == "8" | month == "9")
 Pt4_melt <- melt(Pt4_blob)
 Pt5_blob <- Blob_analysis(LST_2014, Pt5)
-Pt5_blob <- subset(Pt5_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt5_blob <- subset(Pt5_blob, month=="6" | month=="7" | month == "8" | month == "9")
 Pt5_melt <- melt(Pt5_blob)
 Pt6_blob <- Blob_analysis(LST_2014, Pt6)
-Pt6_blob <- subset(Pt6_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt6_blob <- subset(Pt6_blob, month=="6" | month=="7" | month == "8" | month == "9")
 Pt6_melt <- melt(Pt6_blob)
 
 
 Buffer_Labels <- c("300", "500", "1000", "1500", "2000", "3000", "4000", "5000", "7500", "10000")
+
+xy <- ggplot(data=Pt1_melt, aes(x=variable, y=value, group=month, color=month))+
+  geom_point()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Forest to Crop Transect (1)", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
 
 
 
@@ -646,22 +773,22 @@ grid.arrange(x5, x6, x7, x8, x9, x10, nrow=2)
 
 #Exact same thing but with Ta----------
 Pt1_blob <- Blob_analysis(Ta_2014, Pt1)
-Pt1_blob <- subset(Pt1_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt1_blob <- subset(Pt1_blob, month=="6" | month=="7" | month == "8" | month == "9")
 Pt1_melt <- melt(Pt1_blob)
 Pt2_blob <- Blob_analysis(Ta_2014, Pt2)
-Pt2_blob <- subset(Pt2_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt2_blob <- subset(Pt2_blob, month=="6" | month=="7" | month == "8" | month == "9")
 Pt2_melt <- melt(Pt2_blob)
 Pt3_blob <- Blob_analysis(Ta_2014, Pt3)
-Pt3_blob <- subset(Pt3_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt3_blob <- subset(Pt3_blob, month=="6" | month=="7" | month == "8" | month == "9")
 Pt3_melt <- melt(Pt3_blob)
 Pt4_blob <- Blob_analysis(Ta_2014, Pt4)
-Pt4_blob <- subset(Pt4_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt4_blob <- subset(Pt4_blob, month=="6" | month=="7" | month == "8" | month == "9")
 Pt4_melt <- melt(Pt4_blob)
 Pt5_blob <- Blob_analysis(Ta_2014, Pt5)
-Pt5_blob <- subset(Pt5_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt5_blob <- subset(Pt5_blob, month=="6" | month=="7" | month == "8" | month == "9")
 Pt5_melt <- melt(Pt5_blob)
 Pt6_blob <- Blob_analysis(Ta_2014, Pt6)
-Pt6_blob <- subset(Pt6_blob, month=="Jun" | month=="Jul" | month == "Aug" | month == "Sep")
+Pt6_blob <- subset(Pt6_blob, month=="6" | month=="7`" | month == "8" | month == "9")
 Pt6_melt <- melt(Pt6_blob)
 
 
