@@ -581,7 +581,6 @@ typeof(Pt1)
 Blob_analysis <- function(x, y){
   names(y) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
                 "Oct", "Nov", "Dec")
-  
   x <- t(data.matrix(x))
   print(x)
   Blob <-  as.data.frame(raster::extract(y,x, buffer=300))
