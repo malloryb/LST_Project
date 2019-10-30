@@ -552,21 +552,47 @@ grid.arrange(x1, x2, nrow=1)
 grid.arrange(x3,x4, nrow=1)
 
 #Transect ----------
-LST_2014 <- stack("Processed/MODIS_AquaLST_2014.tif")
-conflicts(detail=TRUE)
+LST_2014 <- stack("/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2014.tif")
+LandCover <- stack("/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NCLD_2008_processed.tif")
+ext <- extent(LST_2014)
+NCLD_crop <- crop(LandCover, ext)
+rasterToPoints(NCLD_crop, function(x){x>40 & x <44})
+#Legend is here: https://www.mrlc.gov/data/legends/national-land-cover-database-2011-nlcd2011-legend
+#Forest = values: 41, 42, 43
+#Herbaceous = values: 71, 72
+#Cropland = values: 81, 82
+
+ForestPoints <- rasterToPoints(NCLD_crop, function(x){x>40 & x <44})
+HerbaceousPoints <- rasterToPoints(NCLD_crop, function(x){x>70 & x <73})
+CroplandPoints <- rasterToPoints(NCLD_crop, function(x){x>80 & x <83})
+
+FPoints <- as.data.frame(subset(ForestPoints, select = c(x, y)))
+Fpoints_sample <- dplyr::sample_n(FPoints, 1000)
+test <- as.list(Fpoints_sample)
+#Create list for Lapply
+forest.list <- as.list(as.data.frame(t(Fpoints_sample)))
+lapply(forest.list, Blob_analysis, y=LST_2014)
+
+forest.list[1]
+head(Fpoints_sample)
+class(Pt1)
+typeof(Pt1)
+
 Blob_analysis <- function(x, y){
-  names(x) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+  names(y) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
                 "Oct", "Nov", "Dec")
-  Blob <-  as.data.frame(raster::extract(x,y, buffer=300))
-  Blob2 <- as.data.frame(raster::extract(x,y, buffer=500))
-  Blob3 <- colMeans(as.data.frame(raster::extract(x,y, buffer=1000)), na.rm=TRUE)
-  Blob4 <- colMeans(as.data.frame(raster::extract(x,y, buffer=1500)), na.rm=TRUE)
-  Blob5 <- colMeans(as.data.frame(raster::extract(x,y, buffer=2000)), na.rm=TRUE)
-  Blob6 <- colMeans(as.data.frame(raster::extract(x,y, buffer=3000)), na.rm=TRUE)
-  Blob7 <- colMeans(as.data.frame(raster::extract(x,y, buffer=4000)), na.rm=TRUE)
-  Blob8 <- colMeans(as.data.frame(raster::extract(x,y, buffer=5000)), na.rm=TRUE)
-  Blob9 <- colMeans(as.data.frame(raster::extract(x,y, buffer=7500)), na.rm=TRUE)
-  Blob10 <- colMeans(as.data.frame(raster::extract(x,y, buffer=10000)), na.rm=TRUE)
+  x <- t(data.matrix(x))
+  print(x)
+  Blob <-  as.data.frame(raster::extract(y,x, buffer=300))
+  Blob2 <- as.data.frame(raster::extract(y,x, buffer=500))
+  Blob3 <- colMeans(as.data.frame(raster::extract(y,x, buffer=1000)), na.rm=TRUE)
+  Blob4 <- colMeans(as.data.frame(raster::extract(y,x, buffer=1500)), na.rm=TRUE)
+  Blob5 <- colMeans(as.data.frame(raster::extract(y,x, buffer=2000)), na.rm=TRUE)
+  Blob6 <- colMeans(as.data.frame(raster::extract(y,x, buffer=3000)), na.rm=TRUE)
+  Blob7 <- colMeans(as.data.frame(raster::extract(y,x, buffer=4000)), na.rm=TRUE)
+  Blob8 <- colMeans(as.data.frame(raster::extract(y,x, buffer=5000)), na.rm=TRUE)
+  Blob9 <- colMeans(as.data.frame(raster::extract(y,x, buffer=7500)), na.rm=TRUE)
+  Blob10 <- colMeans(as.data.frame(raster::extract(y,x, buffer=10000)), na.rm=TRUE)
   
   
   melted300 <- as.data.frame(as.numeric(t(Blob)))
@@ -616,6 +642,11 @@ Blob_analysis <- function(x, y){
   return(new9)
 }
 
+#So, now we should be able to lapply  the Blob_analysis over the list of points for each!
+#I'll need to sample only 1000 or so from each to avoid massive processing time issues. 
+#Also need to make sure the "Blob analysis" is in the units we want (re: buffer sizes)
+#Also, get only the summer months coded into the blob analysis, rather than subset afterward (will save a ton of time)
+
 
 #Spencer site: reforesting
 Pt1 <- cbind(-81.3619, 38.8008)
@@ -628,6 +659,7 @@ Pt4 <- cbind(-82.3128, 31.2514)
 #Site: Cropland
 #Pt6 <- cbind(-87.06, 38.78237)
 
+Blob_analysis(Pt1, LST_2014)
 
 
 

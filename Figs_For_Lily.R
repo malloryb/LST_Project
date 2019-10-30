@@ -1085,12 +1085,41 @@ Just_LC <- raster("Processed/NCLD_2008_processed.tif")
 
 #Diffs_reproj <- projectRaster(Diffs_LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
 #writeRaster(Diffs_reproj, "Change_LC_proj.tif")
+<<<<<<< HEAD
+Diffs_reproj <- raster("Change_LC_proj.tif")
+Forest_age_2019 <- raster("Raw/Other/Forest_Age_Conus.tif")
+=======
 Diffs_reproj <- raster("Processed/Change_LC_proj.tif")
+>>>>>>> cfff63585c3b2f80e7b7fec6720562aceddb8c79
 plot(Diffs_reproj)
 xy <- cbind(All_Sites_Temps_clean$LONG, All_Sites_Temps_clean$LAT)
 xy2 <- unique(xy)
 #Absmax, from here: https://stackoverflow.com/questions/24652771/finding-the-maximum-absolute-value-whilst-preserving-or-symbol
 absmax <- function(x) { x[which.max( abs(x) )][1]}
+<<<<<<< HEAD
+LC_Change <- raster::extract(Diffs_reproj, xy2, fun=absmax, buffer=600, df=T)
+Fo_age <- raster::extract(Forest_age_2019, xy2, fun=mean_na, buffer=1000, df=T)
+str(All_Sites_Temps_clean)
+str(LC_Change)
+LC_Change <- plyr::rename(LC_Change, c("ID" = "ID_no"))
+all_forest_gs <- merge(All_Sites_Temps_clean, LC_Change, by="ID_no")
+#Hoping it worked 
+all_forest_gs$type <- ifelse((all_forest_gs$Change_LC_proj == 1),
+                             "reforest",
+                     ifelse((all_forest_gs$Change_LC_proj ==-1),"deforest","nochange"))
+
+all_forest_gs$Year <- as.numeric(all_forest_gs$Year)
+all_forest_gs$type <- as.factor(all_forest_gs$type)
+str(all_forest_gs)
+all_forest_gs$type <- droplevels(all_forest_gs$type)
+levels(all_forest_gs$type)
+all_forest_gs1960 <- subset(all_forest_gs, Year > 1945)
+#OK not great, but what about when we subset by latitude (above) 
+ggplot(data=subset(all_forest_gs, !is.na(type)), aes(x=Year, y=T90_gs, colour=type, group=type)) +
+  geom_smooth(method="loess")+
+  labs(title="Air temperature trend by land cover change", 
+       y="Temperature Anomaly (Z score)", 
+=======
 mode <- function(x) {
   ux <- na.omit(unique(x) )
   tab <- tabulate(match(x, ux)); ux[tab == max(tab) ]
@@ -1248,6 +1277,7 @@ h1 <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T
   geom_smooth(method="loess", span=0.2)+
   labs(title="Air temperature trend by land cover change: 90% hottest", 
        y="Temperature", 
+>>>>>>> cfff63585c3b2f80e7b7fec6720562aceddb8c79
        x="Year")+
   theme_classic()
 
