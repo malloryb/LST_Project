@@ -568,25 +568,32 @@ CroplandPoints <- rasterToPoints(NCLD_crop, function(x){x>80 & x <83})
 
 FPoints <- as.data.frame(subset(ForestPoints, select = c(x, y)))
 Fpoints_sample <- dplyr::sample_n(FPoints, 1000)
+test <- as.list(Fpoints_sample)
+#Create list for Lapply
+forest.list <- as.list(as.data.frame(t(Fpoints_sample)))
+lapply(forest.list, Blob_analysis, y=LST_2014)
 
-lapply(Fpoints_sample, Blob_analysis, y=LST_2014)
-
+forest.list[1]
 head(Fpoints_sample)
-str(Pt1)
+class(Pt1)
+typeof(Pt1)
 
 Blob_analysis <- function(x, y){
-  names(x) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+  names(y) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
                 "Oct", "Nov", "Dec")
-  Blob <-  as.data.frame(raster::extract(x,y, buffer=300))
-  Blob2 <- as.data.frame(raster::extract(x,y, buffer=500))
-  Blob3 <- colMeans(as.data.frame(raster::extract(x,y, buffer=1000)), na.rm=TRUE)
-  Blob4 <- colMeans(as.data.frame(raster::extract(x,y, buffer=1500)), na.rm=TRUE)
-  Blob5 <- colMeans(as.data.frame(raster::extract(x,y, buffer=2000)), na.rm=TRUE)
-  Blob6 <- colMeans(as.data.frame(raster::extract(x,y, buffer=3000)), na.rm=TRUE)
-  Blob7 <- colMeans(as.data.frame(raster::extract(x,y, buffer=4000)), na.rm=TRUE)
-  Blob8 <- colMeans(as.data.frame(raster::extract(x,y, buffer=5000)), na.rm=TRUE)
-  Blob9 <- colMeans(as.data.frame(raster::extract(x,y, buffer=7500)), na.rm=TRUE)
-  Blob10 <- colMeans(as.data.frame(raster::extract(x,y, buffer=10000)), na.rm=TRUE)
+  
+  x <- t(data.matrix(x))
+  print(x)
+  Blob <-  as.data.frame(raster::extract(y,x, buffer=300))
+  Blob2 <- as.data.frame(raster::extract(y,x, buffer=500))
+  Blob3 <- colMeans(as.data.frame(raster::extract(y,x, buffer=1000)), na.rm=TRUE)
+  Blob4 <- colMeans(as.data.frame(raster::extract(y,x, buffer=1500)), na.rm=TRUE)
+  Blob5 <- colMeans(as.data.frame(raster::extract(y,x, buffer=2000)), na.rm=TRUE)
+  Blob6 <- colMeans(as.data.frame(raster::extract(y,x, buffer=3000)), na.rm=TRUE)
+  Blob7 <- colMeans(as.data.frame(raster::extract(y,x, buffer=4000)), na.rm=TRUE)
+  Blob8 <- colMeans(as.data.frame(raster::extract(y,x, buffer=5000)), na.rm=TRUE)
+  Blob9 <- colMeans(as.data.frame(raster::extract(y,x, buffer=7500)), na.rm=TRUE)
+  Blob10 <- colMeans(as.data.frame(raster::extract(y,x, buffer=10000)), na.rm=TRUE)
   
   
   melted300 <- as.data.frame(as.numeric(t(Blob)))
@@ -653,6 +660,7 @@ Pt4 <- cbind(-82.3128, 31.2514)
 #Site: Cropland
 #Pt6 <- cbind(-87.06, 38.78237)
 
+Blob_analysis(Pt1, LST_2014)
 
 
 
