@@ -552,7 +552,7 @@ grid.arrange(x1, x2, nrow=1)
 grid.arrange(x3,x4, nrow=1)
 
 #Transect ----------
-LST_2014 <- stack("Processed/MODIS_AquaLST_2014.tif")
+LST_2014 <- stack("/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2014.tif")
 conflicts(detail=TRUE)
 Blob_analysis <- function(x, y){
   names(x) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
@@ -615,6 +615,10 @@ Blob_analysis <- function(x, y){
   new9 <- merge(new8, melted10000)
   return(new9)
 }
+
+
+
+
 
 
 #Spencer site: reforesting
