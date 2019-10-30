@@ -566,6 +566,13 @@ ForestPoints <- rasterToPoints(NCLD_crop, function(x){x>40 & x <44})
 HerbaceousPoints <- rasterToPoints(NCLD_crop, function(x){x>70 & x <73})
 CroplandPoints <- rasterToPoints(NCLD_crop, function(x){x>80 & x <83})
 
+FPoints <- as.data.frame(subset(ForestPoints, select = c(x, y)))
+Fpoints_sample <- dplyr::sample_n(FPoints, 1000)
+
+lapply(Fpoints_sample, Blob_analysis, y=LST_2014)
+
+head(Fpoints_sample)
+str(Pt1)
 
 Blob_analysis <- function(x, y){
   names(x) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
@@ -629,11 +636,10 @@ Blob_analysis <- function(x, y){
   return(new9)
 }
 
-#Need list of points that have landcover type = forest
-#Need list of points that have landcover type = agricultural 
-#Need list of points that have landcover type = grassland/herbaceous
-
-#I think we can do this for: May, June, July, August
+#So, now we should be able to lapply  the Blob_analysis over the list of points for each!
+#I'll need to sample only 1000 or so from each to avoid massive processing time issues. 
+#Also need to make sure the "Blob analysis" is in the units we want (re: buffer sizes)
+#Also, get only the summer months coded into the blob analysis, rather than subset afterward (will save a ton of time)
 
 
 #Spencer site: reforesting
