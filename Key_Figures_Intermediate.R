@@ -552,11 +552,12 @@ grid.arrange(x1, x2, nrow=1)
 grid.arrange(x3,x4, nrow=1)
 
 #Transect ----------
-LST_2014 <- stack("/Users/mallory/Documents/Temp_Project/MODIS_AquaLST_2014.tif")
-LandCover <- stack("/Users/mallory/Documents/Temp_Project/NLCD_LandCover/NCLD_2008_processed.tif")
+setwd("/Volumes/G-RAID Thunderbolt 3/Temp_Project/")
+LST_2014 <- stack("Processed/MODIS_LST_2014.tif")
+LandCover <- stack("Processed/NCLD_2008_processed.tif")
+
 ext <- extent(LST_2014)
 NCLD_crop <- crop(LandCover, ext)
-rasterToPoints(NCLD_crop, function(x){x>40 & x <44})
 #Legend is here: https://www.mrlc.gov/data/legends/national-land-cover-database-2011-nlcd2011-legend
 #Forest = values: 41, 42, 43
 #Herbaceous = values: 71, 72
@@ -567,16 +568,12 @@ HerbaceousPoints <- rasterToPoints(NCLD_crop, function(x){x>70 & x <73})
 CroplandPoints <- rasterToPoints(NCLD_crop, function(x){x>80 & x <83})
 
 FPoints <- as.data.frame(subset(ForestPoints, select = c(x, y)))
+#Sample 1000 random points 
 Fpoints_sample <- dplyr::sample_n(FPoints, 1000)
 test <- as.list(Fpoints_sample)
 #Create list for Lapply
 forest.list <- as.list(as.data.frame(t(Fpoints_sample)))
 lapply(forest.list, Blob_analysis, y=LST_2014)
-
-forest.list[1]
-head(Fpoints_sample)
-class(Pt1)
-typeof(Pt1)
 
 Blob_analysis <- function(x, y){
   names(y) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
