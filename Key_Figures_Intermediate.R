@@ -574,23 +574,32 @@ test <- as.list(Fpoints_sample)
 #Create list for Lapply
 forest.list <- as.list(as.data.frame(t(Fpoints_sample)))
 lapply(forest.list, Blob_analysis, y=LST_2014)
+#New buffer sizes: 
+#buffer: 282 = .25 km 2
+#buffer: 564 = 1 km 2 
+#buffer: 1262 = 5 km 2
+#buffer: 1784 = 10 km 2
+#buffer: 2821 = 25 km 2
+#buffer: 3989 = 50 km 2
+#buffer: 5642 = 100 km 2
+#buffer: 12616 = 500 km 2
+#buffer: 17841 = 1000 km 2
 
 Blob_analysis <- function(x, y){
   names(y) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
                 "Oct", "Nov", "Dec")
   x <- t(data.matrix(x))
   print(x)
-  Blob <-  as.data.frame(raster::extract(y,x, buffer=300))
-  Blob2 <- as.data.frame(raster::extract(y,x, buffer=500))
-  Blob3 <- colMeans(as.data.frame(raster::extract(y,x, buffer=1000)), na.rm=TRUE)
-  Blob4 <- colMeans(as.data.frame(raster::extract(y,x, buffer=1500)), na.rm=TRUE)
-  Blob5 <- colMeans(as.data.frame(raster::extract(y,x, buffer=2000)), na.rm=TRUE)
-  Blob6 <- colMeans(as.data.frame(raster::extract(y,x, buffer=3000)), na.rm=TRUE)
-  Blob7 <- colMeans(as.data.frame(raster::extract(y,x, buffer=4000)), na.rm=TRUE)
-  Blob8 <- colMeans(as.data.frame(raster::extract(y,x, buffer=5000)), na.rm=TRUE)
-  Blob9 <- colMeans(as.data.frame(raster::extract(y,x, buffer=7500)), na.rm=TRUE)
-  Blob10 <- colMeans(as.data.frame(raster::extract(y,x, buffer=10000)), na.rm=TRUE)
-  
+  Blob <-  as.data.frame(raster::extract(y,x, buffer=282))
+  Blob2 <- as.data.frame(raster::extract(y,x, buffer=564))
+  Blob3 <- colMeans(as.data.frame(raster::extract(y,x, buffer=1262)), na.rm=TRUE)
+  Blob4 <- colMeans(as.data.frame(raster::extract(y,x, buffer=1784)), na.rm=TRUE)
+  Blob5 <- colMeans(as.data.frame(raster::extract(y,x, buffer=2821)), na.rm=TRUE)
+  Blob6 <- colMeans(as.data.frame(raster::extract(y,x, buffer=3989)), na.rm=TRUE)
+  Blob7 <- colMeans(as.data.frame(raster::extract(y,x, buffer=5642)), na.rm=TRUE)
+  Blob8 <- colMeans(as.data.frame(raster::extract(y,x, buffer=12616)), na.rm=TRUE)
+  Blob9 <- colMeans(as.data.frame(raster::extract(y,x, buffer=17841)), na.rm=TRUE)
+
   
   melted300 <- as.data.frame(as.numeric(t(Blob)))
   melted300$month <- c("1", "2", "3", "4", "5", "6", "7", "8", "9",
@@ -602,40 +611,36 @@ Blob_analysis <- function(x, y){
   melted1000$month <- rownames(melted300)
   melted1500 <- melt(Blob4)
   melted1500$month <- rownames(melted300)
-  melted2000 <- melt(Blob5)
-  melted2000$month <- rownames(melted300)
-  melted3000 <- melt(Blob6)
+  melted3000 <- melt(Blob5)
   melted3000$month <- rownames(melted300)
-  melted4000 <- melt(Blob7)
+  melted4000 <- melt(Blob6)
   melted4000$month <- rownames(melted300)
-  melted5000 <- melt(Blob8)
+  melted5000 <- melt(Blob7)
   melted5000$month <- rownames(melted300)
-  melted7500 <- melt(Blob9)
-  melted7500$month <- rownames(melted300)
-  melted10000 <- melt(Blob10)
-  melted10000$month <- rownames(melted300)
-  
+  melted12000 <- melt(Blob8)
+  melted12000$month <- rownames(melted300)
+  melted18000 <- melt(Blob9)
+  melted18000$month <- rownames(melted300)
+
   print("done melting")
   melted300 = plyr::rename(melted300,c("as.numeric(t(Blob))"="res_300"))
   melted500 = plyr::rename(melted500,c("as.numeric(t(Blob2))"="res_500"))
   melted1000 = plyr::rename(melted1000,c("value"="res_1000"))
   melted1500 <- plyr::rename(melted1500, c("value"="res_1500"))
-  melted2000 <- plyr::rename(melted2000, c("value"="res_2000"))
-  melted3000 <- plyr::rename(melted3000, c("value"="res_3000"))
-  melted4000 <- plyr::rename(melted4000, c("value"="res_4000"))
-  melted5000 <- plyr::rename(melted5000, c("value"="res_5000"))
-  melted7500 <- plyr::rename(melted7500, c("value"="res_7500"))
-  melted10000 <- plyr::rename(melted10000, c("value"="res_10000"))
+  melted2000 <- plyr::rename(melted2000, c("value"="res_3000"))
+  melted3000 <- plyr::rename(melted3000, c("value"="res_4000"))
+  melted4000 <- plyr::rename(melted4000, c("value"="res_5000"))
+  melted5000 <- plyr::rename(melted5000, c("value"="res_12000"))
+  melted7500 <- plyr::rename(melted7500, c("value"="res_18000"))
   print("merging")
   new <- merge(melted300, melted500, by="month")
   new2 <- merge(new, melted1000)
   new3 <- merge(new2, melted1500)
-  new4 <- merge(new3, melted2000)
-  new5 <- merge(new4, melted3000)
-  new6 <- merge(new5, melted4000)
-  new7 <- merge(new6, melted5000)
-  new8 <- merge(new7, melted7500)
-  new9 <- merge(new8, melted10000)
+  new4 <- merge(new3, melted3000)
+  new5 <- merge(new4, melted4000)
+  new6 <- merge(new5, melted5000)
+  new7 <- merge(new6, melted12000)
+  new8 <- merge(new7, melted18000)
   return(new9)
 }
 
@@ -694,7 +699,7 @@ Pt4_melt$type <- "ag"
 
 Pts <- rbind(Pt1_melt, Pt2_melt, Pt3_melt, Pt4_melt)
 
-Buffer_Labels <- c("300", "500", "1000", "1500", "2000", "3000", "4000", "5000", "7500", "10000")
+Buffer_Labels <- c("300", "500", "1000", "1500", "3000", "4000", "5000", "12000", "18000")
 
 xy <- ggplot(data=Pts, aes(x=res, y=value, group=type, color=type))+
   geom_point(aes(size=3))+
