@@ -561,17 +561,10 @@ NCLD_crop <- crop(LandCover, ext)
 #Forest = values: 41, 42, 43
 #Herbaceous = values: 71, 72
 #Cropland = values: 81, 82
-NCLD_forest <- NCLD_crop
-NCLD_forest[NCLD_forest <40 | NCLD_forest >44] <- NA
-plot(NCLD_forest)
 
-NCLD_herb<- NCLD_crop
-NCLD_herb[NCLD_herb <70 | NCLD_herb >73] <- NA
-plot(NCLD_herb)
-
-NCLD_cropland <- NCLD_crop
-NCLD_cropland[NCLD_cropland <80 | NCLD_cropland >83] <- NA
-plot(NCLD_cropland)
+rasterToPoints(NCLD_crop, function(x){x>40 & x <44})
+rasterToPoints(NCLD_crop, function(x){x>70 & x <73})
+rasterToPoints(NCLD_crop, function(x){x>80 & x <83})
 
 #This (below) is how I did it for the point cloud stuff
 #I'll have to create forest mask, herbaceous mask, and crop mask and apply the blob analysis to the 
@@ -579,12 +572,20 @@ plot(NCLD_cropland)
 
 pairOne = ((-88.775*1000):(-74.85*1000))
 pairTwo = ((29.25*1000):(41.41667*1000))
-nSamples = 1000
+nSamples = 10000
 
 dt = data.table(expand.grid(pairOne, pairTwo))
 dt2 = dt[sample(1:dim(dt)[1], size = nSamples), ]
 dt2 = dt2/1000
 str(dt2)
+
+#dt2 gives us a list of lat long points, but we need to see where the overlap is with the
+#different landcover types. 
+
+SpatialPoints(dt2)
+
+intersect(SpatialPoints(dt2), NCLD_forest)
+
 
 cloud1 <- raster::extract(Landcover_Rast, SpatialPoints(dt2), buffer=3000, fun=mean, sp = T)  
 cloud2 <- raster::extract(Growing_Diffs, SpatialPoints(dt2), sp=T)
