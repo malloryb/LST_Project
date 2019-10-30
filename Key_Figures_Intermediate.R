@@ -567,16 +567,10 @@ ForestPoints <- rasterToPoints(NCLD_crop, function(x){x>40 & x <44})
 HerbaceousPoints <- rasterToPoints(NCLD_crop, function(x){x>70 & x <73})
 CroplandPoints <- rasterToPoints(NCLD_crop, function(x){x>80 & x <83})
 
-FPoints <- as.data.frame(subset(ForestPoints, select = c(x, y)))
-#Sample 1000 random points 
-Fpoints_sample <- dplyr::sample_n(FPoints, 1000)
-test <- as.list(Fpoints_sample)
-#Create list for Lapply
-forest.list <- as.list(as.data.frame(t(Fpoints_sample)))
-lapply(forest.list, Blob_analysis, y=LST_2014)
 #New buffer sizes: 
 #buffer: 282 = .25 km 2
 #buffer: 564 = 1 km 2 
+#the 564 and the 282 buffers are always the same...
 #buffer: 1262 = 5 km 2
 #buffer: 1784 = 10 km 2
 #buffer: 2821 = 25 km 2
@@ -622,17 +616,17 @@ Blob_analysis <- function(x, y){
   melted18000 <- melt(Blob9)
   melted18000$month <- rownames(melted300)
 
-  print("done melting")
+
   melted300 = plyr::rename(melted300,c("as.numeric(t(Blob))"="res_300"))
   melted500 = plyr::rename(melted500,c("as.numeric(t(Blob2))"="res_500"))
   melted1000 = plyr::rename(melted1000,c("value"="res_1000"))
   melted1500 <- plyr::rename(melted1500, c("value"="res_1500"))
-  melted2000 <- plyr::rename(melted2000, c("value"="res_3000"))
-  melted3000 <- plyr::rename(melted3000, c("value"="res_4000"))
-  melted4000 <- plyr::rename(melted4000, c("value"="res_5000"))
-  melted5000 <- plyr::rename(melted5000, c("value"="res_12000"))
-  melted7500 <- plyr::rename(melted7500, c("value"="res_18000"))
-  print("merging")
+  melted3000 <- plyr::rename(melted3000, c("value"="res_3000"))
+  melted4000 <- plyr::rename(melted4000, c("value"="res_4000"))
+  melted5000 <- plyr::rename(melted5000, c("value"="res_5000"))
+  melted12000 <- plyr::rename(melted12000, c("value"="res_12000"))
+  melted18000 <- plyr::rename(melted18000, c("value"="res_18000"))
+
   new <- merge(melted300, melted500, by="month")
   new2 <- merge(new, melted1000)
   new3 <- merge(new2, melted1500)
@@ -641,7 +635,7 @@ Blob_analysis <- function(x, y){
   new6 <- merge(new5, melted5000)
   new7 <- merge(new6, melted12000)
   new8 <- merge(new7, melted18000)
-  return(new9)
+  return(new8)
 }
 
 #So, now we should be able to lapply  the Blob_analysis over the list of points for each!
@@ -649,24 +643,48 @@ Blob_analysis <- function(x, y){
 #Also need to make sure the "Blob analysis" is in the units we want (re: buffer sizes)
 #Also, get only the summer months coded into the blob analysis, rather than subset afterward (will save a ton of time)
 
+FPoints <- as.data.frame(subset(ForestPoints, select = c(x, y)))
+#Sample 1000 random points 
+Fpoints_sample <- dplyr::sample_n(FPoints, 1000)
+#Create list for Lapply
+forest.list <- as.list(as.data.frame(t(Fpoints_sample)))
 
-#Spencer site: reforesting
-Pt1 <- cbind(-81.3619, 38.8008)
-#Talledega - reforesting
-Pt2 <- cbind(-86.135, 33.4164)
-#Cropland (no change) Williamstown, KY
-Pt3 <- cbind(-84.6106, 38.6586)
-#Site Cropland (no change), Waycross, GA
-Pt4 <- cbind(-82.3128, 31.2514)
-#Site: Cropland
-#Pt6 <- cbind(-87.06, 38.78237)
+#Apply Function to List
+Forest_Dfs <- lapply(forest.list, Blob_analysis, y=LST_2014)
+#Rbind all 
+Forest_Buffers <- do.call(rbind, Forest_Dfs)
+#Get names
+Forest_Buffers$names <- rownames(Forest_Buffers)
+#Subset forest months
+Summer_forest <- subset(Forest_Buffers, month=="6" | month=="7" | month == "8")
+#Just getting a rough ID 
+Forest_Buffers$names <- sapply(strsplit(Forest_Buffers$names, "[.]"), `[`,1)
 
-Blob_analysis(Pt1, LST_2014)
+#Getting a value for all summer
+Forest_plot <- melt(aggregate(Forest_Buffers[2:10], list(Forest_Buffers$names), mean))
 
+Buffer_Labels <- c(".25", "1", "5", "10", "25", "50", "100", "500", "1000")
 
+FP <- ggplot(data=Forest_plot, aes(x=variable, y=value, group=Group.1, color=Group.1))+
+  geom_line()+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Halo - forest sites", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (km2)")+
+  #ylim(21, 30)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
 
-Pt1_blob <- Blob_analysis(LST_2014, Pt1)
-Pt1_blob <- subset(Pt1_blob, month=="6" | month=="7" | month == "8" | month == "9")
+fp < ggplot(data=Pts, aes(x=res, y=value, group=type, color=type))+
+  geom_point(aes(size=3))+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Buffer Size", 
+       y="Growing Season beta Ts (degrees C)", 
+       x="Buffer Size (m2)")+
+  #ylim(21, 30)+
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 90))
+
 Pt1_melt <- as.data.frame((colMeans(Pt1_blob[2:10])))
 Pt1_melt$res <- rownames(Pt1_melt)
 colnames(Pt1_melt)[1] <- "value"
@@ -747,15 +765,7 @@ xy <- ggplot(data=Pt1_melt, aes(x=variable, y=value, group=month, color=month))+
 
 
 
-x5 <- ggplot(data=Pt1_melt, aes(x=variable, y=value, group=month, color=month))+
-  geom_line()+
-  scale_x_discrete(labels=Buffer_Labels)+
-  labs(title="Halo - forest site (1)", 
-       y="Ts (degrees C)", 
-       x="Buffer Size (m2)")+
-  #ylim(21, 30)+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 90))
+
 
 x6 <- ggplot(data=Pt2_melt, aes(x=variable, y=value, group=month, color=month))+
   geom_line()+
