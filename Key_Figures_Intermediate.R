@@ -677,8 +677,10 @@ xy <- ggplot(data=Pts, aes(x=res, y=value, group=type, color=type))+
   theme_minimal()+
   theme(axis.text.x = element_text(angle = 90))
 
-
-
+Pt5
+Pt1_blob <- Blob_analysis(LST_2014, Pt1)
+Pt1_blob <- subset(Pt1_blob, month=="6" | month=="7" | month == "8" | month == "9")
+Pt1_melt <- melt(Pt1_blob)
 Pt2_blob <- Blob_analysis(LST_2014, Pt2)
 Pt2_blob <- subset(Pt2_blob, month=="6" | month=="7" | month == "8" | month == "9")
 Pt2_melt <- melt(Pt2_blob)
@@ -699,7 +701,7 @@ Pt6_melt <- melt(Pt6_blob)
 Buffer_Labels <- c("300", "500", "1000", "1500", "2000", "3000", "4000", "5000", "7500", "10000")
 
 xy <- ggplot(data=Pt1_melt, aes(x=variable, y=value, group=month, color=month))+
-  geom_point()+
+  geom_line()+
   scale_x_discrete(labels=Buffer_Labels)+
   labs(title="Forest to Crop Transect (1)", 
        y="Ts (degrees C)", 
@@ -714,62 +716,75 @@ xy <- ggplot(data=Pt1_melt, aes(x=variable, y=value, group=month, color=month))+
 x5 <- ggplot(data=Pt1_melt, aes(x=variable, y=value, group=month, color=month))+
   geom_line()+
   scale_x_discrete(labels=Buffer_Labels)+
-  labs(title="Forest to Crop Transect (1)", 
+  labs(title="Halo - forest site (1)", 
        y="Ts (degrees C)", 
        x="Buffer Size (m2)")+
-  ylim(21, 30)+
+  #ylim(21, 30)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 90))
 
 x6 <- ggplot(data=Pt2_melt, aes(x=variable, y=value, group=month, color=month))+
   geom_line()+
   scale_x_discrete(labels=Buffer_Labels)+
-  labs(title="Forest to Crop Transect (2)", 
+  labs(title="Halo - forest site (2)", 
        y="Ts (degrees C)", 
        x="Buffer Size (m2)")+
-  ylim(21, 30)+
+  #ylim(21, 30)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 90))
 
 x7 <- ggplot(data=Pt3_melt, aes(x=variable, y=value, group=month, color=month))+
   geom_line()+
   scale_x_discrete(labels=Buffer_Labels)+
-  labs(title="Forest to Crop Transect (3)", 
+  labs(title="Halo - forest (3)", 
        y="Ts (degrees C)", 
        x="Buffer Size (m2)")+
-  ylim(21, 30)+
+  #ylim(21, 30)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 90))
 x8 <- ggplot(data=Pt4_melt, aes(x=variable, y=value, group=month, color=month))+
   geom_line()+
   scale_x_discrete(labels=Buffer_Labels)+
-  labs(title="Forest to Crop Transect (4)", 
+  labs(title="Halo - ag (1)", 
        y="Ts (degrees C)", 
        x="Buffer Size (m2)")+
-  ylim(21, 30)+
+  #ylim(21, 30)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 90))
 x9 <- ggplot(data=Pt5_melt, aes(x=variable, y=value, group=month, color=month))+
   geom_line()+
   scale_x_discrete(labels=Buffer_Labels)+
-  labs(title="Forest to Crop Transect (5)", 
+  labs(title="Halo - ag (2)", 
        y="Ts (degrees C)", 
        x="Buffer Size (m2)")+
-  ylim(21, 30)+
+  #ylim(21, 30)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 90))
 x10 <- ggplot(data=Pt6_melt, aes(x=variable, y=value, group=month, color=month))+
   geom_line()+
   scale_x_discrete(labels=Buffer_Labels)+
-  labs(title="Forest to Crop Transect (6)", 
+  labs(title="Halo - ag (3)", 
        y="Ts (degrees C)", 
        x="Buffer Size (m2)")+
-  ylim(21, 30)+
+  #ylim(21, 30)+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 90))
 
-
 grid.arrange(x5, x6, x7, x8, x9, x10, nrow=2)
+LC_Proj <- raster("Processed/NCLD_2008_processed.tif")
+extract(LC_Proj, Pt1)
+extract(LC_Proj, Pt2)
+extract(LC_Proj, Pt3)
+extract(LC_Proj, Pt4)
+extract(LC_Proj, Pt5)
+extract(LC_Proj, Pt6)
+
+Pt1
+Pt2
+Pt3
+Pt4
+Pt5
+Pt6
 
 #Exact same thing but with Ta----------
 Pt1_blob <- Blob_analysis(Ta_2014, Pt1)
