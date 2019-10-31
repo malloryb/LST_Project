@@ -662,9 +662,23 @@ Forest_Buffers$names <- sapply(strsplit(Forest_Buffers$names, "[.]"), `[`,1)
 write.csv(Forest_Buffers, "Processed/Forest_Halo_Points.csv")
 #Getting a value for all summer
 Summer_forest <- subset(Forest_Buffers, month=="6" | month=="7" | month == "8")
+Summer_forest_ag <-aggregate(Summer_forest[2:10], list(Summer_forest$names), mean)
+#Setting the smallest buffer as the "baseline" and seeing the temp diff from all of these 
+Summer_forest_ag[2:ncol(Summer_forest_ag)] <- Summer_forest_ag[2:ncol(Summer_forest_ag)]-Summer_forest_ag[,2]
+#Two ways to plot, abs and rel temps
+#Abs temp: 
 Forest_plot <- melt(aggregate(Summer_forest[2:10], list(Summer_forest$names), mean))
 str(Forest_plot)
+#Rel temp: 
+Rel_forest_plot <- melt(Summer_forest_ag)
 Buffer_Labels <- c(".25", "1", "5", "10", "25", "50", "100", "500", "1000")
+#Getting accurate numeric values
+Forest_plot$numvar <- dplyr::recode(Forest_plot$variable, res_300 = "0.25", res_500="1", res_1000="5", res_1500="10", res_3000="25", res_4000="50", res_5000="100", res_12000="500", res_18000="1000")
+Forest_plot$numvar <- as.numeric(as.character(Forest_plot$numvar))
+
+Rel_forest_plot$numvar <- dplyr::recode(Rel_forest_plot$variable, res_300 = "0.25", res_500="1", res_1000="5", res_1500="10", res_3000="25", res_4000="50", res_5000="100", res_12000="500", res_18000="1000")
+Rel_forest_plot$numvar <- as.numeric(as.character(Rel_forest_plot$numvar))
+
 
 FP <- ggplot(data=Forest_plot, aes(x=variable, y=value, group=Group.1, color=Group.1))+
   geom_line()+
@@ -677,12 +691,36 @@ FP <- ggplot(data=Forest_plot, aes(x=variable, y=value, group=Group.1, color=Gro
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle = 90))
 
+FPR <- ggplot(data=Rel_forest_plot, aes(x=variable, y=value, group=Group.1))+
+#FPR <- ggplot(data=Rel_forest_plot, aes(x=variable, y=value, group=Group.1, color=Group.1))+
+  geom_line(alpha=0.3)+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Halo - forest sites", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (km2)")+
+  #ylim(21, 30)+
+  theme_minimal()+
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 90))
+
+FPRN <- ggplot(data=Rel_forest_plot, aes(x=numvar, y=value, group=Group.1))+
+  geom_line(alpha=0.3)+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Halo - forest sites", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (km2)")+
+  #ylim(21, 30)+
+  theme_minimal()+
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 90))
+
+FPRD <- ggplot(data=Rel_forest_plot, aes(x=variable, y=value, group=Group.1)) +
+  geom_line(alpha=0.3)
 #Trying this gghighlight thing
 str(Forest_plot)
-levels(Forest_plot$variable)
-Forest_plot$numvar <- dplyr::recode(Forest_plot$variable, res_300 = "0.25", res_500="1", res_1000="5", res_1500="10", res_3000="25", res_4000="50", res_5000="100", res_12000="500", res_18000="1000")
-Forest_plot$numvar <- as.numeric(as.character(Forest_plot$numvar))
 gghighlight_line(Forest_plot, aes(numvar, value, colour=Group.1), predicate=max(value), max_highlight = 6) + theme_minimal()
+
+gghighlight_line(Rel_forest_plot, aes(numvar, value, colour=Group.1), predicate=max(value), max_highlight = 6) + theme_minimal()
 
 
 #Exact same thing but with Ta----------
