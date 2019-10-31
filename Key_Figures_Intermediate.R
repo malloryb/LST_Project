@@ -553,19 +553,31 @@ grid.arrange(x3,x4, nrow=1)
 
 #Transect ----------
 setwd("/Volumes/G-RAID Thunderbolt 3/Temp_Project/")
-LST_2014 <- stack("Processed/MODIS_LST_2014.tif")
+LST_2014 <- stack("Processed/MODIS_AquaLST_2014.tif")
 LandCover <- stack("Processed/NCLD_2008_processed.tif")
 
 ext <- extent(LST_2014)
+exthigh <- c(-88.775, -74.85, 35, 41.41667) 
+extlow  <- c(-88.775, -74.85, 29.25, 35) 
+
+NCLD_high <- crop(LandCover, exthigh)
+NCLD_low <- crop(LandCover, extlow)
 NCLD_crop <- crop(LandCover, ext)
+
 #Legend is here: https://www.mrlc.gov/data/legends/national-land-cover-database-2011-nlcd2011-legend
 #Forest = values: 41, 42, 43
 #Herbaceous = values: 71, 72
 #Cropland = values: 81, 82
 
-ForestPoints <- rasterToPoints(NCLD_crop, function(x){x>40 & x <44})
-HerbaceousPoints <- rasterToPoints(NCLD_crop, function(x){x>70 & x <73})
-CroplandPoints <- rasterToPoints(NCLD_crop, function(x){x>80 & x <83})
+#ForestPoints <- rasterToPoints(NCLD_crop, function(x){x>40 & x <44})
+#HerbaceousPoints <- rasterToPoints(NCLD_crop, function(x){x>70 & x <73})
+#CroplandPoints <- rasterToPoints(NCLD_crop, function(x){x>80 & x <83})
+
+#Trying with just low this time
+ForestPoints <- rasterToPoints(NCLD_low, function(x){x>40 & x <44})
+HerbaceousPoints <- rasterToPoints(NCLD_low, function(x){x>70 & x <73})
+CroplandPoints <- rasterToPoints(NCLD_low, function(x){x>80 & x <83})
+
 
 #New buffer sizes: 
 #buffer: 282 = .25 km 2
@@ -646,7 +658,7 @@ Blob_analysis <- function(x, y){
 
 FPoints <- as.data.frame(subset(ForestPoints, select = c(x, y)))
 #Sample 1000 random points 
-Fpoints_sample <- dplyr::sample_n(FPoints, 1000)
+Fpoints_sample <- dplyr::sample_n(FPoints, 100)
 #Create list for Lapply
 forest.list <- as.list(as.data.frame(t(Fpoints_sample)))
 
@@ -656,12 +668,14 @@ Forest_Dfs <- lapply(forest.list, Blob_analysis, y=LST_2014)
 Forest_Buffers <- do.call(rbind, Forest_Dfs)
 #Get names
 Forest_Buffers$names <- rownames(Forest_Buffers)
-#Subset forest months
 #Just getting a rough ID 
 Forest_Buffers$names <- sapply(strsplit(Forest_Buffers$names, "[.]"), `[`,1)
-write.csv(Forest_Buffers, "Processed/Forest_Halo_Points.csv")
-#Getting a value for all summer
+write.csv(Forest_Buffers, "Processed/Forest_Halo_Points_100.csv")
+
+
+#Subset forest months
 Summer_forest <- subset(Forest_Buffers, month=="6" | month=="7" | month == "8")
+#Subset forest months
 Summer_forest_ag <-aggregate(Summer_forest[2:10], list(Summer_forest$names), mean)
 #Setting the smallest buffer as the "baseline" and seeing the temp diff from all of these 
 Summer_forest_ag[2:ncol(Summer_forest_ag)] <- Summer_forest_ag[2:ncol(Summer_forest_ag)]-Summer_forest_ag[,2]
@@ -680,14 +694,15 @@ Rel_forest_plot$numvar <- dplyr::recode(Rel_forest_plot$variable, res_300 = "0.2
 Rel_forest_plot$numvar <- as.numeric(as.character(Rel_forest_plot$numvar))
 
 
-FP <- ggplot(data=Forest_plot, aes(x=variable, y=value, group=Group.1, color=Group.1))+
+FP <- ggplot(data=Forest_plot, aes(x=numvar, y=value, group=Group.1, color=Group.1))+
   geom_line()+
-  scale_x_discrete(labels=Buffer_Labels)+
+  #scale_x_discrete(labels=Buffer_Labels)+
   labs(title="Halo - forest sites", 
        y="Ts (degrees C)", 
        x="Buffer Size (km2)")+
   #ylim(21, 30)+
-  theme_bw()+
+  xlim(0,250)+
+  theme_minimal()+
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle = 90))
 
@@ -705,11 +720,12 @@ FPR <- ggplot(data=Rel_forest_plot, aes(x=variable, y=value, group=Group.1))+
 
 FPRN <- ggplot(data=Rel_forest_plot, aes(x=numvar, y=value, group=Group.1))+
   geom_line(alpha=0.3)+
-  scale_x_discrete(labels=Buffer_Labels)+
+  #scale_x_discrete(labels=Buffer_Labels)+
   labs(title="Halo - forest sites", 
        y="Ts (degrees C)", 
        x="Buffer Size (km2)")+
   #ylim(21, 30)+
+  xlim(0,100)+
   theme_minimal()+
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle = 90))
@@ -719,8 +735,24 @@ FPRD <- ggplot(data=Rel_forest_plot, aes(x=variable, y=value, group=Group.1)) +
 #Trying this gghighlight thing
 str(Forest_plot)
 gghighlight_line(Forest_plot, aes(numvar, value, colour=Group.1), predicate=max(value), max_highlight = 6) + theme_minimal()
-
 gghighlight_line(Rel_forest_plot, aes(numvar, value, colour=Group.1), predicate=max(value), max_highlight = 6) + theme_minimal()
+
+#Ok what about Ag now?
+CPoints <- as.data.frame(subset(CroplandPoints, select = c(x, y)))
+#Sample 1000 random points 
+Cpoints_sample <- dplyr::sample_n(CPoints, 1000)
+#Create list for Lapply
+crop.list <- as.list(as.data.frame(t(Cpoints_sample)))
+#Apply Function to List
+Crop_Dfs <- lapply(crop.list, Blob_analysis, y=LST_2014)
+#Rbind all 
+Crop_Buffers <- do.call(rbind, Crop_Dfs)
+#Get names
+Crop_Buffers$names <- rownames(Crop_Buffers)
+#Just getting a rough ID 
+Crop_Buffers$names <- sapply(strsplit(Crop_Buffers$names, "[.]"), `[`,1)
+write.csv(Crop_Buffers, "Processed/Crop_Halo_Points_100.csv")
+
 
 
 #Exact same thing but with Ta----------
