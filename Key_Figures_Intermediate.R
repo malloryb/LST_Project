@@ -643,6 +643,7 @@ Blob_analysis <- function(x, y){
 #Also need to make sure the "Blob analysis" is in the units we want (re: buffer sizes)
 #Also, get only the summer months coded into the blob analysis, rather than subset afterward (will save a ton of time)
 
+
 FPoints <- as.data.frame(subset(ForestPoints, select = c(x, y)))
 #Sample 1000 random points 
 Fpoints_sample <- dplyr::sample_n(FPoints, 1000)
@@ -656,13 +657,13 @@ Forest_Buffers <- do.call(rbind, Forest_Dfs)
 #Get names
 Forest_Buffers$names <- rownames(Forest_Buffers)
 #Subset forest months
-Summer_forest <- subset(Forest_Buffers, month=="6" | month=="7" | month == "8")
 #Just getting a rough ID 
 Forest_Buffers$names <- sapply(strsplit(Forest_Buffers$names, "[.]"), `[`,1)
-
+write.csv(Forest_Buffers, "Processed/Forest_Halo_Points.csv")
 #Getting a value for all summer
-Forest_plot <- melt(aggregate(Forest_Buffers[2:10], list(Forest_Buffers$names), mean))
-
+Summer_forest <- subset(Forest_Buffers, month=="6" | month=="7" | month == "8")
+Forest_plot <- melt(aggregate(Summer_forest[2:10], list(Summer_forest$names), mean))
+str(Forest_plot)
 Buffer_Labels <- c(".25", "1", "5", "10", "25", "50", "100", "500", "1000")
 
 FP <- ggplot(data=Forest_plot, aes(x=variable, y=value, group=Group.1, color=Group.1))+
@@ -673,7 +674,15 @@ FP <- ggplot(data=Forest_plot, aes(x=variable, y=value, group=Group.1, color=Gro
        x="Buffer Size (km2)")+
   #ylim(21, 30)+
   theme_bw()+
+  theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle = 90))
+
+#Trying this gghighlight thing
+str(Forest_plot)
+levels(Forest_plot$variable)
+Forest_plot$numvar <- dplyr::recode(Forest_plot$variable, res_300 = "0.25", res_500="1", res_1000="5", res_1500="10", res_3000="25", res_4000="50", res_5000="100", res_12000="500", res_18000="1000")
+Forest_plot$numvar <- as.numeric(as.character(Forest_plot$numvar))
+gghighlight_line(Forest_plot, aes(numvar, value, colour=Group.1), predicate=max(value), max_highlight = 6) + theme_minimal()
 
 
 #Exact same thing but with Ta----------
