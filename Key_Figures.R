@@ -16,6 +16,7 @@ library(devtools)
 library(maps)
 library(mapdata)
 library(maptools)
+library(gghighlight)
 sessionInfo()
 lapply(Packages, library, character.only = TRUE)
 #Set raster options
