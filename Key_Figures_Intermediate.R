@@ -560,9 +560,10 @@ ext <- extent(LST_2014)
 exthigh <- c(-88.775, -74.85, 35, 41.41667) 
 extlow  <- c(-88.775, -74.85, 29.25, 35) 
 
+#Could break up by higher and lower latitude as well. 
+NCLD_crop <- crop(LandCover, ext)
 NCLD_high <- crop(LandCover, exthigh)
 NCLD_low <- crop(LandCover, extlow)
-NCLD_crop <- crop(LandCover, ext)
 
 #Legend is here: https://www.mrlc.gov/data/legends/national-land-cover-database-2011-nlcd2011-legend
 #Forest = values: 41, 42, 43
@@ -578,11 +579,10 @@ ForestPoints <- rasterToPoints(NCLD_low, function(x){x>40 & x <44})
 HerbaceousPoints <- rasterToPoints(NCLD_low, function(x){x>70 & x <73})
 CroplandPoints <- rasterToPoints(NCLD_low, function(x){x>80 & x <83})
 
-
 #New buffer sizes: 
 #buffer: 282 = .25 km 2
 #buffer: 564 = 1 km 2 
-#the 564 and the 282 buffers are always the same...
+#the 564 and the 282 buffers are often the same...
 #buffer: 1262 = 5 km 2
 #buffer: 1784 = 10 km 2
 #buffer: 2821 = 25 km 2
@@ -651,13 +651,12 @@ Blob_analysis <- function(x, y){
 }
 
 #So, now we should be able to lapply  the Blob_analysis over the list of points for each!
-#I'll need to sample only 1000 or so from each to avoid massive processing time issues. 
-#Also need to make sure the "Blob analysis" is in the units we want (re: buffer sizes)
-#Also, get only the summer months coded into the blob analysis, rather than subset afterward (will save a ton of time)
+#1000 samples takes about 16 hours (!)
+#Doing only 100 for testing, but can do more later. 
 
-
+#For forests: 
 FPoints <- as.data.frame(subset(ForestPoints, select = c(x, y)))
-#Sample 1000 random points 
+#Sample random points 
 Fpoints_sample <- dplyr::sample_n(FPoints, 100)
 #Create list for Lapply
 forest.list <- as.list(as.data.frame(t(Fpoints_sample)))
@@ -671,7 +670,7 @@ Forest_Buffers$names <- rownames(Forest_Buffers)
 #Just getting a rough ID 
 Forest_Buffers$names <- sapply(strsplit(Forest_Buffers$names, "[.]"), `[`,1)
 write.csv(Forest_Buffers, "Processed/Forest_Halo_Points_100.csv")
-
+#Forest_Buffers <- read.csv("Processed/Forest_Halo_Points_100.csv")
 
 #Subset forest months
 Summer_forest <- subset(Forest_Buffers, month=="6" | month=="7" | month == "8")
@@ -681,6 +680,7 @@ Summer_forest_ag <-aggregate(Summer_forest[2:10], list(Summer_forest$names), mea
 Summer_forest_ag[2:ncol(Summer_forest_ag)] <- Summer_forest_ag[2:ncol(Summer_forest_ag)]-Summer_forest_ag[,2]
 #Two ways to plot, abs and rel temps
 #Abs temp: 
+
 Forest_plot <- melt(aggregate(Summer_forest[2:10], list(Summer_forest$names), mean))
 str(Forest_plot)
 #Rel temp: 
@@ -693,20 +693,18 @@ Forest_plot$numvar <- as.numeric(as.character(Forest_plot$numvar))
 Rel_forest_plot$numvar <- dplyr::recode(Rel_forest_plot$variable, res_300 = "0.25", res_500="1", res_1000="5", res_1500="10", res_3000="25", res_4000="50", res_5000="100", res_12000="500", res_18000="1000")
 Rel_forest_plot$numvar <- as.numeric(as.character(Rel_forest_plot$numvar))
 
-
-FP <- ggplot(data=Forest_plot, aes(x=numvar, y=value, group=Group.1, color=Group.1))+
+FP <- ggplot(subset(Forest_plot, numvar > 0.25), aes(x=numvar, y=value, group=Group.1, color=Group.1))+
   geom_line()+
   #scale_x_discrete(labels=Buffer_Labels)+
   labs(title="Halo - forest sites", 
        y="Ts (degrees C)", 
        x="Buffer Size (km2)")+
   #ylim(21, 30)+
-  xlim(0,250)+
   theme_minimal()+
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle = 90))
 
-FPR <- ggplot(data=Rel_forest_plot, aes(x=variable, y=value, group=Group.1))+
+FPR <- ggplot(subset(Rel_forest_plot, numvar > 0.25), aes(x=variable, y=value, group=Group.1))+
 #FPR <- ggplot(data=Rel_forest_plot, aes(x=variable, y=value, group=Group.1, color=Group.1))+
   geom_line(alpha=0.3)+
   scale_x_discrete(labels=Buffer_Labels)+
@@ -740,7 +738,8 @@ gghighlight_line(Rel_forest_plot, aes(numvar, value, colour=Group.1), predicate=
 #Ok what about Ag now?
 CPoints <- as.data.frame(subset(CroplandPoints, select = c(x, y)))
 #Sample 1000 random points 
-Cpoints_sample <- dplyr::sample_n(CPoints, 1000)
+
+Cpoints_sample <- dplyr::sample_n(CPoints, 100)
 #Create list for Lapply
 crop.list <- as.list(as.data.frame(t(Cpoints_sample)))
 #Apply Function to List
@@ -752,6 +751,70 @@ Crop_Buffers$names <- rownames(Crop_Buffers)
 #Just getting a rough ID 
 Crop_Buffers$names <- sapply(strsplit(Crop_Buffers$names, "[.]"), `[`,1)
 write.csv(Crop_Buffers, "Processed/Crop_Halo_Points_100.csv")
+
+#Subset forest months
+Summer_crop <- subset(Crop_Buffers, month=="6" | month=="7" | month == "8")
+#Subset Cropt months
+Summer_crop_ag <-aggregate(Summer_crop[2:10], list(Summer_crop$names), mean)
+#Setting the smallest buffer as the "baseline" and seeing the temp diff from all of these 
+Summer_crop_ag[2:ncol(Summer_crop_ag)] <- Summer_crop_ag[2:ncol(Summer_crop_ag)]-Summer_crop_ag[,2]
+#Two ways to plot, abs and rel temps
+#Abs temp: 
+Crop_plot <- melt(aggregate(Summer_crop[2:10], list(Summer_crop$names), mean))
+str(Crop_plot)
+#Rel temp: 
+Rel_crop_plot <- melt(Summer_crop_ag)
+Buffer_Labels <- c(".25", "1", "5", "10", "25", "50", "100", "500", "1000")
+#Getting accurate numeric values
+Crop_plot$numvar <- dplyr::recode(Crop_plot$variable, res_300 = "0.25", res_500="1", res_1000="5", res_1500="10", res_3000="25", res_4000="50", res_5000="100", res_12000="500", res_18000="1000")
+Crop_plot$numvar <- as.numeric(as.character(Crop_plot$numvar))
+
+Rel_crop_plot$numvar <- dplyr::recode(Rel_crop_plot$variable, res_300 = "0.25", res_500="1", res_1000="5", res_1500="10", res_3000="25", res_4000="50", res_5000="100", res_12000="500", res_18000="1000")
+Rel_crop_plot$numvar <- as.numeric(as.character(Rel_crop_plot$numvar))
+
+
+FP <- ggplot(subset(Crop_plot, numvar > 0.25), aes(x=numvar, y=value, group=Group.1, color=Group.1))+
+  geom_line()+
+  #scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Halo - Crop sites", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (km2)")+
+  #ylim(21, 30)+
+  theme_minimal()+
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 90))
+
+FPR <- ggplot(subset(Rel_crop_plot, numvar > 0.25), aes(x=variable, y=value, group=Group.1))+
+  #FPR <- ggplot(data=Rel_crop_plot, aes(x=variable, y=value, group=Group.1, color=Group.1))+
+  geom_line(alpha=0.3)+
+  scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Halo - crop sites", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (km2)")+
+  #ylim(21, 30)+
+  theme_minimal()+
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 90))
+
+FPRN <- ggplot(data=Rel_crop_plot, aes(x=numvar, y=value, group=Group.1))+
+  geom_line(alpha=0.3)+
+  #scale_x_discrete(labels=Buffer_Labels)+
+  labs(title="Halo - crop sites", 
+       y="Ts (degrees C)", 
+       x="Buffer Size (km2)")+
+  #ylim(21, 30)+
+  xlim(0,100)+
+  theme_minimal()+
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 90))
+
+FPRD <- ggplot(data=Rel_crop_plot, aes(x=variable, y=value, group=Group.1)) +
+  geom_line(alpha=0.3)
+#Trying this gghighlight thing
+str(Crop_plot)
+gghighlight_line(Crop_plot, aes(numvar, value, colour=Group.1), predicate=max(value), max_highlight = 6) + theme_minimal()
+gghighlight_line(Rel_crop_plot, aes(numvar, value, colour=Group.1), predicate=min(value), max_highlight = 6) + theme_minimal()
+
 
 
 
