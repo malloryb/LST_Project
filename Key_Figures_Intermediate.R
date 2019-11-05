@@ -784,7 +784,7 @@ FP <- ggplot(subset(Crop_plot, numvar > 0.25), aes(x=numvar, y=value, group=Grou
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle = 90))
 
-FPR <- ggplot(subset(Rel_crop_plot, numvar > 0.25), aes(x=variable, y=value, group=Group.1))+
+CPR <- ggplot(subset(Rel_crop_plot, numvar > 0.25), aes(x=variable, y=value, group=Group.1))+
   #FPR <- ggplot(data=Rel_crop_plot, aes(x=variable, y=value, group=Group.1, color=Group.1))+
   geom_line(alpha=0.3)+
   scale_x_discrete(labels=Buffer_Labels)+
@@ -796,7 +796,7 @@ FPR <- ggplot(subset(Rel_crop_plot, numvar > 0.25), aes(x=variable, y=value, gro
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle = 90))
 
-FPRN <- ggplot(data=Rel_crop_plot, aes(x=numvar, y=value, group=Group.1))+
+CPRN <- ggplot(data=Rel_crop_plot, aes(x=numvar, y=value, group=Group.1))+
   geom_line(alpha=0.3)+
   #scale_x_discrete(labels=Buffer_Labels)+
   labs(title="Halo - crop sites", 
@@ -808,7 +808,7 @@ FPRN <- ggplot(data=Rel_crop_plot, aes(x=numvar, y=value, group=Group.1))+
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle = 90))
 
-FPRD <- ggplot(data=Rel_crop_plot, aes(x=variable, y=value, group=Group.1)) +
+CPRD <- ggplot(data=Rel_crop_plot, aes(x=variable, y=value, group=Group.1)) +
   geom_line(alpha=0.3)
 #Trying this gghighlight thing
 str(Crop_plot)
