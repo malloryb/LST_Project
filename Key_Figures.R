@@ -532,7 +532,7 @@ ff <- ggplot(df, aes(x=Month, group=1)) +
   geom_line(aes(y=meanDec), color="orange") + 
   geom_errorbar(aes(x=Month, ymin=meanDec-sdDec, ymax=meanDec+sdDec), width=0.2, size=0.5,color="orange")+
   geom_line(aes(y=meanEv), color="green") + 
-  geom_errorbar(aes(x=Month, ymin=meanEv-sdEv, ymax=meanEv+sdEv), width=0.2, size=0.5, color="green")+
+  geom_errorbar(aes(x=Month, ymin=meanEv-sdEv, ymax=meanEv+sdEv), width=0.2, size=0.5, color="green")+x
   geom_line(aes(y=meanFo), color="darkgreen") + 
   geom_errorbar(aes(x=Month, ymin=meanFo-sdFo, ymax=meanFo+sdFo),width=0.2, size=0.5, color="darkgreen")+
   labs(title="Ta-Ts by Forest Type", y="Ta-Ts (degrees C)",  x="Month")+
@@ -705,7 +705,24 @@ myColorkey <- list(at=my.brks, labels=list(at=my.brks, labels=my.at), space="bot
 png("Figures/11_05_19_Fig1c.png", width=4, height=4, units="in", res=300)
 levelplot(Fo_crop, at=my.at, margin=F, col.regions=topo.colors(100), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
 dev.off()
+#Reforestation vs. deforestation map US 
+Historical_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1938.tif")
+Historical_LC[Historical_LC <8 | Historical_LC > 14] <-NA
+Historical_LC[Historical_LC>7 & Historical_LC<11] <-1
+Historical_LC[Historical_LC>10 & Historical_LC < 15] <-0
 
+Later_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1992.tif")
+Later_LC[Later_LC <8 | Later_LC>14] <-NA
+Later_LC[Later_LC>7 & Later_LC<11] <-1
+Later_LC[Later_LC>10 & Later_LC<15] <-0
+
+ReforestDeforest <- Later_LC-Historical_LC
+plot(ReforestDeforest)
+writeRaster(ReforestDeforest, "Processed/Change_LC_FORESCE_wholeUS.tif")
+Dif_LC <- raster("Processed/Change_LC_FORESCE.tif")
+hist(Dif_LC)
+levels(Dif_LC)=data.frame(ID=-1:1, code=c('Deforest', 'Nochange', 'Reforest'))
+levelplot(Dif_LC, col.regions=c('red', 'white', 'green'), pretty=T, interpolate=F) + latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))  
 #Cor between fig 1a and Fig 1c?-------
 #Plan: cut up rasters into bins by latitude and look at the correlation between forest age and delta T within 
 #each bin. 
