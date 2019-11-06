@@ -101,7 +101,7 @@ meanPre1940 <- calc(Pre_1940, fun=mean)
 meanPost1960 <- calc(Post_1960, fun=mean)
 NCA <- meanRecent-meanPreBP
 NCA <- meanPost1960 - meanPreBP
-pal <- colorRampPalette(rev(brewer.pal(6, 'RdBu')))
+pal <- colorRampPalette(rev(brewer.pal(8, 'RdBu')))
 # Switching from a raster to a matrix of class 'bathy'
 library(marmap)
 NCA_plot <- as.bathy(NCA)
@@ -115,7 +115,7 @@ names[names > 180] <- names[names > 180] - 360
 rownames(NCA_plot) <- names
 NCA_plot_raster.modified <- as.raster(NCA_plot)
 while (!is.null(dev.list()))  dev.off()
-png("Figures/11_05_FigPrePostBP.png", width=4, height=4, units="in", res=300)
+png("Figures/11_05_FigNCA.png", width=4, height=4, units="in", res=300)
 p <- levelplot(NCA_plot_raster.modified, margin=F, at=seq(-2,2,0.5), col.regions=(rev(brewer.pal(6,"RdBu"))), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
 diverge0(p, ramp=pal)
 dev.off()
@@ -691,17 +691,18 @@ xx <- ggplot(dfMid, aes(x=Month, group=1)) +
 
 #----------now looking at forest data
 #Level plot for 1c------
-F1 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/conus_age06_1km.tif")
+#F1 <- raster("/Users/mallory/Documents/Temp_Project/NA_TREEAGE_1096/data/conus_age06_1km.tif")
 Forest_Proj <- projectRaster(F1, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 #Make it so you can see the lower intervals better
 Forest_age_2019 <- Forest_Proj + 13
-writeRaster(Forest_age_2019, "/Users/mallory/Documents/Temp_Project/Forest_Age_Conus.tif")
+#writeRaster(Forest_age_2019, "/Users/mallory/Documents/Temp_Project/Forest_Age_Conus.tif")
+Forest_age_2019 <- raster("Raw/Other/Forest_Age_Conus.tif")
 my.at=c(15,30,50,75,100,150,200,300)
 my.brks=seq(0, 300, by=25)
 Fo_crop <- crop(Forest_age_2019, temp_raster.modified)
 
 myColorkey <- list(at=my.brks, labels=list(at=my.brks, labels=my.at), space="bottom")
-png("/Users/mallory/Documents/Temp_Project/Fig1c.png", width=4, height=4, units="in", res=300)
+png("Figures/11_05_19_Fig1c.png", width=4, height=4, units="in", res=300)
 levelplot(Fo_crop, at=my.at, margin=F, col.regions=topo.colors(100), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
 dev.off()
 
