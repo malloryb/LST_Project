@@ -4,7 +4,7 @@
 #Figure 3: Difference in surface and air temperature by forest stand age (correlation map)
 #Figure 3: Lily's figure
 #Figure 4: Flux synthesis figure
-
+setwd("/Volumes/G-RAID Thunderbolt 3/Temp_Project/")
 #Load packages
 Packages <- c("here", "ncdf4", "ggplot2", "reshape2", "raster", "proj4", "rgdal", "gdalUtils", "greenbrown", "RColorBrewer",
               "MODIS", "rasterVis", "gridExtra", "plyr", "gridBase", "devtools","spatialEco")
@@ -24,8 +24,8 @@ rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = 
 
  #Figure 1---------------------
 #Create bounding box out of extent of D
-Diffs <- brick("/Users/mallory/Documents/Temp_Project/Ta_Ts_All.tif")
-Diffs  <- brick("/Users/mallory/Documents/Temp_Project/Ta_AquaTs_All.tif")
+Diffs <- brick("Processed/Ta_Ts_All.tif")
+Diffs  <- brick("Processed/Ta_AquaTs_All.tif")
 library(sp)
 e <- as(raster::extent(Diffs), "SpatialPolygons")
 proj4string(e) <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
@@ -33,7 +33,7 @@ plot(e)
 #Using University of Delaware Air Temperature & Precipitation
 # Data product accessed from: https://www.esrl.noaa.gov/psd/data/gridded/data.UDel_AirT_Precip.html
 #Open air temp file (0.5 degree)
-fname <- ("/Users/mallory/Documents/Temp_Project/air.mon.mean.v501.nc")
+fname <- ("Raw/Other/air.mon.mean.v501.nc")
 nc<-nc_open(fname)
 # Get a list of the NetCDF's R attributes:
 attributes(nc)$names
@@ -47,7 +47,7 @@ TAS_test <- crop(TAS, ext)
 #Do the kendall test
 #kendall_raster <- raster.kendall(TAS_test, tau=TRUE, p.value=TRUE)
 #writeRaster(kendall_raster, "Temp_Kendall_US.tif")
-kendall_raster <- raster("/Users/mallory/Documents/Temp_Project/Temp_Kendall_US.tif")
+kendall_raster <- raster("Processed/Temp_Kendall_US.tif")
 #Trying to center color ramp so white is at zero:
 pal <- colorRampPalette(c("blue","cadetblue1", "lightblue", "white","red", "red3"))
 #kendall_raster[kendall_raster < -0.00245] <- NA
@@ -63,7 +63,7 @@ plot(greenbrown_test[[2]], col=pal(10), main="Slope of temperature trend: 1900-p
 temp_raster <- greenbrown_test[[2]]
 #writeRaster(temp_raster, "/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif")
 #Getting color ramp to diverge at zero
-temp_raster <- raster("/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif")
+temp_raster <- raster("Processed/Temp_Change_Map.tif")
 temp_raster[temp_raster < -0.029] <-NA
 devtools::source_gist('306e4b7e69c87b1826db')
 pal <- colorRampPalette(rev(brewer.pal(6, 'RdBu')))
@@ -81,10 +81,46 @@ names[names > 180] <- names[names > 180] - 360
 rownames(temp) <- names
 temp_raster.modified <- as.raster(temp)
 while (!is.null(dev.list()))  dev.off()
-png("/Users/mallory/Documents/Temp_Project/Fig1atest.png", width=4, height=4, units="in", res=300)
+png("Figures/11_05_Fig1.png", width=4, height=4, units="in", res=300)
 p <- levelplot(temp_raster.modified*50, margin=F, col.regions=(rev(brewer.pal(11,"RdBu"))), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
 diverge0(p, ramp=pal)
 dev.off()
+
+#Going to try instead to do the temperature changes from 1991-2012 compared to the 1901-1960
+#Two rasters: Average temp for 1900-1960 and Average temp from 1990-Dec 2014(most recent)
+#1900-1960
+Pre_BP <- TAS_test[[1:720]]
+Pre_1940 <- TAS_test[[1:480]]
+Btwn_1940_1960 <- TAS_test[[481:720]]
+Post_1960 <- TAS_test[[721:1416]]
+#1990-2014
+Recent_Temp <- TAS_test[[1129:1416]]
+meanPreBP <- calc(Pre_BP, fun=mean)
+meanRecent <- calc(Recent_Temp, fun=mean)
+meanPre1940 <- calc(Pre_1940, fun=mean)
+meanPost1960 <- calc(Post_1960, fun=mean)
+NCA <- meanRecent-meanPreBP
+NCA <- meanPost1960 - meanPreBP
+pal <- colorRampPalette(rev(brewer.pal(6, 'RdBu')))
+# Switching from a raster to a matrix of class 'bathy'
+library(marmap)
+NCA_plot <- as.bathy(NCA)
+summary(NCA_plot)
+
+# Changing the relevant longitude
+names <- as.numeric(row.names(NCA_plot))
+names[names > 180] <- names[names > 180] - 360
+
+# Renaming the longitudes and switching back from a 'bathy' object to a raster
+rownames(NCA_plot) <- names
+NCA_plot_raster.modified <- as.raster(NCA_plot)
+while (!is.null(dev.list()))  dev.off()
+png("Figures/11_05_FigPrePostBP.png", width=4, height=4, units="in", res=300)
+p <- levelplot(NCA_plot_raster.modified, margin=F, at=seq(-2,2,0.5), col.regions=(rev(brewer.pal(6,"RdBu"))), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
+diverge0(p, ramp=pal)
+dev.off()
+
+
 
 #Figure 1b-----------------
 #Testing break points
@@ -122,7 +158,7 @@ IDs <- sapply(strsplit(boundaries$names, ":"), function(x) x[1])
 bPols <- map2SpatialPolygons(boundaries, IDs=IDs,
                              proj4string=CRS(projection(breaks)))
 
-png("/Users/mallory/Documents/Temp_Project/Fig1b.png", width=4, height=4, units="in", res=300)
+png("Figures/11_05_2019_Fig1b.png", width=4, height=4, units="in", res=300)
 levelplot(breaks.modified, at=my.at, margin=F,col.regions=((brewer.pal(12,"Paired"))))+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
 dev.off()
 plot(cars)
