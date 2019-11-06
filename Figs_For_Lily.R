@@ -1085,18 +1085,14 @@ Just_LC <- raster("Processed/NCLD_2008_processed.tif")
 
 #Diffs_reproj <- projectRaster(Diffs_LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
 #writeRaster(Diffs_reproj, "Change_LC_proj.tif")
-<<<<<<< HEAD
 Diffs_reproj <- raster("Change_LC_proj.tif")
 Forest_age_2019 <- raster("Raw/Other/Forest_Age_Conus.tif")
-=======
 Diffs_reproj <- raster("Processed/Change_LC_proj.tif")
->>>>>>> cfff63585c3b2f80e7b7fec6720562aceddb8c79
 plot(Diffs_reproj)
 xy <- cbind(All_Sites_Temps_clean$LONG, All_Sites_Temps_clean$LAT)
 xy2 <- unique(xy)
 #Absmax, from here: https://stackoverflow.com/questions/24652771/finding-the-maximum-absolute-value-whilst-preserving-or-symbol
 absmax <- function(x) { x[which.max( abs(x) )][1]}
-<<<<<<< HEAD
 LC_Change <- raster::extract(Diffs_reproj, xy2, fun=absmax, buffer=600, df=T)
 Fo_age <- raster::extract(Forest_age_2019, xy2, fun=mean_na, buffer=1000, df=T)
 str(All_Sites_Temps_clean)
@@ -1119,7 +1115,7 @@ ggplot(data=subset(all_forest_gs, !is.na(type)), aes(x=Year, y=T90_gs, colour=ty
   geom_smooth(method="loess")+
   labs(title="Air temperature trend by land cover change", 
        y="Temperature Anomaly (Z score)", 
-=======
+
 mode <- function(x) {
   ux <- na.omit(unique(x) )
   tab <- tabulate(match(x, ux)); ux[tab == max(tab) ]
