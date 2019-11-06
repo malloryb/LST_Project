@@ -551,7 +551,7 @@ x4 <-ggplot(data=Crop_Ta_melt, aes(x=variable, y=value, group=month, color=month
 grid.arrange(x1, x2, nrow=1)
 grid.arrange(x3,x4, nrow=1)
 
-#Transect ----------
+#Transect/Halo ----------
 setwd("/Volumes/G-RAID Thunderbolt 3/Temp_Project/")
 LST_2014 <- stack("Processed/MODIS_AquaLST_2014.tif")
 LandCover <- stack("Processed/NCLD_2008_processed.tif")
@@ -773,7 +773,7 @@ Rel_crop_plot$numvar <- dplyr::recode(Rel_crop_plot$variable, res_300 = "0.25", 
 Rel_crop_plot$numvar <- as.numeric(as.character(Rel_crop_plot$numvar))
 
 
-FP <- ggplot(subset(Crop_plot, numvar > 0.25), aes(x=numvar, y=value, group=Group.1, color=Group.1))+
+CP <- ggplot(subset(Crop_plot, numvar > 0.25), aes(x=numvar, y=value, group=Group.1, color=Group.1))+
   geom_line()+
   #scale_x_discrete(labels=Buffer_Labels)+
   labs(title="Halo - Crop sites", 
