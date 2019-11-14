@@ -727,11 +727,12 @@ levelplot(Dif_LC, col.regions=c('red', 'white', 'green'))
 #Need to use nearest neighbor for reprojection since categorical variables - see here: https://stackoverflow.com/questions/15634882/why-the-values-of-my-raster-map-change-when-i-project-it-to-a-new-crs-projectra
 #Diffs_reproj <- projectRaster(Dif_LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method = "ngb" )
 #writeRaster(Diffs_reproj, "Processed/Change_LC_proj.tif")
-
+Diffs_reproj <- raster("Processed/Change_LC_proj.tif")
 hist(Diffs_reproj)
 levels(Diffs_reproj)=data.frame(ID=-1:1, code=c('Deforest', 'Nochange', 'Reforest'))
-levelplot(Diffs_reproj, col.regions=c('red', 'white', 'green'))
-
+png("Figures/11_05_19_ReforestFig.png", width=4, height=4, units="in", res=300)
+levelplot(Diffs_reproj, margin=F, col.regions=c('red', 'white', 'green'))+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
+dev.off()
 #Starting here...-------------------
 #Instead of forest, crop and urban, each site will be one of three categories. 'Reforest', 'Deforest', and 'Nochange'
 Diffs_reproj <- raster("Processed/Change_LC_proj.tif")
