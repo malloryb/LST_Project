@@ -64,6 +64,7 @@ temp_raster <- greenbrown_test[[2]]
 #writeRaster(temp_raster, "/Users/mallory/Documents/Temp_Project/Temp_Change_Map.tif")
 #Getting color ramp to diverge at zero
 temp_raster <- raster("Processed/Temp_Change_Map.tif")
+temp_raster <- raster("Processed")
 temp_raster[temp_raster < -0.029] <-NA
 devtools::source_gist('306e4b7e69c87b1826db')
 pal <- colorRampPalette(rev(brewer.pal(6, 'RdBu')))
@@ -195,7 +196,8 @@ plot(greenbrown_test3break[[7]], zlim=c(1910,2010), col=  rainbow(100), main="Br
 
 #Figure 2: Create Ta-Ts map for the US ---------
 Diffs <- brick("/Users/mallory/Documents/Temp_Project/Ta_Ts_All.tif")
-Diffs <- brick("/Users/mallory/Documents/Temp_Project/Ta_AquaTs_All.tif")
+Diffs <- brick("Processed/Ta_AquaTs_All.tif")
+names(Diffs) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 plot(Diffs)
 cols <- colorRampPalette(brewer.pal(9,"RdBu"))
 my.at <- seq(-6,6,1)
@@ -215,8 +217,9 @@ Land_Cover <- raster("/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/
 e2 <- extent(-40000, 2300000, -1800000, 400000)
 LC <- crop(Land_Cover, e2)
 plot(LC)
-LC_proj <-projectRaster(LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
-writeRaster(LC_proj, "/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
+#LC_proj <-projectRaster(LC, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+#writeRaster(LC_proj, "/Users/mallory/Documents/Temp_Project/landcvi020l_nt00016/landcover_proj.tif")
+LC_proj <- raster("Raw/Other/landcvi020l_nt00016/landcover_proj.tif")
 ext <- extent(Diffs)
 LC_crop <- crop(LC_proj, ext)
 #Create 3 masks: 
@@ -273,9 +276,19 @@ plot(Fo_Diff)
 
 #Levelplots by land cover type-------------
 my.at <- seq(-6,6,1)
+
+png("Figures/11_12_2019_Ta_TsForests.png", width=8, height=8, units="in", res=300)
 levelplot(Fo_Diff, at=my.at, main="Ta_Ts in forests", col.regions=(cols))
+dev.off()
+
 levelplot(Crop_Diff, at=my.at, main="Ta-Ts in croplands",col.regions=(cols))
+
+png("Figures/11_12_2019_Ta_TsCrops.png", width=8, height=8, units="in", res=300)
 levelplot(Crop2_Diff, at=my.at, main="Ta-Ts in croplands",col.regions=(cols))
+dev.off()
+
+FoCrop <- stack(Fo_Diff[[5:9]], Crop2_Diff[[5:9]])
+levelplot(FoCrop, at=my.at, main="Ta-Ts in croplands",col.regions=(cols))
 
 
 densityplot(Urban_Diff, main="Ta-Ts in Urban Environments")
@@ -296,8 +309,7 @@ bwplot(Fo_Diff, main="Ta_Ts in Forest Environments")
 plot(Fo_Diff)
 #Buffer analysis------------
 Blob_analysis <- function(x, y){
-  names(x) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-                "Oct", "Nov", "Dec")
+  !f9jred#@dJ
   Blob <-  as.data.frame(extract(x,y, buffer=300))
   Blob2 <- as.data.frame(extract(x,y, buffer=500))
   Blob3 <- colMeans(as.data.frame(extract(x,y, buffer=1000)), na.rm=TRUE)
@@ -705,21 +717,28 @@ myColorkey <- list(at=my.brks, labels=list(at=my.brks, labels=my.at), space="bot
 png("Figures/11_05_19_Fig1c.png", width=4, height=4, units="in", res=300)
 levelplot(Fo_crop, at=my.at, margin=F, col.regions=topo.colors(100), pretty=T, interpolate=T)+latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))
 dev.off()
-#Reforestation vs. deforestation map US 
+#Reforestation vs. deforestation map US --------
 Historical_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1938.tif")
 Historical_LC[Historical_LC <8 | Historical_LC > 14] <-NA
 Historical_LC[Historical_LC>7 & Historical_LC<11] <-1
 Historical_LC[Historical_LC>10 & Historical_LC < 15] <-0
+plot(Historical_LC)
 
 Later_LC <- raster("Raw/Other/FORE-SCE/Conus_Backcasting_y1992.tif")
-Later_LC[Later_LC <8 | Later_LC>14] <-NA
+Later_LC[Later_LC <8 | Later_LC > 14] <-NA
 Later_LC[Later_LC>7 & Later_LC<11] <-1
-Later_LC[Later_LC>10 & Later_LC<15] <-0
+Later_LC[Later_LC>10 & Later_LC < 15] <-0
 
 ReforestDeforest <- Later_LC-Historical_LC
 plot(ReforestDeforest)
+hist(ReforestDeforest)
 writeRaster(ReforestDeforest, "Processed/Change_LC_FORESCE_wholeUS.tif")
+
+levels(ReforestDeforest)=data.frame(ID=-1:1, code=c('Deforest', 'Nochange', 'Reforest'))
+levelplot(ReforestDeforest, col.regions=c('red', 'white', 'green'), pretty=T, interpolate=T) + latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))  
+
 Dif_LC <- raster("Processed/Change_LC_FORESCE.tif")
+plot(Dif_LC)
 hist(Dif_LC)
 levels(Dif_LC)=data.frame(ID=-1:1, code=c('Deforest', 'Nochange', 'Reforest'))
 levelplot(Dif_LC, col.regions=c('red', 'white', 'green'), pretty=T, interpolate=F) + latticeExtra::layer(sp.polygons(e))+latticeExtra::layer(sp.polygons(bPols))  
