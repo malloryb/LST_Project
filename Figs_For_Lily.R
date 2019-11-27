@@ -487,9 +487,10 @@ latlongs[117,7] <- "newman"
 #Looks like I lost a few but don't have time to figure it out at the moment. 
 merged <- merge(T_site_lookup, latlongs, by="names")
 str(merged)
-write.csv(merged, "Processed/MergedWeather.csv")
+#write.csv(merged, "Processed/MergedWeather.csv")
 #Get rid of FL sites!
 #merged <- subset(merged, !STATE=="FL")
+merged <- read.csv("Processed/MergedWeather.csv")
 mergedfo <- subset(merged, LC=="For")
 mergedag <- subset(merged, LC=="Ag")
 mergedhighlat <- subset(merged, LAT <43 & LAT > 37)
@@ -498,6 +499,7 @@ mergedlowlat <- subset(merged, LAT < 33)
 #Headers
 headers <- read.csv("Raw/Weather Station/TAVG_20190621_Allsiteswithnames200mbufferlandcover.csv", header = F, nrows=1, as.is=T)
 #Tmax data
+str()
 Tmax <- read.csv("Raw/Weather Station/TMAX_20190621_Allsiteswithnames200mbufferlandcover.csv", skip=4)
 names(Tmax) <- headers
 Year <- Tmax$Year
@@ -1115,7 +1117,7 @@ all_forest_gs1960 <- subset(all_forest_gs, Year > 1945)
 ggplot(data=subset(all_forest_gs, !is.na(type)), aes(x=Year, y=T90_gs, colour=type, group=type)) +
   geom_smooth(method="loess")+
   labs(title="Air temperature trend by land cover change", 
-       y="Temperature Anomaly (Z score)", 
+       y="Temperature Anomaly (Z score)") 
 
 mode <- function(x) {
   ux <- na.omit(unique(x) )
@@ -1239,7 +1241,7 @@ s <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T9
 #w + facet_wrap(~changetype)
 
 plyr::count(all_forest_gs, 'latcat')$freq/113
-plyr::count(all_forest_gs, 'changetype')/$freq/113
+plyr::count(all_forest_gs, 'changetype')$freq/113
 plyr::count(all_forest_gs, 'heightcat')$freq/113
 plyr::count(all_forest_gs, 'agecat')$freq/113
 
@@ -1274,7 +1276,6 @@ h1 <- ggplot(data=subset(all_forest_gs, changetype!='deforest'), aes(x=Year, y=T
   geom_smooth(method="loess", span=0.2)+
   labs(title="Air temperature trend by land cover change: 90% hottest", 
        y="Temperature", 
->>>>>>> cfff63585c3b2f80e7b7fec6720562aceddb8c79
        x="Year")+
   theme_classic()
 
