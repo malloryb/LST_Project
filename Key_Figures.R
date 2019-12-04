@@ -203,8 +203,11 @@ cols <- colorRampPalette(brewer.pal(9,"RdBu"))
 my.at <- seq(-6,6,1)
 # create a level plot
 levelplot(Diffs)
+
+png("Figures/11_13_2019_Ta_TsAll.png", width=8, height=8, units="in", res=300)
 levelplot(Diffs, at=my.at, main="Difference between Air Temperature and Surface Temperature (Ta-Ts)",
           col.regions=(cols))
+dev.off()
 #Fancy Plots: 
 #Density plot
 densityplot(Diffs)
@@ -235,9 +238,9 @@ Cropmask[Cropmask <2 | Cropmask>6 | Cropmask==3 | Cropmask==4 | Cropmask==5] <- 
 plot(Cropmask)
 Cropmask <- resample(Cropmask, Diffs, method="bilinear")
 plot(Cropmask)
-#2b: Testing Croplands again (2,4,5,6)
+#2b: Testing Croplands again and add in grasslands? (2,4,5,6, 7)
 Cropmask2 <- LC_crop
-Cropmask2[Cropmask2 <2 | Cropmask2>6 | Cropmask2==3] <- NA
+Cropmask2[Cropmask2 <2 | Cropmask2>7 | Cropmask2==3] <- NA
 plot(Cropmask2)
 Cropmask2 <- resample(Cropmask2, Diffs, method="bilinear")
 plot(Cropmask2)
@@ -288,11 +291,14 @@ levelplot(Crop2_Diff, at=my.at, main="Ta-Ts in croplands",col.regions=(cols))
 dev.off()
 
 FoCrop <- stack(Fo_Diff[[5:9]], Crop2_Diff[[5:9]])
-levelplot(FoCrop, at=my.at, main="Ta-Ts in croplands",col.regions=(cols))
+names(FoCrop) <- (c("May", "Jun", "Jul", "Aug", "Sep", "May", "Jun", "Jul", "Aug", "Sep"))
 
+png("Figures/11_12_2019_FoCrop_Comps.png", width=8, height=8, units="in", res=300)
+levelplot(FoCrop, layout=c(5,2), at=my.at, main="",col.regions=(cols))
+dev.off()
 
-densityplot(Urban_Diff, main="Ta-Ts in Urban Environments")
-bwplot(Urban_Diff, main="Ta-Ts in Urban Environments")
+#densityplot(Urban_Diff, main="Ta-Ts in Urban Environments")
+#bwplot(Urban_Diff, main="Ta-Ts in Urban Environments")
 
 densityplot(Crop_Diff, main="Ta_Ts in Agricultural Environments")
 bwplot(Crop_Diff, main="Ta-Ts in Agricultural Environments")

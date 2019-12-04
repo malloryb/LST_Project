@@ -15,8 +15,8 @@ rasterOptions(tmpdir="C:\\",tmptime = 24,progress="text",timer=TRUE,overwrite = 
 
 setwd("/Volumes/G-RAID Thunderbolt 3/Temp_Project")
 #Load file for plotting
-df <- read.csv("/Processed/for_plotting.csv")
-str(df)
+df <- read.csv("Raw/Remote_Sensing/Aqua_for_plotting.csv")
+str(df) 
 #Melt mean values
 dft <- df[,c("Month", "meanUrban", "meanCrop2", "meanFo")]
 dfm <- melt(dft, id="Month")
@@ -25,7 +25,7 @@ dferror <- df[,c("Month", "seUrban", "seCrop2", "seFo")]
 dfe <- melt(dferror, id="Month", value.name="error")
 dfm$error <- dfe$error
 #Order factors properly
-fm$variable <- factor(dfm$variable,levels = c("meanFo", "meanCrop2", "meanUrban"))
+dfm$variable <- factor(dfm$variable,levels = c("meanFo", "meanCrop2", "meanUrban"))
 #First Figure - Fig 4 from paper
 ggplot(data = dfm, aes(x = Month, y = value, color = variable)) + 
   #geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 0),
@@ -41,7 +41,7 @@ ggplot(data = dfm, aes(x = Month, y = value, color = variable)) +
   labs(title="Ta-Ts by Land Cover Type", 
        y="Ta-Ts (degrees C)", 
        x="Month")+
-  ylim(-4.5, 4.5)+
+  ylim(-3, 7.5)+
   scale_x_continuous(breaks=seq(1,12,3))+
   geom_hline(yintercept=0, linetype="dashed", 
              color = "black", size=0.5)+
@@ -84,17 +84,20 @@ ggsave("Land_Cover_Change.pdf")
 
 
 #--------- Lily Data
-allmeans <- read.csv("/Lily_Data/allmeans200mupdateddata.csv")
-fomeans <- read.csv("/Lily_Data/allmeans200mupdateddata.csv")
-agmeans <- read.csv("/Lily_Data/allmeans200mupdateddata.csv")
+allmeans <- read.csv("Lily_Data/allmeans200mupdateddata.csv")
+fomeans <- read.csv("Lily_Data/forestmeans200mupdateddata.csv")
+agmeans <- read.csv("Lily_Data/agriculturemeans200mupdateddata.csv")
 
 allmeans$category <- "all"
 agmeans$category <- "ag"
 fomeans$category <- "for"
 
 alltoplot <- rbind(rbind(allmeans, agmeans), fomeans)
-ggplot(alltoplot, aes(x=year, y=y, color=category))+
-  geom_line()
+alltoplot$category <- as.factor(alltoplot$category)
+str(alltoplot)
+
+ggplot(alltoplot, aes(x=year, y=y))+
+  geom_line(aes(group=category, color=category))
 
 alltoplot
 
@@ -152,11 +155,12 @@ names(For_all) <- c("year", "y")
 Ag_all<- Tavg[c(1,189)]
 
 names(Ag_all) <- c("year", "y")
-write.csv(All, "Raw/Weather Station/CPModel/data/Tavg_Allsite.csv")
-write.csv(For_all, "Raw/Weather Station/CPModel/data/Tavg_Forsite.csv")
-write.csv(Ag_all, "Raw/Weather Station/CPModel/data/Tavg_Agsite.csv")
+#write.csv(All, "Raw/Weather Station/CPModel/data/Tavg_Allsite.csv")
+#write.csv(For_all, "Raw/Weather Station/CPModel/data/Tavg_Forsite.csv")
+#write.csv(Ag_all, "Raw/Weather Station/CPModel/data/Tavg_Agsite.csv")
+Ag_all <- read.csv("Raw/Weather Station/CPModel/data/Tavg_Agsite.csv")
 
-For_all$x <- Ag_all$Agmean
+For_all$x <- Ag_all$y
 names(For_all) <- c("year", "forest", "ag")
 str(For_all)
 toplot5 <- melt(For_all, id.vars = "year", measure.vars = c("forest", "ag"))
@@ -880,9 +884,9 @@ Height_reproj <- aggregate(y, fact=3)
 #Using nearest neighbor because it's a discrete (class) variable
 #Taking FOREVER - run overnight. 
 Height_reproj <- projectRaster(Height_reproj, crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", method="ngb")
-writeRaster(Height_reproj, "Processed/landfireheight.tif")
+#writeRaster(Height_reproj, "Processed/landfireheight.tif")
 #Reproject y 
-
+Height_reproj <- raster("Processed/landfireheight.tif")
 #Categories: of interest: 
 #Forest height: 109 (5 to 10 meters), 110 (10 to 25 meters), 111 (25 to 50 meters), 112 (> 50 meters)
 #Agriculture - General (80), Pasture/Hay (81), etc. etc. 
@@ -920,7 +924,7 @@ Format_Weather <- function(x){
 lxls <- list.files("Raw/Weather_Station_Raw", pattern= "\\.xlsx$")
 test <- (lapply(lxls, Format_Weather))
 All_Sites_Temps <- do.call(rbind, test)
-write.csv(All_Sites_Temps, "Processed/All_Growingseason_Temps_gs.csv")
+#write.csv(All_Sites_Temps, "Processed/All_Growingseason_Temps_gs.csv")
 
 #Now to merge to get lat longs
 #just for home computer
@@ -1044,7 +1048,7 @@ colnames(merged_gs)[2] <- "ID_no"
 
 merged_gs <- merged_gs[order(merged_gs$ID_no),]
 summary(merged_gs$ID)
-write.csv(merged_gs, "Processed/to_fill_years.csv")
+#write.csv(merged_gs, "Processed/to_fill_years.csv")
 merged_gs<- read.csv("Processed/to_fill_years.csv")
 #Need to gap fill
 #Create dataframe with all site names, and then year values of 1900:2013 for all
@@ -1072,7 +1076,7 @@ return(y)
 test2 <- lapply(X, addyears)
 All_Sites_Temps_clean <- do.call(rbind, test2)
 summary(All_Sites_Temps_clean$ID)
-write.csv(All_Sites_Temps_clean, "Processed/Allsites_gs_cleaned.csv")
+#write.csv(All_Sites_Temps_clean, "Processed/Allsites_gs_cleaned.csv")
 
 All_Sites_Temps_clean <- read.csv("Processed/Allsites_gs_cleaned.csv")
 #RasterFiles
@@ -1189,7 +1193,7 @@ Create_plotting <- function(b){
 
 all_forest_gs <- Create_plotting(300)
 all_forest_gs1945 <- subset(all_forest_gs, Year > 1945)
-write.csv(all_forest_gs, "Processed/10_04_2019_Plotting_Cleaned_Weatherdata.csv")
+write.csv(all_forest_gs, "Processed/11_04_2019_Plotting_Cleaned_Weatherdata.csv")
 
 
 
